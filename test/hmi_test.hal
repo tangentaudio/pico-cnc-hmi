@@ -1,6 +1,0 @@
-loadrt threads name1=main-thread period1=2000000 fp1=1
-
-loadusr -W ./hmi_test.py
-start
-
-show pin

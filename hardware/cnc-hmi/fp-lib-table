@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "CNC-HMI")(type "KiCad")(uri "${KIPRJMOD}/CNC-HMI.pretty")(options "")(descr ""))
+)
