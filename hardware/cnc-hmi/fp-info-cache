@@ -1,4 +1,4 @@
-25652987456967064
+25654728917104835
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -2582,6 +2582,13 @@ QFN50P400X400X80-25N
 0
 25
 25
+CNC-HMI
+REC16K25201
+REC16K25-201-2
+Switch
+0
+6
+6
 CNC-HMI
 RaspberryPi_Pico2_SMD_HandSolder
 Raspberry Pi Pico (non-W) surface-mount footprint with debug pads for hand soldering, supports Raspberry Pi Pico 2 (non-W), https://datasheets.raspberrypi.com/pico/pico-datasheet.pdf
