@@ -1,0 +1,7 @@
+_autosave-cnc-hmi.kicad_pcb
+cnc-hmi-backups/
+cnc-hmi-backups/*
+*.lck
+*.bak
+*.log
+
