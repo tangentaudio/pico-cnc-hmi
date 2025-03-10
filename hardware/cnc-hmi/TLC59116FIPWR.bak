@@ -158,7 +158,7 @@
 				)
 			)
 			(pin input line
-				(at -17.78 10.16 0)
+				(at -17.78 -17.78 0)
 				(length 5.08)
 				(name "SCL"
 					(effects

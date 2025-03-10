@@ -87,11 +87,11 @@
 		)
 		(embedded_fonts no)
 	)
-	(symbol "LCD?"
+	(symbol "ER-OLED0208-1"
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(property "Reference" "U"
+		(property "Reference" "LCD"
 			(at 0 4.318 0)
 			(effects
 				(font
@@ -134,7 +134,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "LCD?_1_1"
+		(symbol "ER-OLED0208-1_1_1"
 			(rectangle
 				(start 0 0)
 				(end 11.43 -45.72)

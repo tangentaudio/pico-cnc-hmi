@@ -210,16 +210,16 @@
 		(layer "F.CrtYd")
 		(uuid "9eaa0823-a72d-4edb-aacb-19f13107d14e")
 	)
-	(pad "0" smd rect
-		(at -4.79 2.325)
-		(size 2 3)
+	(pad "" smd rect
+		(at -4.8795 2.325)
+		(size 2.179 3)
 		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
 		(uuid "db743114-4159-4624-a88a-8aa7ef73100d")
 	)
-	(pad "0" smd rect
-		(at 4.79 2.325)
-		(size 2 3)
+	(pad "" smd rect
+		(at 4.8795 2.325)
+		(size 2.179 3)
 		(layers "F.Cu" "F.Mask" "F.Paste")
 		(thermal_bridge_angle 45)
 		(uuid "d51731bb-3738-4273-aaf2-561743ccf18e")
@@ -323,4 +323,15 @@
 		(uuid "d1b4d1a3-e5d6-4a5c-ba6d-9527ededbdfa")
 	)
 	(embedded_fonts no)
+	(model "${KIPRJMOD}/3D/687114183622_Download_STP_687114183622_rev1.stp"
+		(offset
+			(xyz 0 -1.5 0.5)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -180 -0)
+		)
+	)
 )

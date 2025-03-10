@@ -1,4 +1,4 @@
-25654728917104835
+25661699727095069
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -2574,7 +2574,35 @@ ER-CON14HT-1
 
 0
 16
-15
+14
+CNC-HMI
+LinuxCNC Logo
+
+
+0
+0
+0
+CNC-HMI
+M2.5-Mounting Hole
+
+
+0
+0
+0
+CNC-HMI
+M3-Mounting Hole
+
+
+0
+1
+0
+CNC-HMI
+M4-Mounting Hole
+
+
+0
+1
+0
 CNC-HMI
 QFN50P400X400X80-25N
 

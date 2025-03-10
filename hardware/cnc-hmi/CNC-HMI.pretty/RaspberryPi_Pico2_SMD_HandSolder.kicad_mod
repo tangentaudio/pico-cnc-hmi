@@ -2666,18 +2666,7 @@
 		)
 	)
 	(embedded_fonts no)
-	(model "${KICAD9_3DMODEL_DIR}/Module.3dshapes/RaspberryPi_Pico.wrl"
-		(offset
-			(xyz 0 0 0)
-		)
-		(scale
-			(xyz 1 1 1)
-		)
-		(rotate
-			(xyz 0 0 0)
-		)
-	)
-	(model "${KIPRJMOD}/3D/RP-006426-DD-A-Raspberry Pi Pico 2 3D CAD Model R5 24 07 24.step"
+	(model "${KIPRJMOD}/3D/Raspberry Pi Pico-R3.STEP"
 		(offset
 			(xyz 0 0 0)
 		)

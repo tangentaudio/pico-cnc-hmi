@@ -8,7 +8,7 @@
 	(property "Reference" "REF**"
 		(at 0 -2 0)
 		(layer "F.SilkS")
-		(uuid "10ed7e72-66d8-4a27-9614-6282762d9e96")
+		(uuid "c3f3d092-bdf7-4f9c-be81-054e88a4bee9")
 		(effects
 			(font
 				(size 1 1)
@@ -19,7 +19,7 @@
 	(property "Value" "Stabilizer_Cherry_MX_2.00u"
 		(at 0 2 0)
 		(layer "F.Fab")
-		(uuid "b6f17bda-a74e-4d4f-97e4-45b06f8ea414")
+		(uuid "edfd3c91-fe50-4590-9d38-ab63cd70f0e2")
 		(effects
 			(font
 				(size 1 1)
@@ -31,7 +31,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "d0282b97-51c7-42fb-a98c-0a3b3567ebd8")
+		(uuid "0e1def74-f989-4dbd-82ec-508932351b75")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -43,7 +43,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "e79a158a-609c-43c0-949a-706ef86151b1")
+		(uuid "ba4dfe75-5997-4785-ac74-462451f8b947")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -51,7 +51,7 @@
 			)
 		)
 	)
-	(attr exclude_from_pos_files exclude_from_bom)
+	(attr exclude_from_bom)
 	(fp_line
 		(start -2 0)
 		(end 2 0)
