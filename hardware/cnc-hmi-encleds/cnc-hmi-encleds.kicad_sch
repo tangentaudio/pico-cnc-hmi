@@ -205,6 +205,410 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:C_Small"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0.254)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "C"
+				(at 0.254 1.778 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "C_Small"
+				(at 0.254 -2.032 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Unpolarized capacitor, small symbol"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "capacitor cap"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "C_*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "C_Small_0_1"
+				(polyline
+					(pts
+						(xy -1.524 0.508) (xy 1.524 0.508)
+					)
+					(stroke
+						(width 0.3048)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.524 -0.508) (xy 1.524 -0.508)
+					)
+					(stroke
+						(width 0.3302)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "C_Small_1_1"
+				(pin passive line
+					(at 0 2.54 270)
+					(length 2.032)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -2.54 90)
+					(length 2.032)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "EncLEDS Library:WS2812B-2020"
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "D"
+				(at 5.08 5.715 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify right bottom)
+				)
+			)
+			(property "Value" "WS2812B-2020"
+				(at 1.27 -5.715 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+				)
+			)
+			(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+				(at 1.27 -7.62 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf"
+				(at 2.54 -9.525 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "JLCPCB P/N" "C965555"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "RGB LED NeoPixel Nano addressable"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "LED*WS2812*-2020_PLCC4*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "WS2812B-2020_0_0"
+				(text "RGB"
+					(at 2.286 -4.191 0)
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(symbol "WS2812B-2020_0_1"
+				(rectangle
+					(start -5.08 5.08)
+					(end 5.08 -5.08)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -2.54) (xy 1.778 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -3.556) (xy 1.778 -3.556)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.286 -1.524) (xy 1.27 -2.54) (xy 1.27 -2.032)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.286 -2.54) (xy 1.27 -3.556) (xy 1.27 -3.048)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.683 -1.016) (xy 3.683 -3.556) (xy 3.683 -4.064)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 4.699 -1.524) (xy 2.667 -1.524) (xy 3.683 -3.556) (xy 4.699 -1.524)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 4.699 -3.556) (xy 2.667 -3.556)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "WS2812B-2020_1_1"
+				(pin input line
+					(at -7.62 0 0)
+					(length 2.54)
+					(name "DIN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 7.62 270)
+					(length 2.54)
+					(name "VDD"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -7.62 90)
+					(length 2.54)
+					(name "VSS"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 7.62 0 180)
+					(length 2.54)
+					(name "DOUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Jumper:SolderJumper_2_Open"
 			(pin_numbers
 				(hide yes)
@@ -381,261 +785,6 @@
 						)
 					)
 					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "LED:WS2812B-2020"
-			(pin_names
-				(offset 0.254)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "D"
-				(at 5.08 5.715 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify right bottom)
-				)
-			)
-			(property "Value" "WS2812B-2020"
-				(at 1.27 -5.715 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-				)
-			)
-			(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
-				(at 1.27 -7.62 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf"
-				(at 2.54 -9.525 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "RGB LED NeoPixel Nano addressable"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "LED*WS2812*-2020_PLCC4*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "WS2812B-2020_0_0"
-				(text "RGB"
-					(at 2.286 -4.191 0)
-					(effects
-						(font
-							(size 0.762 0.762)
-						)
-					)
-				)
-			)
-			(symbol "WS2812B-2020_0_1"
-				(polyline
-					(pts
-						(xy 1.27 -2.54) (xy 1.778 -2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 -3.556) (xy 1.778 -3.556)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 2.286 -1.524) (xy 1.27 -2.54) (xy 1.27 -2.032)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 2.286 -2.54) (xy 1.27 -3.556) (xy 1.27 -3.048)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 3.683 -1.016) (xy 3.683 -3.556) (xy 3.683 -4.064)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 4.699 -1.524) (xy 2.667 -1.524) (xy 3.683 -3.556) (xy 4.699 -1.524)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 4.699 -3.556) (xy 2.667 -3.556)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(rectangle
-					(start 5.08 5.08)
-					(end -5.08 -5.08)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type background)
-					)
-				)
-			)
-			(symbol "WS2812B-2020_1_1"
-				(pin input line
-					(at -7.62 0 0)
-					(length 2.54)
-					(name "DIN"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at 0 7.62 270)
-					(length 2.54)
-					(name "VDD"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at 0 -7.62 90)
-					(length 2.54)
-					(name "VSS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin output line
-					(at 7.62 0 180)
-					(length 2.54)
-					(name "DOUT"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1310,6 +1459,12 @@
 		(uuid "2582b133-9c23-4cd4-8d9c-5768908ddb22")
 	)
 	(junction
+		(at 90.17 153.67)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "2b49f1fb-f067-47a7-8ee6-05d5e82d6762")
+	)
+	(junction
 		(at 132.08 36.83)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -1484,6 +1639,18 @@
 		(uuid "82c5ca4c-f1fd-40a7-9a21-87f2089d3f31")
 	)
 	(junction
+		(at 57.15 175.26)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "837e12cc-8ba9-4bea-ac07-39c7a42f99c0")
+	)
+	(junction
+		(at 101.6 161.29)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "83b7b4fc-a40e-47ba-936c-2d8f10376b69")
+	)
+	(junction
 		(at 99.06 146.05)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -1518,6 +1685,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "926c86c2-08dd-4032-a7e7-a87f790d5976")
+	)
+	(junction
+		(at 80.01 153.67)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "94b0d9bb-9c6c-4cee-91b6-b87cfe69b99f")
 	)
 	(junction
 		(at 181.61 81.28)
@@ -1596,6 +1769,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "a9ed963d-b550-4cb4-b473-3adb8e76ce02")
+	)
+	(junction
+		(at 77.47 182.88)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ac18f719-d793-4544-9e47-a9f7c55ad009")
 	)
 	(junction
 		(at 148.59 102.87)
@@ -1813,6 +1992,16 @@
 	)
 	(wire
 		(pts
+			(xy 90.17 153.67) (xy 101.6 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "03ce6999-a7b3-4020-8975-e3122ae9474c")
+	)
+	(wire
+		(pts
 			(xy 156.21 91.44) (xy 157.48 91.44)
 		)
 		(stroke
@@ -1840,6 +2029,16 @@
 			(type default)
 		)
 		(uuid "06c5db85-5c03-424e-bb28-f9fb50c0d50e")
+	)
+	(wire
+		(pts
+			(xy 80.01 153.67) (xy 80.01 160.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0782410d-0302-423c-9f73-7e4f081f82b3")
 	)
 	(wire
 		(pts
@@ -2023,6 +2222,16 @@
 	)
 	(wire
 		(pts
+			(xy 57.15 180.34) (xy 57.15 182.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "19e41397-4982-4eef-8ea7-b7d597093ba1")
+	)
+	(wire
+		(pts
 			(xy 132.08 142.24) (xy 132.08 146.05)
 		)
 		(stroke
@@ -2060,6 +2269,16 @@
 			(type default)
 		)
 		(uuid "1b5ff55e-6193-4491-b110-204c54db9ca3")
+	)
+	(wire
+		(pts
+			(xy 101.6 161.29) (xy 101.6 158.75)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1d2ca17d-2bc1-4f75-8d3d-c4f45b3ad241")
 	)
 	(wire
 		(pts
@@ -2583,6 +2802,16 @@
 	)
 	(wire
 		(pts
+			(xy 90.17 158.75) (xy 90.17 161.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5dea11a4-4a68-4f23-9356-bd6d6be272e7")
+	)
+	(wire
+		(pts
 			(xy 181.61 36.83) (xy 198.12 36.83)
 		)
 		(stroke
@@ -2720,6 +2949,16 @@
 			(type default)
 		)
 		(uuid "75273607-ed08-4383-afb8-b6ed53e8ae72")
+	)
+	(wire
+		(pts
+			(xy 57.15 182.88) (xy 77.47 182.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "75fc90f8-73df-44f4-a191-eaa5d7934b0b")
 	)
 	(wire
 		(pts
@@ -2873,6 +3112,16 @@
 	)
 	(wire
 		(pts
+			(xy 90.17 161.29) (xy 101.6 161.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "83bb163a-0314-4872-9768-ce6683ab0b8a")
+	)
+	(wire
+		(pts
 			(xy 115.57 39.37) (xy 115.57 36.83)
 		)
 		(stroke
@@ -2923,7 +3172,7 @@
 	)
 	(wire
 		(pts
-			(xy 74.93 156.21) (xy 74.93 157.48)
+			(xy 74.93 153.67) (xy 74.93 157.48)
 		)
 		(stroke
 			(width 0)
@@ -3753,16 +4002,6 @@
 	)
 	(wire
 		(pts
-			(xy 80.01 156.21) (xy 80.01 160.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d3d7b3f1-3b32-4afa-a2b3-0754c044c9ff")
-	)
-	(wire
-		(pts
 			(xy 181.61 58.42) (xy 198.12 58.42)
 		)
 		(stroke
@@ -4053,6 +4292,16 @@
 	)
 	(wire
 		(pts
+			(xy 90.17 153.67) (xy 80.01 153.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ecb98c5b-9ed5-4b50-be61-8325c968a7c6")
+	)
+	(wire
+		(pts
 			(xy 181.61 54.61) (xy 181.61 58.42)
 		)
 		(stroke
@@ -4253,6 +4502,16 @@
 	)
 	(wire
 		(pts
+			(xy 77.47 182.88) (xy 77.47 185.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fe3c870d-8c73-486a-a6bc-55dafd65565b")
+	)
+	(wire
+		(pts
 			(xy 73.66 46.99) (xy 74.93 46.99)
 		)
 		(stroke
@@ -4312,7 +4571,7 @@
 		(uuid "eff544d8-188f-4e04-b2e7-6fcaac88c0ec")
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 148.59 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4336,7 +4595,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 149.86 142.24 0)
 			(effects
 				(font
@@ -4357,6 +4616,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 148.59 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 148.59 134.62 0)
 			(effects
 				(font
@@ -4387,7 +4655,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 115.57 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4411,7 +4679,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 116.84 54.61 0)
 			(effects
 				(font
@@ -4432,6 +4700,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 115.57 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 115.57 46.99 0)
 			(effects
 				(font
@@ -4462,7 +4739,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 181.61 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4486,7 +4763,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 182.88 142.24 0)
 			(effects
 				(font
@@ -4507,6 +4784,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 181.61 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 181.61 134.62 0)
 			(effects
 				(font
@@ -4537,7 +4823,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 214.63 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4561,7 +4847,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 215.9 54.61 0)
 			(effects
 				(font
@@ -4582,6 +4868,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 214.63 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 214.63 46.99 0)
 			(effects
 				(font
@@ -4612,7 +4907,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 165.1 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4636,7 +4931,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 166.37 99.06 0)
 			(effects
 				(font
@@ -4657,6 +4952,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 165.1 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 165.1 91.44 0)
 			(effects
 				(font
@@ -4753,7 +5057,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 264.16 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4777,7 +5081,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 265.43 99.06 0)
 			(effects
 				(font
@@ -4798,6 +5102,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 264.16 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 264.16 91.44 0)
 			(effects
 				(font
@@ -4828,7 +5141,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 198.12 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4852,7 +5165,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 199.39 99.06 0)
 			(effects
 				(font
@@ -4873,6 +5186,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 198.12 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 198.12 91.44 0)
 			(effects
 				(font
@@ -4903,7 +5225,86 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "Device:C_Small")
+		(at 90.17 156.21 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "3053e0b6-1b57-4263-8709-caa3bfb7a870")
+		(property "Reference" "C2"
+			(at 92.71 154.9462 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "0.1uF"
+			(at 92.71 157.4862 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 90.17 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 90.17 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 90.17 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C1590"
+			(at 90.17 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b15c247f-7b65-4d05-849b-130e0b0d15e5")
+		)
+		(pin "2"
+			(uuid "9b2924c7-8b83-42d1-9bb5-31cb07a0e946")
+		)
+		(instances
+			(project "cnc-hmi-encleds"
+				(path "/f41337f5-67f0-4f7d-92d4-f85623e3f2f8"
+					(reference "C2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 264.16 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4927,7 +5328,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 265.43 54.61 0)
 			(effects
 				(font
@@ -4948,6 +5349,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 264.16 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 264.16 46.99 0)
 			(effects
 				(font
@@ -5044,7 +5454,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 231.14 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5068,7 +5478,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 232.41 142.24 0)
 			(effects
 				(font
@@ -5089,6 +5499,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 231.14 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 231.14 134.62 0)
 			(effects
 				(font
@@ -5185,7 +5604,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 247.65 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5209,7 +5628,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 248.92 142.24 0)
 			(effects
 				(font
@@ -5230,6 +5649,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 247.65 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 247.65 134.62 0)
 			(effects
 				(font
@@ -5260,7 +5688,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 49.53 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5284,7 +5712,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 50.8 54.61 0)
 			(effects
 				(font
@@ -5305,6 +5733,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 49.53 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 49.53 46.99 0)
 			(effects
 				(font
@@ -5335,7 +5772,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 82.55 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5359,7 +5796,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 83.82 142.24 0)
 			(effects
 				(font
@@ -5380,6 +5817,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 82.55 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 82.55 134.62 0)
 			(effects
 				(font
@@ -5411,7 +5857,7 @@
 	)
 	(symbol
 		(lib_id "power:+3V3")
-		(at 74.93 156.21 0)
+		(at 74.93 153.67 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5421,7 +5867,7 @@
 		(fields_autoplaced yes)
 		(uuid "44e211ad-414e-402b-a668-a056aed3abc7")
 		(property "Reference" "#PWR011"
-			(at 74.93 160.02 0)
+			(at 74.93 157.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5430,7 +5876,7 @@
 			)
 		)
 		(property "Value" "+3V3"
-			(at 74.93 151.13 0)
+			(at 74.93 148.59 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5438,7 +5884,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 74.93 156.21 0)
+			(at 74.93 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5447,7 +5893,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 74.93 156.21 0)
+			(at 74.93 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5456,7 +5902,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 74.93 156.21 0)
+			(at 74.93 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5477,7 +5923,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 214.63 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5501,7 +5947,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 215.9 99.06 0)
 			(effects
 				(font
@@ -5522,6 +5968,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 214.63 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 214.63 91.44 0)
 			(effects
 				(font
@@ -5552,7 +6007,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 99.06 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5576,7 +6031,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 100.33 54.61 0)
 			(effects
 				(font
@@ -5597,6 +6052,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 99.06 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 99.06 46.99 0)
 			(effects
 				(font
@@ -5627,7 +6091,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 82.55 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5651,7 +6115,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 83.82 99.06 0)
 			(effects
 				(font
@@ -5672,6 +6136,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 82.55 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 82.55 91.44 0)
 			(effects
 				(font
@@ -5702,7 +6175,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 33.02 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5726,7 +6199,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 34.29 54.61 0)
 			(effects
 				(font
@@ -5747,6 +6220,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 33.02 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 33.02 46.99 0)
 			(effects
 				(font
@@ -5777,7 +6259,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 115.57 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5801,7 +6283,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 116.84 99.06 0)
 			(effects
 				(font
@@ -5822,6 +6304,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 115.57 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 115.57 91.44 0)
 			(effects
 				(font
@@ -5852,7 +6343,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 247.65 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5876,7 +6367,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 248.92 54.61 0)
 			(effects
 				(font
@@ -5897,6 +6388,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 247.65 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 247.65 46.99 0)
 			(effects
 				(font
@@ -5927,7 +6427,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 66.04 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5951,7 +6451,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 67.31 99.06 0)
 			(effects
 				(font
@@ -5972,6 +6472,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 66.04 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 66.04 91.44 0)
 			(effects
 				(font
@@ -6070,7 +6579,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 115.57 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6094,7 +6603,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 116.84 142.24 0)
 			(effects
 				(font
@@ -6115,6 +6624,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 115.57 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 115.57 134.62 0)
 			(effects
 				(font
@@ -6145,7 +6663,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 49.53 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6169,7 +6687,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 50.8 99.06 0)
 			(effects
 				(font
@@ -6190,6 +6708,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 49.53 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 49.53 91.44 0)
 			(effects
 				(font
@@ -6220,7 +6747,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 132.08 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6244,7 +6771,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 133.35 54.61 0)
 			(effects
 				(font
@@ -6265,6 +6792,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 132.08 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 132.08 46.99 0)
 			(effects
 				(font
@@ -6295,7 +6831,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 99.06 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6319,7 +6855,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 100.33 99.06 0)
 			(effects
 				(font
@@ -6340,6 +6876,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 99.06 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 99.06 91.44 0)
 			(effects
 				(font
@@ -6370,7 +6915,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 181.61 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6394,7 +6939,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 182.88 99.06 0)
 			(effects
 				(font
@@ -6415,6 +6960,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 181.61 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 181.61 91.44 0)
 			(effects
 				(font
@@ -6445,7 +6999,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 148.59 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6469,7 +7023,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 149.86 99.06 0)
 			(effects
 				(font
@@ -6490,6 +7044,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 148.59 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 148.59 91.44 0)
 			(effects
 				(font
@@ -6520,7 +7083,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 66.04 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6544,7 +7107,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 67.31 54.61 0)
 			(effects
 				(font
@@ -6565,6 +7128,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 66.04 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 66.04 46.99 0)
 			(effects
 				(font
@@ -6596,7 +7168,7 @@
 	)
 	(symbol
 		(lib_id "power:+5V")
-		(at 80.01 156.21 0)
+		(at 80.01 153.67 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6605,7 +7177,7 @@
 		(dnp no)
 		(uuid "919804e5-ed66-46bf-bba8-0bfa2a78c6fd")
 		(property "Reference" "#PWR012"
-			(at 80.01 160.02 0)
+			(at 80.01 157.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6614,7 +7186,7 @@
 			)
 		)
 		(property "Value" "+5V"
-			(at 80.264 152.4 0)
+			(at 80.264 149.86 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6622,7 +7194,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 80.01 156.21 0)
+			(at 80.01 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6631,7 +7203,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 80.01 156.21 0)
+			(at 80.01 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6640,7 +7212,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 80.01 156.21 0)
+			(at 80.01 153.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6727,7 +7299,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 247.65 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6751,7 +7323,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 248.92 99.06 0)
 			(effects
 				(font
@@ -6772,6 +7344,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 247.65 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 247.65 91.44 0)
 			(effects
 				(font
@@ -6802,7 +7383,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 82.55 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6826,7 +7407,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 83.82 54.61 0)
 			(effects
 				(font
@@ -6847,6 +7428,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 82.55 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 82.55 46.99 0)
 			(effects
 				(font
@@ -6877,7 +7467,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 181.61 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6901,7 +7491,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 182.88 54.61 0)
 			(effects
 				(font
@@ -6922,6 +7512,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 181.61 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 181.61 46.99 0)
 			(effects
 				(font
@@ -6959,10 +7558,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "9be19518-91e4-4ad8-b4ad-eed024401f83")
 		(property "Reference" "U1"
-			(at 95.25 163.7598 0)
+			(at 70.104 161.036 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6970,7 +7568,7 @@
 			)
 		)
 		(property "Value" "SN74LVC1T45DBV"
-			(at 95.25 166.2998 0)
+			(at 88.646 179.832 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6996,6 +7594,15 @@
 			)
 		)
 		(property "Description" "Single-Bit Dual-Supply Bus Transceiver With Configurable Voltage Translation and 3-State Outputs, SOT-23-6"
+			(at 77.47 170.18 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C7843"
 			(at 77.47 170.18 0)
 			(effects
 				(font
@@ -7032,7 +7639,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 198.12 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7056,7 +7663,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 199.39 54.61 0)
 			(effects
 				(font
@@ -7077,6 +7684,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 198.12 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 198.12 46.99 0)
 			(effects
 				(font
@@ -7107,7 +7723,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 165.1 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7131,7 +7747,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 166.37 54.61 0)
 			(effects
 				(font
@@ -7152,6 +7768,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 165.1 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 165.1 46.99 0)
 			(effects
 				(font
@@ -7182,7 +7807,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 231.14 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7206,7 +7831,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 232.41 54.61 0)
 			(effects
 				(font
@@ -7227,6 +7852,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 231.14 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 231.14 46.99 0)
 			(effects
 				(font
@@ -7257,7 +7891,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 132.08 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7281,7 +7915,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 133.35 99.06 0)
 			(effects
 				(font
@@ -7302,6 +7936,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 132.08 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 132.08 91.44 0)
 			(effects
 				(font
@@ -7332,7 +7975,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 148.59 46.99 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7356,7 +7999,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 149.86 54.61 0)
 			(effects
 				(font
@@ -7377,6 +8020,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 148.59 46.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 148.59 46.99 0)
 			(effects
 				(font
@@ -7407,7 +8059,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 165.1 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7431,7 +8083,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 166.37 142.24 0)
 			(effects
 				(font
@@ -7452,6 +8104,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 165.1 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 165.1 134.62 0)
 			(effects
 				(font
@@ -7482,7 +8143,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 66.04 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7506,7 +8167,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 67.31 142.24 0)
 			(effects
 				(font
@@ -7535,6 +8196,15 @@
 				(hide yes)
 			)
 		)
+		(property "JLCPCB P/N" "C965555"
+			(at 66.04 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "2"
 			(uuid "731a57eb-2312-4a10-ae45-5aabb0481023")
 		)
@@ -7551,6 +8221,85 @@
 			(project "cnc-hmi-encleds"
 				(path "/f41337f5-67f0-4f7d-92d4-f85623e3f2f8"
 					(reference "D33")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 57.15 177.8 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b01f9e17-f2e5-4190-88d7-ac668f87c016")
+		(property "Reference" "C1"
+			(at 59.69 176.5362 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "0.1uF"
+			(at 59.69 179.0762 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 57.15 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 57.15 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 57.15 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C1590"
+			(at 57.15 177.8 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b07e2181-5e50-445e-9ee7-442da2d4a1f6")
+		)
+		(pin "2"
+			(uuid "b73a27a8-0ae9-45e2-85f2-884c27093710")
+		)
+		(instances
+			(project ""
+				(path "/f41337f5-67f0-4f7d-92d4-f85623e3f2f8"
+					(reference "C1")
 					(unit 1)
 				)
 			)
@@ -7768,7 +8517,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 198.12 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7792,7 +8541,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 199.39 142.24 0)
 			(effects
 				(font
@@ -7813,6 +8562,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 198.12 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 198.12 134.62 0)
 			(effects
 				(font
@@ -7843,7 +8601,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 231.14 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7867,7 +8625,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 232.41 99.06 0)
 			(effects
 				(font
@@ -7888,6 +8646,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 231.14 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 231.14 91.44 0)
 			(effects
 				(font
@@ -7984,7 +8751,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 49.53 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8008,7 +8775,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 50.8 142.24 0)
 			(effects
 				(font
@@ -8029,6 +8796,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 49.53 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 49.53 134.62 0)
 			(effects
 				(font
@@ -8059,7 +8835,86 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "Device:C_Small")
+		(at 101.6 156.21 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c9010117-2a28-4ef0-ad91-1f59eab1f501")
+		(property "Reference" "C3"
+			(at 104.14 154.9462 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1uF"
+			(at 104.14 157.4862 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 101.6 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 101.6 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 101.6 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C1712"
+			(at 101.6 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5f3fb772-ac74-4003-b9c3-84138a9cbfda")
+		)
+		(pin "2"
+			(uuid "e25c603d-2c6a-450a-82e9-69708695c1f8")
+		)
+		(instances
+			(project "cnc-hmi-encleds"
+				(path "/f41337f5-67f0-4f7d-92d4-f85623e3f2f8"
+					(reference "C3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 33.02 91.44 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8083,7 +8938,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 34.29 99.06 0)
 			(effects
 				(font
@@ -8104,6 +8959,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 33.02 91.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 33.02 91.44 0)
 			(effects
 				(font
@@ -8200,7 +9064,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 264.16 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8224,7 +9088,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 265.43 142.24 0)
 			(effects
 				(font
@@ -8245,6 +9109,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 264.16 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 264.16 134.62 0)
 			(effects
 				(font
@@ -8341,7 +9214,74 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "power:GND")
+		(at 101.6 161.29 0)
+		(mirror y)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "e1a375c4-aa62-4da0-a1e2-1dbb9ae58e06")
+		(property "Reference" "#PWR014"
+			(at 101.6 167.64 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 101.6 166.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 101.6 161.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 101.6 161.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 101.6 161.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f607b252-f65b-4824-8828-0df8e48c75ab")
+		)
+		(instances
+			(project "cnc-hmi-encleds"
+				(path "/f41337f5-67f0-4f7d-92d4-f85623e3f2f8"
+					(reference "#PWR014")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 214.63 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8365,7 +9305,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 215.9 142.24 0)
 			(effects
 				(font
@@ -8386,6 +9326,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 214.63 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 214.63 134.62 0)
 			(effects
 				(font
@@ -8417,7 +9366,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 77.47 182.88 0)
+		(at 77.47 185.42 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8427,7 +9376,7 @@
 		(fields_autoplaced yes)
 		(uuid "f21479df-b92b-4386-80cc-a3d1a1e0263b")
 		(property "Reference" "#PWR013"
-			(at 77.47 189.23 0)
+			(at 77.47 191.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8436,7 +9385,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 77.47 187.96 0)
+			(at 77.47 190.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8444,7 +9393,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 77.47 182.88 0)
+			(at 77.47 185.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8453,7 +9402,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 77.47 182.88 0)
+			(at 77.47 185.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8462,7 +9411,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 77.47 182.88 0)
+			(at 77.47 185.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8483,7 +9432,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 33.02 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8507,7 +9456,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 34.29 142.24 0)
 			(effects
 				(font
@@ -8528,6 +9477,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 33.02 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 33.02 134.62 0)
 			(effects
 				(font
@@ -8558,7 +9516,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 99.06 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8582,7 +9540,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 100.33 142.24 0)
 			(effects
 				(font
@@ -8603,6 +9561,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 99.06 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 99.06 134.62 0)
 			(effects
 				(font
@@ -8699,7 +9666,7 @@
 		)
 	)
 	(symbol
-		(lib_id "LED:WS2812B-2020")
+		(lib_id "EncLEDS Library:WS2812B-2020")
 		(at 132.08 134.62 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8723,7 +9690,7 @@
 				)
 			)
 		)
-		(property "Footprint" "EncLEDS Library:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+		(property "Footprint" "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
 			(at 133.35 142.24 0)
 			(effects
 				(font
@@ -8744,6 +9711,15 @@
 			)
 		)
 		(property "Description" "RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"
+			(at 132.08 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "JLCPCB P/N" "C965555"
 			(at 132.08 134.62 0)
 			(effects
 				(font

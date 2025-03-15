@@ -1,0 +1,1417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="E">
+  <design>
+    <source>C:\Users\tange\OneDrive\Documents\devel\pico-cnc-hmi\hardware\cnc-hmi-encleds\cnc-hmi-encleds.kicad_sch</source>
+    <date>2025-03-15T09:19:39-0400</date>
+    <tool>Eeschema 9.0.0</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>cnc-hmi-encleds.kicad_sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+        <comment number="5" value=""/>
+        <comment number="6" value=""/>
+        <comment number="7" value=""/>
+        <comment number="8" value=""/>
+        <comment number="9" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="C1">
+      <value>0.1uF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="JLCPCB P/N">C1590</field>
+        <field name="Footprint">Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="JLCPCB P/N" value="C1590"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b01f9e17-f2e5-4190-88d7-ac668f87c016</tstamps>
+    </comp>
+    <comp ref="C2">
+      <value>0.1uF</value>
+      <footprint>Capacitor_SMD:C_0603_1608Metric</footprint>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="JLCPCB P/N">C1590</field>
+        <field name="Footprint">Capacitor_SMD:C_0603_1608Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="JLCPCB P/N" value="C1590"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>3053e0b6-1b57-4263-8709-caa3bfb7a870</tstamps>
+    </comp>
+    <comp ref="C3">
+      <value>1uF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric</footprint>
+      <description>Unpolarized capacitor, small symbol</description>
+      <fields>
+        <field name="JLCPCB P/N">C1712</field>
+        <field name="Footprint">Capacitor_SMD:C_0805_2012Metric</field>
+        <field name="Datasheet"/>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <libsource lib="Device" part="C_Small" description="Unpolarized capacitor, small symbol"/>
+      <property name="JLCPCB P/N" value="C1712"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="capacitor cap"/>
+      <property name="ki_fp_filters" value="C_*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>c9010117-2a28-4ef0-ad91-1f59eab1f501</tstamps>
+    </comp>
+    <comp ref="D1">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>5a3c301c-4c9c-4734-843b-a019a7de5dc8</tstamps>
+    </comp>
+    <comp ref="D2">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>427f7e05-603f-42f0-a8b8-47e56cf25ecb</tstamps>
+    </comp>
+    <comp ref="D3">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>88e9a884-c924-4d5f-ba36-a437404ba807</tstamps>
+    </comp>
+    <comp ref="D4">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>97032ddb-62fa-4303-9371-b0bbf1e7d640</tstamps>
+    </comp>
+    <comp ref="D5">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>4d4b7c12-ad8f-4363-84bf-6e60a4266b2d</tstamps>
+    </comp>
+    <comp ref="D6">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>070545ee-766e-4042-8936-a41ea55ae5df</tstamps>
+    </comp>
+    <comp ref="D7">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>75663350-dc33-46bb-83bd-6016a2a359d6</tstamps>
+    </comp>
+    <comp ref="D8">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ac72a2e2-f293-4d81-b061-357f3c21f22e</tstamps>
+    </comp>
+    <comp ref="D9">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9f13f2b8-4d14-42e4-9120-619015a552a8</tstamps>
+    </comp>
+    <comp ref="D10">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>99fabb2a-4971-4f0f-a021-5cc89a2c8a13</tstamps>
+    </comp>
+    <comp ref="D11">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9e0916a3-2d79-4b69-94ef-582be63affd4</tstamps>
+    </comp>
+    <comp ref="D12">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>13369b05-8c0a-4434-8be0-c69edaa1e121</tstamps>
+    </comp>
+    <comp ref="D13">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a49bddb1-347d-4e5e-92c2-fcc17413bbe0</tstamps>
+    </comp>
+    <comp ref="D14">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>65a2e196-011f-42fe-b9a4-3c142c376488</tstamps>
+    </comp>
+    <comp ref="D15">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>31d177f9-93a8-4e48-8cb2-56dcf4490f7e</tstamps>
+    </comp>
+    <comp ref="D16">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>c93701dd-7c2e-484c-beef-133c74684021</tstamps>
+    </comp>
+    <comp ref="D17">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>6f7c976d-7290-4f2b-9d25-03ef810462e0</tstamps>
+    </comp>
+    <comp ref="D18">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>69a385f7-9cb7-4f0f-830d-a9d01efa171d</tstamps>
+    </comp>
+    <comp ref="D19">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>56613e8b-e219-4ab3-883b-9bbe6e7df3b0</tstamps>
+    </comp>
+    <comp ref="D20">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>7745c024-26d4-49b0-a769-b2d366d9c8a1</tstamps>
+    </comp>
+    <comp ref="D21">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>6050284b-4e3d-48d1-ad9e-c66e6090bd47</tstamps>
+    </comp>
+    <comp ref="D22">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>a60d8b0a-0010-4277-a4ac-1f6332bf6a40</tstamps>
+    </comp>
+    <comp ref="D23">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>87ad8046-8124-43e7-abdf-464a4757f048</tstamps>
+    </comp>
+    <comp ref="D24">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>13a0cede-616a-4926-926f-3698a70d0b6e</tstamps>
+    </comp>
+    <comp ref="D25">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>80557463-bae8-442c-995c-cb1a93d2bd64</tstamps>
+    </comp>
+    <comp ref="D26">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>2dd3b27d-2a14-4d2f-9d00-5764e1a57f4e</tstamps>
+    </comp>
+    <comp ref="D27">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>457f057b-dfee-41eb-a7c7-c902077373c0</tstamps>
+    </comp>
+    <comp ref="D28">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>bc32fc8d-4af8-4d88-b184-95cbd24cb53d</tstamps>
+    </comp>
+    <comp ref="D29">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>969a4787-e8e9-4bb9-a91a-aeaccbc731c1</tstamps>
+    </comp>
+    <comp ref="D30">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>1feaba94-aac2-4429-856e-17e4525a4909</tstamps>
+    </comp>
+    <comp ref="D31">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f4718448-fcc1-46de-ba15-419f8ed22ef4</tstamps>
+    </comp>
+    <comp ref="D32">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>c49ceeab-96a2-4708-9de1-11787b329a32</tstamps>
+    </comp>
+    <comp ref="D33">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>aeca1e5a-04db-4548-b5d6-a71855b4c13c</tstamps>
+    </comp>
+    <comp ref="D34">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>442cefc0-770b-4770-9c12-bd72f4b87830</tstamps>
+    </comp>
+    <comp ref="D35">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>f4d0978e-38aa-42bc-a694-c1db0837302b</tstamps>
+    </comp>
+    <comp ref="D36">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>6a695d85-6f1c-4404-abea-be3c2724dc5d</tstamps>
+    </comp>
+    <comp ref="D37">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>fc10f25d-f703-42a3-856a-647392c139cf</tstamps>
+    </comp>
+    <comp ref="D38">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>00230ce2-e62e-4bc2-ad98-a5fc277a465e</tstamps>
+    </comp>
+    <comp ref="D39">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ac762692-1f68-4dd0-93f5-66027e3dd643</tstamps>
+    </comp>
+    <comp ref="D40">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>0a8b2ee5-fd80-4a85-8b2f-799f797b005a</tstamps>
+    </comp>
+    <comp ref="D41">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>b9d87608-e532-4f41-84a5-5526c72c6d29</tstamps>
+    </comp>
+    <comp ref="D42">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>ea949cac-9570-4781-bc1b-186d65913dcb</tstamps>
+    </comp>
+    <comp ref="D43">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>374c6d2e-d341-482a-adf7-4852b78d51ed</tstamps>
+    </comp>
+    <comp ref="D44">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>4010ff34-41a0-4d99-b302-338ffed9d660</tstamps>
+    </comp>
+    <comp ref="D45">
+      <value>WS2812B-2020</value>
+      <footprint>LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</footprint>
+      <datasheet>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</datasheet>
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <fields>
+        <field name="JLCPCB P/N">C965555</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+      </fields>
+      <libsource lib="EncLEDS Library" part="WS2812B-2020" description="RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA"/>
+      <property name="JLCPCB P/N" value="C965555"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="RGB LED NeoPixel Nano addressable"/>
+      <property name="ki_fp_filters" value="LED*WS2812*-2020_PLCC4*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>d2d62492-d10c-4b6f-a68b-24bf0e51e582</tstamps>
+    </comp>
+    <comp ref="U1">
+      <value>SN74LVC1T45DBV</value>
+      <footprint>Package_TO_SOT_SMD:SOT-23-6</footprint>
+      <datasheet>http://www.ti.com/lit/ds/symlink/sn74lvc1t45.pdf</datasheet>
+      <description>Single-Bit Dual-Supply Bus Transceiver With Configurable Voltage Translation and 3-State Outputs, SOT-23-6</description>
+      <fields>
+        <field name="JLCPCB P/N">C7843</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23-6</field>
+        <field name="Datasheet">http://www.ti.com/lit/ds/symlink/sn74lvc1t45.pdf</field>
+        <field name="Description">Single-Bit Dual-Supply Bus Transceiver With Configurable Voltage Translation and 3-State Outputs, SOT-23-6</field>
+      </fields>
+      <libsource lib="Logic_LevelTranslator" part="SN74LVC1T45DBV" description="Single-Bit Dual-Supply Bus Transceiver With Configurable Voltage Translation and 3-State Outputs, SOT-23-6"/>
+      <property name="JLCPCB P/N" value="C7843"/>
+      <property name="Sheetname" value="Root"/>
+      <property name="Sheetfile" value="cnc-hmi-encleds.kicad_sch"/>
+      <property name="ki_keywords" value="Level-Shifter CMOS-TTL-Translation"/>
+      <property name="ki_fp_filters" value="SOT?23*"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>9be19518-91e4-4ad8-b4ad-eed024401f83</tstamps>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="Connector_Generic" part="Conn_01x04">
+      <description>Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x04</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C_Small">
+      <description>Unpolarized capacitor, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C_Small</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Unpolarized capacitor, small symbol</field>
+      </fields>
+      <pins>
+        <pin num="1" name="" type="passive"/>
+        <pin num="2" name="" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="EncLEDS Library" part="WS2812B-2020">
+      <description>RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</description>
+      <docs>https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</docs>
+      <footprints>
+        <fp>LED*WS2812*-2020_PLCC4*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">D</field>
+        <field name="Value">WS2812B-2020</field>
+        <field name="Footprint">LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm</field>
+        <field name="Datasheet">https://cdn-shop.adafruit.com/product-files/4684/4684_WS2812B-2020_V1.3_EN.pdf</field>
+        <field name="Description">RGB LED with integrated controller, 2.0 x 2.0 mm, 12 mA</field>
+        <field name="JLCPCB P/N">C965555</field>
+      </fields>
+      <pins>
+        <pin num="1" name="DOUT" type="output"/>
+        <pin num="2" name="VSS" type="power_in"/>
+        <pin num="3" name="DIN" type="input"/>
+        <pin num="4" name="VDD" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="Jumper" part="SolderJumper_2_Open">
+      <description>Solder Jumper, 2-pole, open</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>SolderJumper*Open*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">SolderJumper_2_Open</field>
+        <field name="Footprint"/>
+        <field name="Datasheet">~</field>
+        <field name="Description">Solder Jumper, 2-pole, open</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="B" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Logic_LevelTranslator" part="SN74LVC1T45DBV">
+      <description>Single-Bit Dual-Supply Bus Transceiver With Configurable Voltage Translation and 3-State Outputs, SOT-23-6</description>
+      <docs>http://www.ti.com/lit/ds/symlink/sn74lvc1t45.pdf</docs>
+      <footprints>
+        <fp>SOT?23*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">SN74LVC1T45DBV</field>
+        <field name="Footprint">Package_TO_SOT_SMD:SOT-23-6</field>
+        <field name="Datasheet">http://www.ti.com/lit/ds/symlink/sn74lvc1t45.pdf</field>
+        <field name="Description">Single-Bit Dual-Supply Bus Transceiver With Configurable Voltage Translation and 3-State Outputs, SOT-23-6</field>
+      </fields>
+      <pins>
+        <pin num="1" name="VCCA" type="power_in"/>
+        <pin num="2" name="GND" type="power_in"/>
+        <pin num="3" name="A" type="bidirectional"/>
+        <pin num="4" name="B" type="bidirectional"/>
+        <pin num="5" name="DIR" type="input"/>
+        <pin num="6" name="VCCB" type="power_in"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="Connector_Generic">
+      <uri>C:\Program Files\KiCad\9.0\share\kicad\symbols\/Connector_Generic.kicad_sym</uri>
+    </library>
+    <library logical="Device">
+      <uri>C:\Program Files\KiCad\9.0\share\kicad\symbols\/Device.kicad_sym</uri>
+    </library>
+    <library logical="EncLEDS Library">
+      <uri>C:\Users\tange\OneDrive\Documents\devel\pico-cnc-hmi\hardware\cnc-hmi-encleds/EncLEDS Library.kicad_sym</uri>
+    </library>
+    <library logical="Jumper">
+      <uri>C:\Program Files\KiCad\9.0\share\kicad\symbols\/Jumper.kicad_sym</uri>
+    </library>
+    <library logical="Logic_LevelTranslator">
+      <uri>C:\Program Files\KiCad\9.0\share\kicad\symbols\/Logic_LevelTranslator.kicad_sym</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="+3V3" class="Default">
+      <node ref="C1" pin="1" pintype="passive"/>
+      <node ref="U1" pin="1" pinfunction="VCCA" pintype="power_in"/>
+      <node ref="U1" pin="5" pinfunction="DIR" pintype="input"/>
+    </net>
+    <net code="2" name="+5V" class="Default">
+      <node ref="C2" pin="1" pintype="passive"/>
+      <node ref="C3" pin="1" pintype="passive"/>
+      <node ref="D1" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D10" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D11" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D12" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D13" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D14" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D15" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D16" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D17" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D18" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D19" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D2" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D20" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D21" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D22" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D23" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D24" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D25" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D26" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D27" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D28" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D29" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D3" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D30" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D31" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D32" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D33" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D34" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D35" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D36" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D37" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D38" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D39" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D4" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D40" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D41" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D42" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D43" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D44" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D45" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D5" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D6" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D7" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D8" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="D9" pin="4" pinfunction="VDD" pintype="power_in"/>
+      <node ref="U1" pin="6" pinfunction="VCCB" pintype="power_in"/>
+    </net>
+    <net code="3" name="/DOUT_3V3" class="Default">
+      <node ref="U1" pin="3" pinfunction="A" pintype="bidirectional"/>
+    </net>
+    <net code="4" name="/DOUT_5V" class="Default">
+      <node ref="D1" pin="3" pinfunction="DIN" pintype="input"/>
+      <node ref="U1" pin="4" pinfunction="B" pintype="bidirectional"/>
+    </net>
+    <net code="5" name="GND" class="Default">
+      <node ref="C1" pin="2" pintype="passive"/>
+      <node ref="C2" pin="2" pintype="passive"/>
+      <node ref="C3" pin="2" pintype="passive"/>
+      <node ref="D1" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D10" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D11" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D12" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D13" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D14" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D15" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D16" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D17" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D18" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D19" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D2" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D20" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D21" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D22" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D23" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D24" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D25" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D26" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D27" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D28" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D29" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D3" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D30" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D31" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D32" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D33" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D34" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D35" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D36" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D37" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D38" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D39" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D4" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D40" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D41" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D42" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D43" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D44" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D45" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D5" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D6" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D7" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D8" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="D9" pin="2" pinfunction="VSS" pintype="power_in"/>
+      <node ref="U1" pin="2" pinfunction="GND" pintype="power_in"/>
+    </net>
+    <net code="6" name="Net-(D1-DOUT)" class="Default">
+      <node ref="D1" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D2" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="7" name="Net-(D2-DOUT)" class="Default">
+      <node ref="D2" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D3" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="8" name="Net-(D3-DOUT)" class="Default">
+      <node ref="D3" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D4" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="9" name="Net-(D4-DOUT)" class="Default">
+      <node ref="D4" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D5" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="10" name="Net-(D5-DOUT)" class="Default">
+      <node ref="D5" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D6" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="11" name="Net-(D6-DOUT)" class="Default">
+      <node ref="D6" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D7" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="12" name="Net-(D7-DOUT)" class="Default">
+      <node ref="D7" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D8" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="13" name="Net-(D8-DOUT)" class="Default">
+      <node ref="D8" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D9" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="14" name="Net-(D10-DIN)" class="Default">
+      <node ref="D10" pin="3" pinfunction="DIN" pintype="input"/>
+      <node ref="D9" pin="1" pinfunction="DOUT" pintype="output"/>
+    </net>
+    <net code="15" name="Net-(D10-DOUT)" class="Default">
+      <node ref="D10" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D11" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="16" name="Net-(D11-DOUT)" class="Default">
+      <node ref="D11" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D12" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="17" name="Net-(D12-DOUT)" class="Default">
+      <node ref="D12" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D13" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="18" name="Net-(D13-DOUT)" class="Default">
+      <node ref="D13" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D14" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="19" name="Net-(D14-DOUT)" class="Default">
+      <node ref="D14" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D15" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="20" name="Net-(D15-DOUT)" class="Default">
+      <node ref="D15" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D16" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="21" name="Net-(D16-DOUT)" class="Default">
+      <node ref="D16" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D17" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="22" name="Net-(D17-DOUT)" class="Default">
+      <node ref="D17" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D18" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="23" name="Net-(D18-DOUT)" class="Default">
+      <node ref="D18" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D19" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="24" name="Net-(D19-DOUT)" class="Default">
+      <node ref="D19" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D20" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="25" name="Net-(D20-DOUT)" class="Default">
+      <node ref="D20" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D21" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="26" name="Net-(D21-DOUT)" class="Default">
+      <node ref="D21" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D22" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="27" name="Net-(D22-DOUT)" class="Default">
+      <node ref="D22" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D23" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="28" name="Net-(D23-DOUT)" class="Default">
+      <node ref="D23" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D24" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="29" name="Net-(D24-DOUT)" class="Default">
+      <node ref="D24" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D25" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="30" name="Net-(D25-DOUT)" class="Default">
+      <node ref="D25" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D26" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="31" name="Net-(D26-DOUT)" class="Default">
+      <node ref="D26" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D27" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="32" name="Net-(D27-DOUT)" class="Default">
+      <node ref="D27" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D28" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="33" name="Net-(D28-DOUT)" class="Default">
+      <node ref="D28" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D29" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="34" name="Net-(D29-DOUT)" class="Default">
+      <node ref="D29" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D30" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="35" name="Net-(D30-DOUT)" class="Default">
+      <node ref="D30" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D31" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="36" name="Net-(D31-DOUT)" class="Default">
+      <node ref="D31" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D32" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="37" name="Net-(D32-DOUT)" class="Default">
+      <node ref="D32" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D33" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="38" name="Net-(D33-DOUT)" class="Default">
+      <node ref="D33" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D34" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="39" name="Net-(D34-DOUT)" class="Default">
+      <node ref="D34" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D35" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="40" name="Net-(D35-DOUT)" class="Default">
+      <node ref="D35" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D36" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="41" name="Net-(D36-DOUT)" class="Default">
+      <node ref="D36" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D37" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="42" name="Net-(D37-DOUT)" class="Default">
+      <node ref="D37" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D38" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="43" name="Net-(D38-DOUT)" class="Default">
+      <node ref="D38" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D39" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="44" name="Net-(D39-DOUT)" class="Default">
+      <node ref="D39" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D40" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="45" name="Net-(D40-DOUT)" class="Default">
+      <node ref="D40" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D41" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="46" name="Net-(D41-DOUT)" class="Default">
+      <node ref="D41" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D42" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="47" name="Net-(D42-DOUT)" class="Default">
+      <node ref="D42" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D43" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="48" name="Net-(D43-DOUT)" class="Default">
+      <node ref="D43" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D44" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="49" name="Net-(D44-DOUT)" class="Default">
+      <node ref="D44" pin="1" pinfunction="DOUT" pintype="output"/>
+      <node ref="D45" pin="3" pinfunction="DIN" pintype="input"/>
+    </net>
+    <net code="50" name="unconnected-(D45-DOUT-Pad1)" class="Default">
+      <node ref="D45" pin="1" pinfunction="DOUT" pintype="output"/>
+    </net>
+  </nets>
+</export>

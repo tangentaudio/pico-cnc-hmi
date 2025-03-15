@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "EncLEDS Library")(type "KiCad")(uri "${KIPRJMOD}/EncLEDS Library.kicad_sym")(options "")(descr ""))
+)
