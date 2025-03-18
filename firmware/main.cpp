@@ -33,15 +33,7 @@
 
 #include "bsp/board_api.h"
 #include "tusb.h"
-
-#include <hardware/pio.h>
-#include "quadrature.pio.h"
-
-#define ENCODER_1_PINS 12
-#define ENCODER_2_PINS 14
-#define ENCODER_3_PINS 16
-
-
+#include "encoder.hh"
 
 /* Blink pattern
  * - 250 ms  : device not mounted
@@ -56,8 +48,6 @@ enum  {
 
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
-PIO pio;
-uint sm1, sm2, sm3;
 
 void led_blinking_task(void);
 
@@ -75,71 +65,36 @@ union pkt_u {
 
 int main(void)
 {
+  Encoder encoders;
+
   board_init();
   tud_init(BOARD_TUD_RHPORT);
 
   if (board_init_after_tusb) {
     board_init_after_tusb();
   }
-
-  pio = pio0;
-  pio_add_program(pio, &quadrature_encoder_program);
-  sm1 = pio_claim_unused_sm(pio, true);
-  quadrature_encoder_program_init(pio, sm1, ENCODER_1_PINS, 0);
   
-  sm2 = pio_claim_unused_sm(pio, true);
-  quadrature_encoder_program_init(pio, sm2, ENCODER_2_PINS, 0);
-
-  sm3 = pio_claim_unused_sm(pio, true);
-  quadrature_encoder_program_init(pio, sm3, ENCODER_3_PINS, 0);
-
+  encoders.init();
   
   //gpio_init(ENCODER_1_PIN_BUTTON);
   //gpio_set_dir(ENCODER_1_PIN_BUTTON, GPIO_IN);
   //gpio_pull_up(ENCODER_1_PIN_BUTTON);
-
-  while (1)
-  {
-    static int last_value_1 = -1, last_value_2 = -1, last_value_3 = -1;
-    bool update = false;
-
-    tud_task();
-    led_blinking_task();
-
-    // note: thanks to two's complement arithmetic delta will always
-    // be correct even when new_value wraps around MAXINT / MININT
-    int new_value = quadrature_encoder_get_count(pio, sm1);
-    if (new_value != last_value_1) {
-        printf("position #1 %8d\n", new_value);
-        last_value_1 = new_value;
-        update = true;
-    }
-
-    new_value = quadrature_encoder_get_count(pio, sm2);
-    if (new_value != last_value_2) {
-        printf("position #2 %8d\n", new_value);
-        last_value_2 = new_value;
-        update = true;
-    }
-
-    new_value = quadrature_encoder_get_count(pio, sm3);
-    if (new_value != last_value_3) {
-        printf("position #3 %8d\n", new_value);
-        last_value_3 = new_value;
-        update = true;
-    }
-
-
     //bool btn = gpio_get(ENCODER_1_PIN_BUTTON);
     //if ( btn != last_btn_1) {
     //  last_btn_1 = btn;
     //  update = true;
     //} 
 
-    if (update) {
-      pkt.s.knob1 = last_value_1;
-      pkt.s.knob2 = last_value_2;
-      pkt.s.knob3 = last_value_3;
+  while (1)
+  {
+
+    tud_task();
+    led_blinking_task();
+
+    if (encoders.task()) {
+      pkt.s.knob1 = encoders.value(0);
+      pkt.s.knob2 = encoders.value(1);
+      pkt.s.knob3 = encoders.value(2);
       pkt.s.button1 = 0;
       pkt.s.button2 = 0;
       pkt.s.button3 = 0;

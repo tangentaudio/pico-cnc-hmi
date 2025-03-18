@@ -40,7 +40,8 @@ cmake_minimum_required(VERSION 3.13)
 add_executable(pico_cnc_hmi)
 
 target_sources(pico_cnc_hmi PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/main.c
+        ${CMAKE_CURRENT_LIST_DIR}/main.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/encoder.cpp
         ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
         )
 
