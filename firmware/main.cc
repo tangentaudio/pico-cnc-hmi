@@ -33,6 +33,7 @@
 
 #include "bsp/board_api.h"
 #include "tusb.h"
+#include "i2c.hh"
 #include "encoder.hh"
 
 /* Blink pattern
@@ -66,6 +67,7 @@ union pkt_u {
 int main(void)
 {
   Encoder encoders;
+  I2C i2c;
 
   board_init();
   tud_init(BOARD_TUD_RHPORT);
@@ -74,6 +76,7 @@ int main(void)
     board_init_after_tusb();
   }
   
+  i2c.init();
   encoders.init();
   
   //gpio_init(ENCODER_1_PIN_BUTTON);
