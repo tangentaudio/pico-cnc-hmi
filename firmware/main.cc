@@ -35,6 +35,7 @@
 #include "tusb.h"
 #include "i2c.hh"
 #include "encoder.hh"
+#include "tca8418.hh"
 
 /* Blink pattern
  * - 250 ms  : device not mounted
@@ -68,6 +69,7 @@ int main(void)
 {
   Encoder encoders;
   I2C i2c;
+  TCA8418 matx(i2c);
 
   board_init();
   tud_init(BOARD_TUD_RHPORT);
@@ -75,10 +77,32 @@ int main(void)
   if (board_init_after_tusb) {
     board_init_after_tusb();
   }
-  
+
+  printf("peripheral reset...");
+  gpio_init(22);
+  gpio_set_dir(22, GPIO_OUT);
+  gpio_pull_up(22);
+  gpio_put(22, 0);
+  board_delay(1000);
+  gpio_put(22, 1);
+  printf("OK\n");
+
+  printf("I2C init...");
   i2c.init();
+  printf("OK\n");
+
+  printf("Matrix keypad init...");
+  matx.init();
+  printf("OK\n");
+  printf("Matrix keypad config...");
+  matx.matrix(7, 8);
+  printf("OK\n");
+
+  printf("Encoder init...");
   encoders.init();
+  printf("OK\n");
   
+
   //gpio_init(ENCODER_1_PIN_BUTTON);
   //gpio_set_dir(ENCODER_1_PIN_BUTTON, GPIO_IN);
   //gpio_pull_up(ENCODER_1_PIN_BUTTON);
@@ -87,6 +111,9 @@ int main(void)
     //  last_btn_1 = btn;
     //  update = true;
     //} 
+
+
+  printf("initialized.\n");
 
   while (1)
   {
@@ -103,6 +130,11 @@ int main(void)
       pkt.s.button3 = 0;
 
       tud_hid_report(0, &pkt, sizeof(pkt));
+    }
+
+    if (matx.available() > 0) {
+      uint8_t evt = matx.getEvent();
+      printf("key event: %x\n", evt);
     }
   }
 }

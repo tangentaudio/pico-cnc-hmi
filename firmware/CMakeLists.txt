@@ -43,6 +43,7 @@ target_sources(pico_cnc_hmi PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/main.cc
         ${CMAKE_CURRENT_LIST_DIR}/encoder.cc
         ${CMAKE_CURRENT_LIST_DIR}/i2c.cc
+        ${CMAKE_CURRENT_LIST_DIR}/tca8418.cc
         ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
         )
 
