@@ -36,6 +36,7 @@
 #include "i2c.hh"
 #include "encoder.hh"
 #include "tca8418.hh"
+#include "tlc59116.hh"
 
 #define PIN_PERIPH_RESETN 22
 #define PIN_KEY_INT 19
@@ -73,6 +74,7 @@ int main(void)
   Encoder encoders;
   I2C i2c;
   TCA8418 matx(i2c);
+  TLC59116 leds(i2c);
 
   board_init();
   tud_init(BOARD_TUD_RHPORT);
@@ -103,15 +105,17 @@ int main(void)
   matx.enableInterrupts();
   printf("OK\n");
 
+  printf("LED driver init...");
+  leds.init();
+  printf("OK\n");
+
   printf("Encoder init...");
   encoders.init();
   printf("OK\n");
   
-
   gpio_init(PIN_KEY_INT);
   gpio_set_dir(PIN_KEY_INT, GPIO_IN);
   gpio_pull_up(PIN_KEY_INT);
-
 
   printf("initialized.\n");
 
@@ -135,7 +139,48 @@ int main(void)
     if (gpio_get(PIN_KEY_INT) == 0) {
       if (matx.available()) {
         uint8_t evt = matx.getEvent();
+        uint8_t key = evt & 0x7F;
+        bool pressed = evt & 0x80;
+
         printf("key event: %x %s\n", evt & 0x7F, evt & 0x80 ? "press" : "release");
+
+        if (pressed) {
+          uint8_t led=0;
+          switch(key) {
+            case 0x2f:
+              led = 1; break;
+            case 0x30:
+              led = 2; break;
+            case 0x33:
+              led = 9; break;
+            case 0x34:
+              led = 10; break;
+            case 0x35:
+              led = 11; break;
+            case 0x36:
+              led = 12; break;
+            case 0x37:
+              led = 3; break;
+            case 0x38:
+              led = 4; break;
+            case 0x39:
+              led = 5; break;
+            case 0x3a:
+              led = 6; break;
+            case 0x3d:
+              led = 7; break;
+            case 0x3e:
+              led = 8; break;
+            default:
+              led = 0xff;
+          }
+          if (led > 0 && led <= 16) {
+            bool cur = leds.getLED(led - 1) > 0;
+
+            leds.setLED(led - 1, cur ? 0 : 64);  
+          }
+
+        }
       }
     }
 

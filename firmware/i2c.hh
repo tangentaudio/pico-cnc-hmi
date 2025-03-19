@@ -15,6 +15,8 @@ public:
     ~I2C();
 
     void init();
+    bool writeRegister(uint8_t address, uint8_t reg, uint8_t value);
+    bool writeBuffer(uint8_t address, uint8_t* buf, uint8_t len);
 private:
 };
 
