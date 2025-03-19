@@ -37,6 +37,9 @@
 #include "encoder.hh"
 #include "tca8418.hh"
 
+#define PIN_PERIPH_RESETN 22
+#define PIN_KEY_INT 19
+
 /* Blink pattern
  * - 250 ms  : device not mounted
  * - 1000 ms : device mounted
@@ -79,12 +82,12 @@ int main(void)
   }
 
   printf("peripheral reset...");
-  gpio_init(22);
-  gpio_set_dir(22, GPIO_OUT);
-  gpio_pull_up(22);
-  gpio_put(22, 0);
-  board_delay(1000);
-  gpio_put(22, 1);
+  gpio_init(PIN_PERIPH_RESETN);
+  gpio_set_dir(PIN_PERIPH_RESETN, GPIO_OUT);
+  gpio_pull_up(PIN_PERIPH_RESETN);
+  gpio_put(PIN_PERIPH_RESETN, 0);
+  board_delay(100);
+  gpio_put(PIN_PERIPH_RESETN, 1);
   printf("OK\n");
 
   printf("I2C init...");
@@ -96,6 +99,8 @@ int main(void)
   printf("OK\n");
   printf("Matrix keypad config...");
   matx.matrix(7, 8);
+  matx.enableDebounce();
+  matx.enableInterrupts();
   printf("OK\n");
 
   printf("Encoder init...");
@@ -103,14 +108,9 @@ int main(void)
   printf("OK\n");
   
 
-  //gpio_init(ENCODER_1_PIN_BUTTON);
-  //gpio_set_dir(ENCODER_1_PIN_BUTTON, GPIO_IN);
-  //gpio_pull_up(ENCODER_1_PIN_BUTTON);
-    //bool btn = gpio_get(ENCODER_1_PIN_BUTTON);
-    //if ( btn != last_btn_1) {
-    //  last_btn_1 = btn;
-    //  update = true;
-    //} 
+  gpio_init(PIN_KEY_INT);
+  gpio_set_dir(PIN_KEY_INT, GPIO_IN);
+  gpio_pull_up(PIN_KEY_INT);
 
 
   printf("initialized.\n");
@@ -132,10 +132,13 @@ int main(void)
       tud_hid_report(0, &pkt, sizeof(pkt));
     }
 
-    if (matx.available() > 0) {
-      uint8_t evt = matx.getEvent();
-      printf("key event: %x\n", evt);
+    if (gpio_get(PIN_KEY_INT) == 0) {
+      if (matx.available()) {
+        uint8_t evt = matx.getEvent();
+        printf("key event: %x %s\n", evt & 0x7F, evt & 0x80 ? "press" : "release");
+      }
     }
+
   }
 }
 

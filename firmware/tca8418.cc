@@ -374,7 +374,7 @@ void TCA8418::writeRegister(uint8_t reg, uint8_t value)
 
     if (r1 == PICO_ERROR_GENERIC)
         printf("i2c write error addr %X\n", m_address);
-    else
-        printf("i2c write %X: reg=%x val=%x\n", m_address, reg, value);
+    //else
+    //    printf("i2c write %X: reg=%x val=%x\n", m_address, reg, value);
 
 }
