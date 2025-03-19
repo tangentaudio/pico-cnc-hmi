@@ -46,7 +46,8 @@
  * - 1000 ms : device mounted
  * - 2500 ms : device is suspended
  */
-enum  {
+enum
+{
   BLINK_NOT_MOUNTED = 250,
   BLINK_MOUNTED = 1000,
   BLINK_SUSPENDED = 2500,
@@ -54,11 +55,12 @@ enum  {
 
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
-
 void led_blinking_task(void);
 
-union pkt_u {
-  struct pkt_s {
+union pkt_u
+{
+  struct pkt_s
+  {
     int knob1;
     int knob2;
     int knob3;
@@ -79,7 +81,8 @@ int main(void)
   board_init();
   tud_init(BOARD_TUD_RHPORT);
 
-  if (board_init_after_tusb) {
+  if (board_init_after_tusb)
+  {
     board_init_after_tusb();
   }
 
@@ -109,10 +112,30 @@ int main(void)
   leds.init();
   printf("OK\n");
 
+  printf("LED test...");
+  for (uint8_t led = 0; led < 12; led++)
+  {
+    for (uint8_t bright = 0; bright < 0x7f; bright++)
+    {
+      leds.setLED(led, bright);
+    }
+  }
+  board_delay(500);
+  for (uint8_t bright = 0x7f; bright > 0; bright--)
+  {
+    for (uint8_t led = 0; led < 12; led++)
+    {
+      leds.setLED(led, bright, false);
+    }
+    leds.update();
+    board_delay(10);
+  }
+  printf("OK\n");
+
   printf("Encoder init...");
   encoders.init();
   printf("OK\n");
-  
+
   gpio_init(PIN_KEY_INT);
   gpio_set_dir(PIN_KEY_INT, GPIO_IN);
   gpio_pull_up(PIN_KEY_INT);
@@ -125,7 +148,8 @@ int main(void)
     tud_task();
     led_blinking_task();
 
-    if (encoders.task()) {
+    if (encoders.task())
+    {
       pkt.s.knob1 = encoders.value(0);
       pkt.s.knob2 = encoders.value(1);
       pkt.s.knob3 = encoders.value(2);
@@ -136,54 +160,69 @@ int main(void)
       tud_hid_report(0, &pkt, sizeof(pkt));
     }
 
-    if (gpio_get(PIN_KEY_INT) == 0) {
-      if (matx.available()) {
+    if (gpio_get(PIN_KEY_INT) == 0)
+    {
+      if (matx.available())
+      {
         uint8_t evt = matx.getEvent();
         uint8_t key = evt & 0x7F;
         bool pressed = evt & 0x80;
 
         printf("key event: %x %s\n", evt & 0x7F, evt & 0x80 ? "press" : "release");
 
-        if (pressed) {
-          uint8_t led=0;
-          switch(key) {
-            case 0x2f:
-              led = 1; break;
-            case 0x30:
-              led = 2; break;
-            case 0x33:
-              led = 9; break;
-            case 0x34:
-              led = 10; break;
-            case 0x35:
-              led = 11; break;
-            case 0x36:
-              led = 12; break;
-            case 0x37:
-              led = 3; break;
-            case 0x38:
-              led = 4; break;
-            case 0x39:
-              led = 5; break;
-            case 0x3a:
-              led = 6; break;
-            case 0x3d:
-              led = 7; break;
-            case 0x3e:
-              led = 8; break;
-            default:
-              led = 0xff;
+        if (pressed)
+        {
+          uint8_t led = 0;
+          switch (key)
+          {
+          case 0x2f:
+            led = 1;
+            break;
+          case 0x30:
+            led = 2;
+            break;
+          case 0x33:
+            led = 9;
+            break;
+          case 0x34:
+            led = 10;
+            break;
+          case 0x35:
+            led = 11;
+            break;
+          case 0x36:
+            led = 12;
+            break;
+          case 0x37:
+            led = 3;
+            break;
+          case 0x38:
+            led = 4;
+            break;
+          case 0x39:
+            led = 5;
+            break;
+          case 0x3a:
+            led = 6;
+            break;
+          case 0x3d:
+            led = 7;
+            break;
+          case 0x3e:
+            led = 8;
+            break;
+          default:
+            led = 0xff;
           }
-          if (led > 0 && led <= 16) {
+          if (led > 0 && led <= 16)
+          {
             bool cur = leds.getLED(led - 1) > 0;
 
-            leds.setLED(led - 1, cur ? 0 : 64);  
+            leds.setLED(led - 1, cur ? 0 : 64);
           }
-
         }
       }
     }
-
   }
 }
 
@@ -208,7 +247,7 @@ void tud_umount_cb(void)
 // Within 7ms, device must draw an average of current less than 2.5 mA from bus
 void tud_suspend_cb(bool remote_wakeup_en)
 {
-  (void) remote_wakeup_en;
+  (void)remote_wakeup_en;
   blink_interval_ms = BLINK_SUSPENDED;
 }
 
@@ -225,26 +264,26 @@ void tud_resume_cb(void)
 // Invoked when received GET_REPORT control request
 // Application must fill buffer report's content and return its length.
 // Return zero will cause the stack to STALL request
-uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen)
+uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen)
 {
   // TODO not Implemented
-  (void) itf;
-  (void) report_id;
-  (void) report_type;
-  (void) buffer;
-  (void) reqlen;
+  (void)itf;
+  (void)report_id;
+  (void)report_type;
+  (void)buffer;
+  (void)reqlen;
 
   return 0;
 }
 
 // Invoked when received SET_REPORT control request or
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
-void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
+void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
 {
   // This example doesn't use multiple report and report ID
-  (void) itf;
-  (void) report_id;
-  (void) report_type;
+  (void)itf;
+  (void)report_id;
+  (void)report_type;
 
   // echo back anything we received from host
   // tud_hid_report(0, buffer, bufsize);
@@ -259,7 +298,8 @@ void led_blinking_task(void)
   static bool led_state = false;
 
   // Blink every interval ms
-  if ( board_millis() - start_ms < blink_interval_ms) return; // not enough time
+  if (board_millis() - start_ms < blink_interval_ms)
+    return; // not enough time
   start_ms += blink_interval_ms;
 
   board_led_write(led_state);

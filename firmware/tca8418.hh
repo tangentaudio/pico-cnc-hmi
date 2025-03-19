@@ -94,29 +94,29 @@
 #define TCA8418_REG_LCK_EC_KLEC_1 0x02   ///< Key event count bit 1
 #define TCA8418_REG_LCK_EC_KLEC_0 0x01   ///< Key event count bit 0
 
-
 #define TCA8418_DEFAULT_ADDR 0x34 ///< The default I2C address for our breakout
 
 /** Pin IDs for matrix rows/columns */
-enum {
-  TCA8418_ROW0, // Pin ID for row 0
-  TCA8418_ROW1, // Pin ID for row 1
-  TCA8418_ROW2, // Pin ID for row 2
-  TCA8418_ROW3, // Pin ID for row 3
-  TCA8418_ROW4, // Pin ID for row 4
-  TCA8418_ROW5, // Pin ID for row 5
-  TCA8418_ROW6, // Pin ID for row 6
-  TCA8418_ROW7, // Pin ID for row 7
-  TCA8418_COL0, // Pin ID for column 0
-  TCA8418_COL1, // Pin ID for column 1
-  TCA8418_COL2, // Pin ID for column 2
-  TCA8418_COL3, // Pin ID for column 3
-  TCA8418_COL4, // Pin ID for column 4
-  TCA8418_COL5, // Pin ID for column 5
-  TCA8418_COL6, // Pin ID for column 6
-  TCA8418_COL7, // Pin ID for column 7
-  TCA8418_COL8, // Pin ID for column 8
-  TCA8418_COL9  // Pin ID for column 9
+enum
+{
+    TCA8418_ROW0, // Pin ID for row 0
+    TCA8418_ROW1, // Pin ID for row 1
+    TCA8418_ROW2, // Pin ID for row 2
+    TCA8418_ROW3, // Pin ID for row 3
+    TCA8418_ROW4, // Pin ID for row 4
+    TCA8418_ROW5, // Pin ID for row 5
+    TCA8418_ROW6, // Pin ID for row 6
+    TCA8418_ROW7, // Pin ID for row 7
+    TCA8418_COL0, // Pin ID for column 0
+    TCA8418_COL1, // Pin ID for column 1
+    TCA8418_COL2, // Pin ID for column 2
+    TCA8418_COL3, // Pin ID for column 3
+    TCA8418_COL4, // Pin ID for column 4
+    TCA8418_COL5, // Pin ID for column 5
+    TCA8418_COL6, // Pin ID for column 6
+    TCA8418_COL7, // Pin ID for column 7
+    TCA8418_COL8, // Pin ID for column 8
+    TCA8418_COL9  // Pin ID for column 9
 };
 
 #define LOW 0
@@ -127,60 +127,60 @@ enum {
 #define FALLING 0
 #define RISING 1
 
-
 /*!
  *    @brief  Class that stores state and functions for interacting with
  *            the TCA8418 I2C GPIO expander
  */
-class TCA8418 {
+class TCA8418
+{
 public:
-  TCA8418(I2C& i2c, uint8_t address = TCA8418_DEFAULT_ADDR);
-  ~TCA8418();
+    TCA8418(I2C &i2c, uint8_t address = TCA8418_DEFAULT_ADDR);
+    ~TCA8418();
 
-  //  initialize the TCA8418
-  bool init();
+    //  initialize the TCA8418
+    bool init();
 
-  //  KEY EVENTS
-  //  configure the size of the keypad.
-  //  all other rows and columns are set as inputs.
-  bool matrix(uint8_t rows, uint8_t columns);
+    //  KEY EVENTS
+    //  configure the size of the keypad.
+    //  all other rows and columns are set as inputs.
+    bool matrix(uint8_t rows, uint8_t columns);
 
-  //  key events available in the internal FIFO buffer
-  uint8_t available();
+    //  key events available in the internal FIFO buffer
+    uint8_t available();
 
-  //  get one event from the FIFO buffer
-  //  bit 7 indicates  press = 0  or  release == 1 (mask 0x80)
-  uint8_t getEvent();
+    //  get one event from the FIFO buffer
+    //  bit 7 indicates  press = 0  or  release == 1 (mask 0x80)
+    uint8_t getEvent();
 
-  //  flush all events in the FIFO buffer + GPIO events
-  uint8_t flush();
+    //  flush all events in the FIFO buffer + GPIO events
+    uint8_t flush();
 
-  //  GPIO
-  uint8_t digitalRead(uint8_t pinnum);
-  bool digitalWrite(uint8_t pinnum, uint8_t level);
-  bool pinMode(uint8_t pinnum, uint8_t mode);
-  bool pinIRQMode(uint8_t pinnum, uint8_t mode); // MODE  FALLING or RISING
+    //  GPIO
+    uint8_t digitalRead(uint8_t pinnum);
+    bool digitalWrite(uint8_t pinnum, uint8_t level);
+    bool pinMode(uint8_t pinnum, uint8_t mode);
+    bool pinIRQMode(uint8_t pinnum, uint8_t mode); // MODE  FALLING or RISING
 
-  //  CONFIGURATION
-  //  enable / disable interrupts for matrix and GPI pins
-  void enableInterrupts();
-  void disableInterrupts();
+    //  CONFIGURATION
+    //  enable / disable interrupts for matrix and GPI pins
+    void enableInterrupts();
+    void disableInterrupts();
 
-  //  ignore key events when FIFO buffer is full or not.
-  void enableMatrixOverflow();
-  void disableMatrixOverflow();
+    //  ignore key events when FIFO buffer is full or not.
+    void enableMatrixOverflow();
+    void disableMatrixOverflow();
 
-  //  debounce keys.
-  void enableDebounce();
-  void disableDebounce();
+    //  debounce keys.
+    void enableDebounce();
+    void disableDebounce();
 
-  // for expert mode
-  uint8_t readRegister(uint8_t reg);
-  void writeRegister(uint8_t reg, uint8_t value);
+    // for expert mode
+    uint8_t readRegister(uint8_t reg);
+    void writeRegister(uint8_t reg, uint8_t value);
 
 protected:
-  I2C& m_i2c;
-  uint8_t m_address;
+    I2C &m_i2c;
+    uint8_t m_address;
 };
 
 #endif

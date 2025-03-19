@@ -345,17 +345,10 @@ void TCA8418::disableDebounce()
  */
 uint8_t TCA8418::readRegister(uint8_t reg)
 {
-    uint8_t buffer[1] = {0};
+    uint8_t val;
 
-    int r1 = i2c_write_blocking(i2c_default, m_address, &reg, 1, true); // true to keep master control of bus
-    int r2 = i2c_read_blocking(i2c_default, m_address, buffer, 1, false);
-
-    if (r1 == PICO_ERROR_GENERIC || r2 == PICO_ERROR_GENERIC)
-        printf("i2c read error addr %X\n", m_address);    
-    //else
-    //  printf("i2c read %X: reg=%x val=%x\n", m_address, reg, buffer[0]);
-
-    return buffer[0];
+    m_i2c.readRegister(m_address, reg, val);
+    return val;
 }
 
 /**
@@ -366,15 +359,5 @@ uint8_t TCA8418::readRegister(uint8_t reg)
  */
 void TCA8418::writeRegister(uint8_t reg, uint8_t value)
 {
-    uint8_t buf[2];
-    buf[0] = reg;
-    buf[1] = value;
-
-    int r1 = i2c_write_blocking(i2c0, m_address, buf, 2, false);
-
-    if (r1 == PICO_ERROR_GENERIC)
-        printf("i2c write error addr %X\n", m_address);
-    //else
-    //    printf("i2c write %X: reg=%x val=%x\n", m_address, reg, value);
-
+    m_i2c.writeRegister(m_address, reg, value);
 }
