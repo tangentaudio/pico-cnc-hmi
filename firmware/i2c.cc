@@ -2,7 +2,6 @@
 #include "i2c.hh"
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
-#include "tca8418.hh"
 
 I2C::I2C()
 {

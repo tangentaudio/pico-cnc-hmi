@@ -4,7 +4,8 @@
 
 Encoder::Encoder() : m_pins{6, 12, 14, 16},
                      m_last_values{-1, -1, -1, -1},
-                     m_last_shuttle(0xFF)
+                     m_last_shuttle(0xFF),
+                     m_last_shuttle_val(0)
 {
 }
 
@@ -53,32 +54,14 @@ bool Encoder::task()
 
     uint32_t shuttle_code = (gpio_get_all() >> PIN_SHUTTLE0) & 0x0F;
 
-    //     7    0x07
-    //     6    0x03
-    //     5    0x01
-    //     4    0x05
-    //     3    0x0D
-    //     2    0x09
-    //  CW 1    0x0B
-    // neutral  0x0F
-    // CCW-1    0x0E
-    //    -2    0x0A
-    //    -3    0x08
-    //    -4    0x0C
-    //    -5    0x04
-    //    -6    0x02
-    //    -7    0x06     
-    //
-    //  invalid 0x00
-    const int code_lookup[16] = { -8, 5, -6, 6, -5, 4, -7, 7, -3, 2, -2, 1, -4, 3, -1, 0};
-
     if (shuttle_code != m_last_shuttle) {
-        int val = code_lookup[shuttle_code];
+        int val = shuttle_code_lookup[shuttle_code];
         if (val != -8) {
             printf("shuttle=%d\n", val);
             update = true;
         }
         m_last_shuttle = shuttle_code;
+        m_last_shuttle_val = val;
     }
 
 
@@ -88,5 +71,8 @@ bool Encoder::task()
 
 int Encoder::value(uint num)
 {
+    if (num >= NUM_ENCODERS)
+        return m_last_shuttle_val;
+    
     return m_last_values[num % NUM_ENCODERS];
 }

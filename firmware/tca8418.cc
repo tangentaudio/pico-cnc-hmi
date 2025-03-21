@@ -2,9 +2,8 @@
 #include "i2c.hh"
 #include "tca8418.hh"
 
-TCA8418::TCA8418(I2C& i2c, uint8_t address) :
-    m_i2c(i2c),
-    m_address(address)
+TCA8418::TCA8418(I2C &i2c, uint8_t address) : m_i2c(i2c),
+                                              m_address(address)
 {
 }
 

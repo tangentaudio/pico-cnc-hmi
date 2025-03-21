@@ -42,6 +42,8 @@ add_executable(pico_cnc_hmi)
 target_sources(pico_cnc_hmi PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/main.cc
         ${CMAKE_CURRENT_LIST_DIR}/encoder.cc
+        ${CMAKE_CURRENT_LIST_DIR}/spi.cc
+        ${CMAKE_CURRENT_LIST_DIR}/oled_sh1122.cc
         ${CMAKE_CURRENT_LIST_DIR}/i2c.cc
         ${CMAKE_CURRENT_LIST_DIR}/tca8418.cc
         ${CMAKE_CURRENT_LIST_DIR}/tlc59116.cc
@@ -54,7 +56,7 @@ target_include_directories(pico_cnc_hmi PUBLIC
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
-target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio pico_unique_id tinyusb_device tinyusb_board hardware_pio hardware_i2c)
+target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio pico_unique_id tinyusb_device tinyusb_board hardware_pio hardware_i2c hardware_spi)
 
 # stdio serial consoles        
 pico_enable_stdio_usb(pico_cnc_hmi 0)

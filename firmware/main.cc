@@ -33,6 +33,8 @@
 
 #include "bsp/board_api.h"
 #include "tusb.h"
+#include "spi.hh"
+#include "oled_sh1122.hh"
 #include "i2c.hh"
 #include "encoder.hh"
 #include "tca8418.hh"
@@ -77,6 +79,8 @@ int main(void)
   I2C i2c;
   TCA8418 matx(i2c);
   TLC59116 leds(i2c);
+  SPI spi;
+  OLED oled(spi);
 
   board_init();
   tud_init(BOARD_TUD_RHPORT);
@@ -93,6 +97,17 @@ int main(void)
   gpio_put(PIN_PERIPH_RESETN, 0);
   board_delay(100);
   gpio_put(PIN_PERIPH_RESETN, 1);
+  printf("OK\n");
+
+  printf("SPI init...");
+  spi.init();
+  printf("OK\n");
+
+  printf("OLED init...");
+  oled.init();
+  char s[80];
+  snprintf(s, sizeof(s), "TangentAudio CNC HMI");
+  oled.DrawString(0, 0, s);
   printf("OK\n");
 
   printf("I2C init...");
@@ -112,6 +127,7 @@ int main(void)
   leds.init();
   printf("OK\n");
 
+#ifdef LED_TEST
   printf("LED test...");
   for (uint8_t led = 0; led < 12; led++)
   {
@@ -131,6 +147,7 @@ int main(void)
     board_delay(10);
   }
   printf("OK\n");
+#endif
 
   printf("Encoder init...");
   encoders.init();
@@ -150,6 +167,11 @@ int main(void)
 
     if (encoders.task())
     {
+      snprintf(s, sizeof(s), "%-05d %-05d", encoders.value(4), encoders.value(0));
+      oled.DrawString(0, 16, s);
+      snprintf(s, sizeof(s), "%-05d %-05d %-05d", encoders.value(1), encoders.value(2), encoders.value(3));
+      oled.DrawString(0, 32, s);
+
       pkt.s.knob1 = encoders.value(0);
       pkt.s.knob2 = encoders.value(1);
       pkt.s.knob3 = encoders.value(2);
@@ -169,6 +191,10 @@ int main(void)
         bool pressed = evt & 0x80;
 
         printf("key event: %x %s\n", evt & 0x7F, evt & 0x80 ? "press" : "release");
+
+        snprintf(s, sizeof(s), "KEY %02X %s", evt & 0x7F, evt & 0x80 ? "PRESSED" : "RELEASE");
+        oled.DrawString(0, 48, s);
+
 
         if (pressed)
         {
