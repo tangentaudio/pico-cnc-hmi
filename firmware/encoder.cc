@@ -73,6 +73,7 @@ int Encoder::value(uint num)
 {
     if (num >= NUM_ENCODERS)
         return m_last_shuttle_val;
-    
+    else if (num > 0)
+        return -m_last_values[num % NUM_ENCODERS];
     return m_last_values[num % NUM_ENCODERS];
 }
