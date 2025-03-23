@@ -241,6 +241,50 @@ void OLED::Data_processing(unsigned char temp) // turns 1byte B/W data to 4 byte
     Write_Data(d4);
 }
 
+
+void OLED::lv_sh1122_flush_cb(lv_display_t * display, const lv_area_t * area, uint8_t * px_map)
+{
+	unsigned int xx,yy;	  
+    uint8_t* buf = px_map + 8;
+
+    printf("flush cb x1,y1=%d,%d x2,y2=%d,%d\n", area->x1, area->y1, area->x2, area->y2);
+
+	for(yy=0;yy<64;yy++)
+	{
+		Set_Row_Address(yy);			//  Set Row-Address 
+		Set_Column_Address(0x10,0x00);	// Set higher & lower column Address
+        //printf("\n%2.2u: ", yy);
+		for(xx=0;xx<32;xx++)
+		{
+            uint8_t bv = *buf;
+            //printf("%c%c%c%c%c%c%c%c", (bv&0x80)?'#':'.',(bv&0x40)?'#':'.',(bv&0x20)?'#':'.',(bv&0x10)?'#':'.',(bv&0x08)?'#':'.',(bv&0x04)?'#':'.',(bv&0x02)?'#':'.',(bv&0x01)?'#':'.');
+            Data_processing(bv);
+            buf++;
+		}
+	}    
+    /*
+     //The most simple case (also the slowest) to send all rendered pixels to the
+     // screen one-by-one.  `put_px` is just an example.  It needs to be implemented by you.
+    uint8_t * buf = (uint8_t *)px_map;
+    int32_t x, y;
+
+    printf("flush cb x1,y1=%d,%d x2,y2=%d,%d\n", area->x1, area->y1, area->x2, area->y2);
+
+    for(y = area->y1; y <= area->y2; y++) {
+        for(x = area->x1; x <= area->x2; x+=8) {
+            Set_Row_Address(y);
+        	Set_Column_Address((0x10|(x>>4)),(0x0f&x));
+            Write_Data(*buf);
+            buf++;
+        }
+    }
+    */
+
+    /* IMPORTANT!!!
+     * Inform LVGL that flushing is complete so buffer can be modified again. */
+    lv_display_flush_ready(display);
+}
+
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 //  Show Regular Pattern (Full Screen)
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -253,13 +297,9 @@ void OLED::show_pattern_mono(const uint8_t p[])
         Set_Column_Address(0x10, 0x00); // Set higher & lower column Address
         Set_Row_Address(0);             //  Set Row-Address
 
-        for (i = 0; i < 64; i++)
+        for (j = 0; j < 32; j++)
         {
-
-            for (j = 0; j < 32; j++)
-            {
-                Data_processing(p[i * 32 + j]);
-            }
+            Data_processing(p[i * 32 + j]);
         }
     }
 }

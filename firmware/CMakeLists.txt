@@ -54,12 +54,16 @@ target_sources(pico_cnc_hmi PUBLIC
 target_include_directories(pico_cnc_hmi PUBLIC
         ${CMAKE_CURRENT_LIST_DIR})
 
+# LVGL submodule
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/lv_conf.h DESTINATION ${CMAKE_BINARY_DIR}/lvgl)
+add_subdirectory(lvgl)
+
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
-target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio pico_unique_id tinyusb_device tinyusb_board hardware_pio hardware_i2c hardware_spi)
+target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio pico_unique_id tinyusb_device tinyusb_board hardware_pio hardware_i2c hardware_spi lvgl)
 
 # stdio serial consoles        
-pico_enable_stdio_usb(pico_cnc_hmi 0)
+pico_enable_stdio_usb(pico_cnc_hmi 1)
 pico_enable_stdio_uart(pico_cnc_hmi 1)
 
 # Uncomment this line to enable fix for Errata RP2040-E5 (the fix requires use of GPIO 15)

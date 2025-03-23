@@ -6,7 +6,7 @@
 #define SPI_TX_PIN 3
 #define SPI_SCK_PIN 2
 #define SPI_CSN_PIN 5
-#define SPI_MHZ 1
+#define SPI_MHZ 8
 
 class SPI
 {

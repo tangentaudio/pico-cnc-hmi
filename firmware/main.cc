@@ -32,6 +32,7 @@
 #include <string.h>
 
 #include "bsp/board_api.h"
+#include "pico/time.h"
 #include "tusb.h"
 #include "spi.hh"
 #include "oled_sh1122.hh"
@@ -39,6 +40,7 @@
 #include "encoder.hh"
 #include "tca8418.hh"
 #include "tlc59116.hh"
+#include "lvgl.h"
 
 #define PIN_PERIPH_RESETN 22
 #define PIN_KEY_INT 19
@@ -105,9 +107,26 @@ int main(void)
 
   printf("OLED init...");
   oled.init();
-  char s[80];
-  snprintf(s, sizeof(s), "TangentAudio CNC HMI");
-  oled.DrawString(0, 0, s);
+  printf("OK\n");
+
+  printf("LVGL init...");
+
+  lv_init();
+
+  lv_display_t* display = lv_display_create(SH1122_HOR_RES, SH1122_VER_RES);
+  lv_display_set_color_format(display, LV_COLOR_FORMAT_I1);
+
+  static uint8_t buf1[(SH1122_HOR_RES * SH1122_VER_RES / 8) + 8];
+  lv_display_set_buffers(display, buf1, NULL, sizeof(buf1), LV_DISPLAY_RENDER_MODE_FULL);
+  lv_display_set_user_data(display, &oled);
+  lv_display_set_flush_cb(display, [](lv_display_t * display, const lv_area_t *area, uint8_t* px_map) {
+      OLED* oled = static_cast<OLED*>(lv_display_get_user_data(display));
+      oled->lv_sh1122_flush_cb(display, area, px_map);
+  });
+  lv_display_set_default(display);
+  lv_display_set_antialiasing(display, false);
+  
+
   printf("OK\n");
 
   printf("I2C init...");
@@ -157,20 +176,64 @@ int main(void)
   gpio_set_dir(PIN_KEY_INT, GPIO_IN);
   gpio_pull_up(PIN_KEY_INT);
 
-  printf("initialized.\n");
+  printf("System initialized.\n");
+
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hsv_to_rgb(0,0,255), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hsv_to_rgb(0,0,0), LV_PART_MAIN);
+  lv_obj_set_style_text_font(lv_screen_active(), &lv_font_montserrat_24, LV_PART_MAIN);
+
+  lv_obj_t * label = lv_label_create(lv_screen_active());
+  lv_label_set_text(label, "PICO LVGL!");
+  
+  lv_obj_set_pos(label, 0, 0);
+  //lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+  
+  lv_obj_t * label2 = lv_label_create(lv_screen_active());
+  lv_obj_set_pos(label2, 0, 32);
+
+  printf("wrote LVGL string\n");
+
+  uint32_t time_till_next = lv_timer_handler();
+  
+  static absolute_time_t last_time = get_absolute_time();
+  absolute_time_t since_last = last_time;
+  absolute_time_t now = last_time;
 
   while (1)
   {
+    absolute_time_t now = get_absolute_time();
+
+    int64_t elapsed_time_us = absolute_time_diff_us(last_time, now);
+    int64_t elapsed_time_ms = elapsed_time_us / 1000;
+
+    int64_t since_last_us = absolute_time_diff_us(since_last, now);
+    int64_t since_last_ms = since_last_us / 1000;
+    if (since_last_ms >= 20) {
+      lv_tick_inc(since_last_ms);
+      time_till_next = lv_timer_handler();
+      since_last = now;
+    }
+
+    last_time = now;
+
 
     tud_task();
     led_blinking_task();
 
     if (encoders.task())
     {
+      printf("shuttle=%d %d\n", encoders.value(4), encoders.value(0));
+
+      char s[80];
       snprintf(s, sizeof(s), "%-05d %-05d", encoders.value(4), encoders.value(0));
-      oled.DrawString(0, 16, s);
-      snprintf(s, sizeof(s), "%-05d %-05d %-05d", encoders.value(1), encoders.value(2), encoders.value(3));
-      oled.DrawString(0, 32, s);
+      lv_label_set_text(label2, s);
+
+      //snprintf(s, sizeof(s), "%-05d %-05d", encoders.value(4), encoders.value(0));
+      //oled.DrawString(0, 16, s);
+      //snprintf(s, sizeof(s), "%-05d %-05d %-05d", encoders.value(1), encoders.value(2), encoders.value(3));
+      //oled.DrawString(0, 32, s);
+      //char s[80];
+      //snprintf(s, sizeof(s), "%-05d %-05d", encoders.value(4), encoders.value(0));
 
       pkt.s.knob1 = encoders.value(0);
       pkt.s.knob2 = encoders.value(1);
@@ -192,8 +255,8 @@ int main(void)
 
         printf("key event: %x %s\n", evt & 0x7F, evt & 0x80 ? "press" : "release");
 
-        snprintf(s, sizeof(s), "KEY %02X %s", evt & 0x7F, evt & 0x80 ? "PRESSED" : "RELEASE");
-        oled.DrawString(0, 48, s);
+        //snprintf(s, sizeof(s), "KEY %02X %s", evt & 0x7F, evt & 0x80 ? "PRESSED" : "RELEASE");
+        //oled.DrawString(0, 48, s);
 
 
         if (pressed)

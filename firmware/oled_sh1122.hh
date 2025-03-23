@@ -2,7 +2,10 @@
 #define __oled_sh1122_hh
 
 #include "spi.hh"
+#include "lvgl.h"
 
+#define SH1122_HOR_RES 256
+#define SH1122_VER_RES 64
 #define PIN_OLED_DC 4
 
 class OLED
@@ -14,6 +17,7 @@ public:
     void init();
 
     void show_pattern_mono(const uint8_t p[]);
+    void lv_sh1122_flush_cb(lv_display_t *display, const lv_area_t *area, uint8_t *px_map);
     void show_pattern_gray(const uint8_t p[]);
 
     void Fill_RAM(unsigned char Data);

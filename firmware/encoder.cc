@@ -46,7 +46,6 @@ bool Encoder::task()
         int new_value = quadrature_encoder_get_count(m_pio, m_sm[i]);
         if (new_value != m_last_values[i])
         {
-            printf("position #%u %8d\n", i, new_value);
             m_last_values[i] = new_value;
             update = true;
         }
@@ -57,7 +56,6 @@ bool Encoder::task()
     if (shuttle_code != m_last_shuttle) {
         int val = shuttle_code_lookup[shuttle_code];
         if (val != -8) {
-            printf("shuttle=%d\n", val);
             update = true;
         }
         m_last_shuttle = shuttle_code;
