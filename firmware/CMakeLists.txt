@@ -47,6 +47,7 @@ target_sources(pico_cnc_hmi PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/i2c.cc
         ${CMAKE_CURRENT_LIST_DIR}/tca8418.cc
         ${CMAKE_CURRENT_LIST_DIR}/tlc59116.cc
+        ${CMAKE_CURRENT_LIST_DIR}/ws2812.cc
         ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
         )
 
@@ -73,5 +74,6 @@ pico_add_extra_outputs(pico_cnc_hmi)
 
 # Compile the PIO-programs and include it into the project
 pico_generate_pio_header(pico_cnc_hmi ${CMAKE_CURRENT_LIST_DIR}/quadrature.pio)
+pico_generate_pio_header(pico_cnc_hmi ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
 
 

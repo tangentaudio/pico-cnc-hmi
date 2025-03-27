@@ -40,7 +40,10 @@
 #include "encoder.hh"
 #include "tca8418.hh"
 #include "tlc59116.hh"
+#include "ws2812.hh"
 #include "lvgl.h"
+
+//#define LED_TEST
 
 #define PIN_PERIPH_RESETN 22
 #define PIN_KEY_INT 19
@@ -75,12 +78,29 @@ union pkt_u
   unsigned char buf[64];
 } pkt;
 
+
+
+
+void align_area(lv_event_t *e) {
+  auto *area = (lv_area_t *) lv_event_get_param(e);
+
+
+  printf("align_area before %d %d %d %d  ", area->x1, area->y1, area->x2, area->y2);
+
+  area->x1 &= ~3;
+  area->x2 = ((area->x2 + 4) & ~3) - 1;
+  printf("after %d %d %d %d\n", area->x1, area->y1, area->x2, area->y2);
+}
+
+
+
 int main(void)
 {
   Encoder encoders;
   I2C i2c;
   TCA8418 matx(i2c);
   TLC59116 leds(i2c);
+  WS2812 rgbleds;
   SPI spi;
   OLED oled(spi);
 
@@ -112,20 +132,32 @@ int main(void)
   printf("LVGL init...");
 
   lv_init();
+  
+  #if LV_COLOR_DEPTH == 1
+    #define LV_BUFSIZE ((SH1122_HOR_RES * SH1122_VER_RES / 8) + 8)
+    #define LV_COLOR_FORMAT LV_COLOR_FORMAT_I1
+  #elif LV_COLOR_DEPTH == 8
+    #define LV_BUFSIZE (SH1122_HOR_RES * SH1122_VER_RES)
+    #define LV_COLOR_FORMAT LV_COLOR_FORMAT_L8
+  #else
+    #pragma message "Unsupported color depth"
+  #endif
 
+  static uint8_t disp_buf1[LV_BUFSIZE];
   lv_display_t* display = lv_display_create(SH1122_HOR_RES, SH1122_VER_RES);
-  lv_display_set_color_format(display, LV_COLOR_FORMAT_I1);
-
-  static uint8_t buf1[(SH1122_HOR_RES * SH1122_VER_RES / 8) + 8];
-  lv_display_set_buffers(display, buf1, NULL, sizeof(buf1), LV_DISPLAY_RENDER_MODE_FULL);
+  lv_display_set_color_format (display, LV_COLOR_FORMAT);
   lv_display_set_user_data(display, &oled);
+
+  lv_display_set_buffers(display, disp_buf1, NULL, sizeof(disp_buf1), LV_DISPLAY_RENDER_MODE_FULL);
   lv_display_set_flush_cb(display, [](lv_display_t * display, const lv_area_t *area, uint8_t* px_map) {
       OLED* oled = static_cast<OLED*>(lv_display_get_user_data(display));
       oled->lv_sh1122_flush_cb(display, area, px_map);
   });
+
+  //lv_display_add_event_cb(display, align_area, LV_EVENT_INVALIDATE_AREA, nullptr);
+
   lv_display_set_default(display);
-  lv_display_set_antialiasing(display, false);
-  
+  //lv_display_set_antialiasing(display, true);
 
   printf("OK\n");
 
@@ -142,12 +174,16 @@ int main(void)
   matx.enableInterrupts();
   printf("OK\n");
 
-  printf("LED driver init...");
+  printf("PWM LED driver init...");
   leds.init();
   printf("OK\n");
 
+  printf("RGB LED driver init...");
+  rgbleds.init();
+  printf("OK\n");
+
 #ifdef LED_TEST
-  printf("LED test...");
+  printf("PWM LED test...");
   for (uint8_t led = 0; led < 12; led++)
   {
     for (uint8_t bright = 0; bright < 0x7f; bright++)
@@ -155,18 +191,41 @@ int main(void)
       leds.setLED(led, bright);
     }
   }
-  board_delay(500);
-  for (uint8_t bright = 0x7f; bright > 0; bright--)
+  for (uint8_t led = 0; led < 12; led++)
   {
-    for (uint8_t led = 0; led < 12; led++)
+    for (uint8_t bright = 0x7f; bright > 0; bright--)
     {
-      leds.setLED(led, bright, false);
+      leds.setLED(led, bright);
     }
-    leds.update();
-    board_delay(10);
+  }
+  printf("OK\n");
+
+  printf("RGB LED test...");
+  for (uint8_t led = 0; led < WS2812_NUM_LEDS; led++)
+  {
+    rgbleds.setLED(led, rgbleds.urgb_u32(0x7f, 0, 0), true);
+    board_delay(5);
+  }
+  for (uint8_t led = 0; led < WS2812_NUM_LEDS; led++)
+  {
+    rgbleds.setLED(led, rgbleds.urgb_u32(0, 0x7f, 0), true);
+    board_delay(5);
+  }
+  for (uint8_t led = 0; led < WS2812_NUM_LEDS; led++)
+  {
+    rgbleds.setLED(led, rgbleds.urgb_u32(0, 0, 0x7f), true);
+    board_delay(5);
+  }
+  board_delay(100);
+  for (uint8_t led = 0; led < WS2812_NUM_LEDS; led++)
+  {
+    rgbleds.setLED(led, 0, true);
+    board_delay(5);
   }
   printf("OK\n");
 #endif
+
+
 
   printf("Encoder init...");
   encoders.init();
@@ -178,17 +237,20 @@ int main(void)
 
   printf("System initialized.\n");
 
-  lv_obj_set_style_text_color(lv_screen_active(), lv_color_hsv_to_rgb(0,0,255), LV_PART_MAIN);
-  lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hsv_to_rgb(0,0,0), LV_PART_MAIN);
-  lv_obj_set_style_text_font(lv_screen_active(), &lv_font_montserrat_28, LV_PART_MAIN);
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
+  lv_obj_set_style_text_font(lv_screen_active(), &lv_font_montserrat_24, LV_PART_MAIN);
 
   lv_obj_t * label = lv_label_create(lv_screen_active());
-  lv_label_set_text(label, "PICO LVGL!");
+  lv_label_set_text(label, "LVGLv9 Pico2");
+  //lv_obj_set_width(label, 256);
+  //lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
   
   lv_obj_set_pos(label, 0, 0);
   //lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
   
   lv_obj_t * label2 = lv_label_create(lv_screen_active());
+  lv_label_set_text(label2, "tangentaudio.com");
   lv_obj_set_pos(label2, 0, 32);
 
   printf("wrote LVGL string\n");
@@ -198,6 +260,7 @@ int main(void)
   static absolute_time_t last_time = get_absolute_time();
   absolute_time_t since_last = last_time;
   absolute_time_t now = last_time;
+  static int t=0;
 
   while (1)
   {
@@ -208,14 +271,18 @@ int main(void)
 
     int64_t since_last_us = absolute_time_diff_us(since_last, now);
     int64_t since_last_ms = since_last_us / 1000;
-    if (since_last_ms >= 20) {
-      lv_tick_inc(since_last_ms);
+    
+    if (since_last_ms >= 33) {
       time_till_next = lv_timer_handler();
+
+      lv_task_handler();
+      lv_tick_inc(since_last_ms);
+
       since_last = now;
     }
 
-    last_time = now;
 
+    last_time = now;
 
     tud_task();
     led_blinking_task();
@@ -224,9 +291,9 @@ int main(void)
     {
       printf("shuttle=%d %d\n", encoders.value(4), encoders.value(0));
 
-      char s[80];
-      snprintf(s, sizeof(s), "%-05d %-05d", encoders.value(4), encoders.value(0));
-      lv_label_set_text(label2, s);
+      //char s[80];
+      //snprintf(s, sizeof(s), "jog %-01d shuttle %-05d", encoders.value(4), encoders.value(0));
+      //lv_label_set_text(label2, s);
 
       //snprintf(s, sizeof(s), "%-05d %-05d", encoders.value(4), encoders.value(0));
       //oled.DrawString(0, 16, s);
@@ -234,6 +301,21 @@ int main(void)
       //oled.DrawString(0, 32, s);
       //char s[80];
       //snprintf(s, sizeof(s), "%-05d %-05d", encoders.value(4), encoders.value(0));
+
+      int v = encoders.value(1) / 2;
+      if (v >= 15) v=14;
+      else if (v <= 0) v=0;
+      rgbleds.setRing(0, v);
+
+      v = encoders.value(2) / 2;
+      if (v >= 15) v=14;
+      else if (v <= 0) v=0;
+      rgbleds.setRing(1, v);
+      
+      v = encoders.value(3) / 2;
+      if (v >= 15) v=14;
+      else if (v <= 0) v=0;
+      rgbleds.setRing(2, v);
 
       pkt.s.knob1 = encoders.value(0);
       pkt.s.knob2 = encoders.value(1);

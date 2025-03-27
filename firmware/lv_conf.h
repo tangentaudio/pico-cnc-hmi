@@ -3,14 +3,6 @@
  * Configuration file for v9.3.0-dev
  */
 
-/*
- * Copy this file as `lv_conf.h`
- * 1. simply next to `lvgl` folder
- * 2. or to any other place and
- *    - define `LV_CONF_INCLUDE_SIMPLE`;
- *    - add the path as an include path.
- */
-
 /* clang-format off */
 #if 1 /* Set this to "1" to enable content */
 
@@ -27,7 +19,7 @@
  *====================*/
 
 /** Color depth: 1 (I1), 8 (L8), 16 (RGB565), 24 (RGB888), 32 (XRGB8888) */
-#define LV_COLOR_DEPTH 1
+#define LV_COLOR_DEPTH 8
 
 /*=========================
    STDLIB WRAPPER SETTINGS
@@ -129,7 +121,7 @@
 #define LV_DRAW_BUF_STRIDE_ALIGN                1
 
 /** Align start address of draw_buf addresses to this bytes*/
-#define LV_DRAW_BUF_ALIGN                       4
+#define LV_DRAW_BUF_ALIGN                       1
 
 /** Using matrix for transformations.
  * Requirements:
@@ -154,7 +146,7 @@
 /** Stack size of drawing thread.
  * NOTE: If FreeType or ThorVG is enabled, it is recommended to set it to 32KB or more.
  */
-#define LV_DRAW_THREAD_STACK_SIZE    (8 * 1024)         /**< [bytes]*/
+#define LV_DRAW_THREAD_STACK_SIZE    (16 * 1024)         /**< [bytes]*/
 
 #define LV_USE_DRAW_SW 1
 #if LV_USE_DRAW_SW == 1
@@ -164,14 +156,14 @@
      * - gradients use RGB888
      * - bitmaps with transparency may use ARGB8888
      */
-    #define LV_DRAW_SW_SUPPORT_RGB565       1
-    #define LV_DRAW_SW_SUPPORT_RGB565A8     1
-    #define LV_DRAW_SW_SUPPORT_RGB888       1
-    #define LV_DRAW_SW_SUPPORT_XRGB8888     1
-    #define LV_DRAW_SW_SUPPORT_ARGB8888     1
+    #define LV_DRAW_SW_SUPPORT_RGB565       0
+    #define LV_DRAW_SW_SUPPORT_RGB565A8     0
+    #define LV_DRAW_SW_SUPPORT_RGB888       0
+    #define LV_DRAW_SW_SUPPORT_XRGB8888     0
+    #define LV_DRAW_SW_SUPPORT_ARGB8888     0
     #define LV_DRAW_SW_SUPPORT_L8           1
-    #define LV_DRAW_SW_SUPPORT_AL88         1
-    #define LV_DRAW_SW_SUPPORT_A8           1
+    #define LV_DRAW_SW_SUPPORT_AL88         0
+    #define LV_DRAW_SW_SUPPORT_A8           0
     #define LV_DRAW_SW_SUPPORT_I1           1
 
     /* The threshold of the luminance to consider a pixel as
@@ -221,80 +213,14 @@
 /*Use TSi's aka (Think Silicon) NemaGFX */
 #define LV_USE_NEMA_GFX 0
 
-#if LV_USE_NEMA_GFX
-    /** Select which NemaGFX HAL to use. Possible options:
-     * - LV_NEMA_HAL_CUSTOM
-     * - LV_NEMA_HAL_STM32 */
-    #define LV_USE_NEMA_HAL LV_NEMA_HAL_CUSTOM
-    #if LV_USE_NEMA_HAL == LV_NEMA_HAL_STM32
-        #define LV_NEMA_STM32_HAL_INCLUDE <stm32u5xx_hal.h>
-    #endif
-
-    /*Enable Vector Graphics Operations. Available only if NemaVG library is present*/
-    #define LV_USE_NEMA_VG 0
-    #if LV_USE_NEMA_VG
-        /*Define application's resolution used for VG related buffer allocation */
-        #define LV_NEMA_GFX_MAX_RESX 800
-        #define LV_NEMA_GFX_MAX_RESY 600
-    #endif
-#endif
-
 /** Use NXP's VG-Lite GPU on iMX RTxxx platforms. */
 #define LV_USE_DRAW_VGLITE 0
-
-#if LV_USE_DRAW_VGLITE
-    /** Enable blit quality degradation workaround recommended for screen's dimension > 352 pixels. */
-    #define LV_USE_VGLITE_BLIT_SPLIT 0
-
-    #if LV_USE_OS
-        /** Use additional draw thread for VG-Lite processing. */
-        #define LV_USE_VGLITE_DRAW_THREAD 1
-
-        #if LV_USE_VGLITE_DRAW_THREAD
-            /** Enable VGLite draw async. Queue multiple tasks and flash them once to the GPU. */
-            #define LV_USE_VGLITE_DRAW_ASYNC 1
-        #endif
-    #endif
-
-    /** Enable VGLite asserts. */
-    #define LV_USE_VGLITE_ASSERT 0
-#endif
 
 /** Use NXP's PXP on iMX RTxxx platforms. */
 #define LV_USE_PXP 0
 
-#if LV_USE_PXP
-    /** Use PXP for drawing.*/
-    #define LV_USE_DRAW_PXP 1
-
-    /** Use PXP to rotate display.*/
-    #define LV_USE_ROTATE_PXP 0
-
-    #if LV_USE_DRAW_PXP && LV_USE_OS
-        /** Use additional draw thread for PXP processing.*/
-        #define LV_USE_PXP_DRAW_THREAD 1
-    #endif
-
-    /** Enable PXP asserts. */
-    #define LV_USE_PXP_ASSERT 0
-#endif
-
 /** Use NXP's G2D on MPU platforms. */
 #define LV_USE_DRAW_G2D 0
-
-#if LV_USE_DRAW_G2D
-    /** Maximum number of buffers that can be stored for G2D draw unit.
-     *  Includes the frame buffers and assets. */
-    #define LV_G2D_HASH_TABLE_SIZE 50
-
-    #if LV_USE_OS
-        /** Use additional draw thread for G2D processing.*/
-        #define LV_USE_G2D_DRAW_THREAD 1
-    #endif
-
-    /** Enable G2D asserts. */
-    #define LV_USE_G2D_ASSERT 0
-#endif
 
 /** Use Renesas Dave2D on RA  platforms. */
 #define LV_USE_DRAW_DAVE2D 0
@@ -305,40 +231,8 @@
 /** Use VG-Lite GPU. */
 #define LV_USE_DRAW_VG_LITE 0
 
-#if LV_USE_DRAW_VG_LITE
-    /** Enable VG-Lite custom external 'gpu_init()' function */
-    #define LV_VG_LITE_USE_GPU_INIT 0
-
-    /** Enable VG-Lite assert. */
-    #define LV_VG_LITE_USE_ASSERT 0
-
-    /** VG-Lite flush commit trigger threshold. GPU will try to batch these many draw tasks. */
-    #define LV_VG_LITE_FLUSH_MAX_COUNT 8
-
-    /** Enable border to simulate shadow.
-     *  NOTE: which usually improves performance,
-     *  but does not guarantee the same rendering quality as the software. */
-    #define LV_VG_LITE_USE_BOX_SHADOW 0
-
-    /** VG-Lite gradient maximum cache number.
-     *  @note  The memory usage of a single gradient image is 4K bytes. */
-    #define LV_VG_LITE_GRAD_CACHE_CNT 32
-
-    /** VG-Lite stroke maximum cache number. */
-    #define LV_VG_LITE_STROKE_CACHE_CNT 32
-#endif
-
 /** Accelerate blends, fills, etc. with STM32 DMA2D */
 #define LV_USE_DRAW_DMA2D 0
-
-#if LV_USE_DRAW_DMA2D
-    #define LV_DRAW_DMA2D_HAL_INCLUDE "stm32h7xx_hal.h"
-
-    /* if enabled, the user is required to call `lv_draw_dma2d_transfer_complete_interrupt_handler`
-     * upon receiving the DMA2D global interrupt
-     */
-    #define LV_USE_DRAW_DMA2D_INTERRUPT 0
-#endif
 
 /** Draw using cached OpenGLES textures */
 #define LV_USE_DRAW_OPENGLES 0
@@ -365,7 +259,7 @@
 
     /** - 1: Print log with 'printf';
      *  - 0: User needs to register a callback with `lv_log_register_print_cb()`. */
-    #define LV_LOG_PRINTF 0
+    #define LV_LOG_PRINTF 1
 
     /** Set callback to print logs.
      *  E.g `my_print`. The prototype should be `void my_print(lv_log_level_t level, const char * buf)`.
@@ -382,13 +276,13 @@
 
     /* Enable/disable LV_LOG_TRACE in modules that produces a huge number of logs. */
     #define LV_LOG_TRACE_MEM        1   /**< Enable/disable trace logs in memory operations. */
-    #define LV_LOG_TRACE_TIMER      1   /**< Enable/disable trace logs in timer operations. */
-    #define LV_LOG_TRACE_INDEV      1   /**< Enable/disable trace logs in input device operations. */
+    #define LV_LOG_TRACE_TIMER      0   /**< Enable/disable trace logs in timer operations. */
+    #define LV_LOG_TRACE_INDEV      0   /**< Enable/disable trace logs in input device operations. */
     #define LV_LOG_TRACE_DISP_REFR  1   /**< Enable/disable trace logs in display re-draw operations. */
     #define LV_LOG_TRACE_EVENT      1   /**< Enable/disable trace logs in event dispatch logic. */
-    #define LV_LOG_TRACE_OBJ_CREATE 1   /**< Enable/disable trace logs in object creation (core `obj` creation plus every widget). */
-    #define LV_LOG_TRACE_LAYOUT     1   /**< Enable/disable trace logs in flex- and grid-layout operations. */
-    #define LV_LOG_TRACE_ANIM       1   /**< Enable/disable trace logs in animation logic. */
+    #define LV_LOG_TRACE_OBJ_CREATE 0   /**< Enable/disable trace logs in object creation (core `obj` creation plus every widget). */
+    #define LV_LOG_TRACE_LAYOUT     0   /**< Enable/disable trace logs in flex- and grid-layout operations. */
+    #define LV_LOG_TRACE_ANIM       0   /**< Enable/disable trace logs in animation logic. */
     #define LV_LOG_TRACE_CACHE      1   /**< Enable/disable trace logs in cache operations. */
 #endif  /*LV_USE_LOG*/
 
