@@ -229,6 +229,9 @@ int main(void)
 
   printf("Encoder init...");
   encoders.init();
+  encoders.set_limits(1, 0, 14, 4);
+  encoders.set_limits(2, 0, 14, 4);
+  encoders.set_limits(3, 0, 14, 4);
   printf("OK\n");
 
   gpio_init(PIN_KEY_INT);
@@ -289,30 +292,20 @@ int main(void)
 
     if (encoders.task())
     {
-      printf("shuttle=%d %d\n", encoders.value(4), encoders.value(0));
+      printf("shuttle=%d %d ", encoders.value(4), encoders.value(0));
+      printf("enc=%-05d %-05d %-05d\n", encoders.value(1), encoders.value(2), encoders.value(3));
 
-      //char s[80];
-      //snprintf(s, sizeof(s), "jog %-01d shuttle %-05d", encoders.value(4), encoders.value(0));
-      //lv_label_set_text(label2, s);
-
-      //snprintf(s, sizeof(s), "%-05d %-05d", encoders.value(4), encoders.value(0));
-      //oled.DrawString(0, 16, s);
-      //snprintf(s, sizeof(s), "%-05d %-05d %-05d", encoders.value(1), encoders.value(2), encoders.value(3));
-      //oled.DrawString(0, 32, s);
-      //char s[80];
-      //snprintf(s, sizeof(s), "%-05d %-05d", encoders.value(4), encoders.value(0));
-
-      int v = encoders.value(1) / 2;
+      int v = encoders.value(1);
       if (v >= 15) v=14;
       else if (v <= 0) v=0;
       rgbleds.setRing(0, v);
 
-      v = encoders.value(2) / 2;
+      v = encoders.value(2);
       if (v >= 15) v=14;
       else if (v <= 0) v=0;
       rgbleds.setRing(1, v);
       
-      v = encoders.value(3) / 2;
+      v = encoders.value(3);
       if (v >= 15) v=14;
       else if (v <= 0) v=0;
       rgbleds.setRing(2, v);

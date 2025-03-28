@@ -4,6 +4,9 @@
 
 Encoder::Encoder() : m_pins{6, 12, 14, 16},
                      m_last_values{-1, -1, -1, -1},
+                     m_cur_values{0, 0, 0, 0},
+                     m_minimum{0, 0, 0, 0},
+                     m_maximum{100, 100, 100, 100},
                      m_last_shuttle(0xFF),
                      m_last_shuttle_val(0)
 {
@@ -45,8 +48,31 @@ bool Encoder::task()
     {
         int new_value = quadrature_encoder_get_count(m_pio, m_sm[i]);
         if (new_value != m_last_values[i])
-        {
+        {   
+            int diff = new_value - m_last_values[i];
+
+            if (i != 0) { 
+                // invert the value for the encoders but not the shuttle
+                diff = -diff;
+            }
+
+            if (diff > 0)
+            {
+                if (m_cur_values[i] + diff < m_maximum[i])
+                    m_cur_values[i] += diff;
+                else
+                    m_cur_values[i] = m_maximum[i];
+            }
+            else if (diff < 0)
+            {
+                if (m_cur_values[i] + diff > m_minimum[i])
+                    m_cur_values[i] += diff;
+                else
+                    m_cur_values[i] = m_minimum[i];
+            }
+
             m_last_values[i] = new_value;
+
             update = true;
         }
     }
@@ -67,11 +93,26 @@ bool Encoder::task()
     return update;
 }
 
-int Encoder::value(uint num)
+void Encoder::set_limits(uint8_t num, int min, int max, int div)
+{
+    if (num >= NUM_ENCODERS)
+        return;
+    m_minimum[num] = min * div;
+    m_maximum[num] = max * div;
+    m_divisor[num] = div;
+}
+
+void Encoder::set_value(uint8_t num, int val)
+{
+    if (num >= NUM_ENCODERS)
+        return;
+    m_cur_values[num] = val;
+}
+
+int Encoder::value(uint8_t num)
 {
     if (num >= NUM_ENCODERS)
         return m_last_shuttle_val;
-    else if (num > 0)
-        return -m_last_values[num % NUM_ENCODERS];
-    return m_last_values[num % NUM_ENCODERS];
+    
+    return m_cur_values[num] / m_divisor[num];
 }

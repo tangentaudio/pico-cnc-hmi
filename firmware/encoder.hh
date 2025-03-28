@@ -37,12 +37,18 @@ public:
     ~Encoder();
     void init();
     bool task();
-    int value(uint num);
+    int value(uint8_t num);
+    void set_limits(uint8_t num, int min, int max, int div);
+    void set_value(uint8_t num, int val);
 private:
     PIO m_pio;
     const uint m_pins[NUM_ENCODERS];
     uint m_sm[NUM_ENCODERS];
     int m_last_values[NUM_ENCODERS];
+    int m_cur_values[NUM_ENCODERS];
+    int m_minimum[NUM_ENCODERS];
+    int m_maximum[NUM_ENCODERS];
+    int m_divisor[NUM_ENCODERS];
     uint8_t m_last_shuttle;
     int m_last_shuttle_val;
 };
