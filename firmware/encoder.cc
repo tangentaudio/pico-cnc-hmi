@@ -58,14 +58,14 @@ bool Encoder::task()
 
             if (diff > 0)
             {
-                if (m_cur_values[i] + diff < m_maximum[i])
+                if ((m_maximum[i] == 0 && m_minimum[i] == 0) || (m_cur_values[i] + diff < m_maximum[i]))
                     m_cur_values[i] += diff;
                 else
                     m_cur_values[i] = m_maximum[i];
             }
             else if (diff < 0)
             {
-                if (m_cur_values[i] + diff > m_minimum[i])
+                if ((m_maximum[i] == 0 && m_minimum[i] == 0) || m_cur_values[i] + diff > m_minimum[i])
                     m_cur_values[i] += diff;
                 else
                     m_cur_values[i] = m_minimum[i];
@@ -87,8 +87,6 @@ bool Encoder::task()
         m_last_shuttle = shuttle_code;
         m_last_shuttle_val = val;
     }
-
-
 
     return update;
 }

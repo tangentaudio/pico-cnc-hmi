@@ -229,6 +229,7 @@ int main(void)
 
   printf("Encoder init...");
   encoders.init();
+  encoders.set_limits(0, 0, 0, 1);
   encoders.set_limits(1, 0, 14, 4);
   encoders.set_limits(2, 0, 14, 4);
   encoders.set_limits(3, 0, 14, 4);
@@ -242,21 +243,60 @@ int main(void)
 
   lv_obj_set_style_text_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
   lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
-  lv_obj_set_style_text_font(lv_screen_active(), &lv_font_montserrat_24, LV_PART_MAIN);
-
-  lv_obj_t * label = lv_label_create(lv_screen_active());
-  lv_label_set_text(label, "LVGLv9 Pico2");
-  //lv_obj_set_width(label, 256);
-  //lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
+  lv_obj_set_style_text_font(lv_screen_active(), &lv_font_montserrat_28, LV_PART_MAIN);
+  lv_obj_set_style_line_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
+  lv_obj_set_style_line_width(lv_screen_active(), 1, LV_PART_MAIN);
   
-  lv_obj_set_pos(label, 0, 0);
-  //lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
-  
-  lv_obj_t * label2 = lv_label_create(lv_screen_active());
-  lv_label_set_text(label2, "tangentaudio.com");
-  lv_obj_set_pos(label2, 0, 32);
+  lv_obj_t * labeljog = lv_label_create(lv_screen_active());
+  lv_label_set_text(labeljog, "");
+  lv_obj_set_pos(labeljog, 64, 0);
 
-  printf("wrote LVGL string\n");
+  lv_obj_t * labelkey = lv_label_create(lv_screen_active());
+  lv_label_set_text(labelkey, "");
+  lv_obj_set_pos(labelkey, 0, 32);
+
+
+  static lv_style_t style_bg;
+  static lv_style_t style_indic;
+
+  lv_style_init(&style_bg);
+  lv_style_set_border_color(&style_bg, lv_color_white());
+  lv_style_set_border_width(&style_bg, 2);
+  lv_style_set_pad_all(&style_bg, 4);
+  lv_style_set_radius(&style_bg, 2);
+  lv_style_set_anim_duration(&style_bg, 100);
+
+  lv_style_init(&style_indic);
+  lv_style_set_bg_opa(&style_indic, LV_OPA_COVER);
+  lv_style_set_bg_color(&style_indic, lv_color_white());
+  lv_style_set_radius(&style_indic, 1);
+
+  lv_obj_t *barshuttle = lv_bar_create(lv_screen_active());
+  lv_bar_set_orientation(barshuttle, LV_BAR_ORIENTATION_HORIZONTAL);
+  lv_bar_set_range(barshuttle, -7, 7);
+  lv_bar_set_mode(barshuttle, LV_BAR_MODE_SYMMETRICAL);
+  lv_obj_remove_style_all(barshuttle);
+  lv_obj_add_style(barshuttle, &style_bg, 0);
+  lv_obj_add_style(barshuttle, &style_indic, LV_PART_INDICATOR);
+  lv_bar_set_value(barshuttle, 0, LV_ANIM_OFF);
+  lv_obj_set_size(barshuttle, 128, 24);
+  lv_obj_set_pos(barshuttle, 128, 0);
+
+  lv_obj_t* barencoder[3];
+  for (uint8_t i=0; i<3; i++) {
+    lv_obj_t *barenc = lv_bar_create(lv_screen_active());
+    lv_bar_set_orientation(barenc, LV_BAR_ORIENTATION_HORIZONTAL);
+    lv_bar_set_range(barenc, 0, 14);
+    lv_bar_set_mode(barenc, LV_BAR_MODE_NORMAL);
+    lv_obj_remove_style_all(barenc);
+    lv_obj_add_style(barenc, &style_bg, 0);
+    lv_obj_add_style(barenc, &style_indic, LV_PART_INDICATOR);
+    lv_bar_set_value(barenc, 0, LV_ANIM_OFF);
+    lv_obj_set_size(barenc, 36, 20);
+    lv_obj_set_pos(barenc, 128 + (38*i), 32);
+
+    barencoder[i] = barenc;
+  }
 
   uint32_t time_till_next = lv_timer_handler();
   
@@ -265,6 +305,7 @@ int main(void)
   absolute_time_t now = last_time;
   static int t=0;
 
+  bool force_encoder_update = false;
   while (1)
   {
     absolute_time_t now = get_absolute_time();
@@ -289,26 +330,33 @@ int main(void)
 
     tud_task();
     led_blinking_task();
+    
+    bool upd = encoders.task();
 
-    if (encoders.task())
+    if ( upd || force_encoder_update)
     {
-      printf("shuttle=%d %d ", encoders.value(4), encoders.value(0));
-      printf("enc=%-05d %-05d %-05d\n", encoders.value(1), encoders.value(2), encoders.value(3));
+      force_encoder_update = false;
 
-      int v = encoders.value(1);
-      if (v >= 15) v=14;
-      else if (v <= 0) v=0;
-      rgbleds.setRing(0, v);
+      int shuttle = encoders.value(4);
+      int jog = encoders.value(0);
 
-      v = encoders.value(2);
-      if (v >= 15) v=14;
-      else if (v <= 0) v=0;
-      rgbleds.setRing(1, v);
+      lv_label_set_text_fmt(labeljog, "%5d", jog);
+      lv_bar_set_value(barshuttle, shuttle, LV_ANIM_OFF);
+
+      int v1 = encoders.value(1);
+      rgbleds.setRing(0, v1, rgbleds.urgb_u32(0x7f, 0, 0), false);
+
+      int v2 = encoders.value(2);
+      rgbleds.setRing(1, v2, rgbleds.urgb_u32(0, 0x7f, 0), false);
       
-      v = encoders.value(3);
-      if (v >= 15) v=14;
-      else if (v <= 0) v=0;
-      rgbleds.setRing(2, v);
+      int v3 = encoders.value(3);
+      rgbleds.setRing(2, v3, rgbleds.urgb_u32(0, 0, 0x7f), true);
+
+      lv_bar_set_value(barencoder[0], v1, LV_ANIM_OFF);
+      lv_bar_set_value(barencoder[1], v2, LV_ANIM_OFF);
+      lv_bar_set_value(barencoder[2], v3, LV_ANIM_OFF);
+
+      printf("enc=%-05d %-05d %-05d\n", v1, v2, v3);
 
       pkt.s.knob1 = encoders.value(0);
       pkt.s.knob2 = encoders.value(1);
@@ -330,15 +378,17 @@ int main(void)
 
         printf("key event: %x %s\n", evt & 0x7F, evt & 0x80 ? "press" : "release");
 
-        //snprintf(s, sizeof(s), "KEY %02X %s", evt & 0x7F, evt & 0x80 ? "PRESSED" : "RELEASE");
-        //oled.DrawString(0, 48, s);
-
-
         if (pressed)
+          lv_label_set_text_fmt(labelkey, LV_SYMBOL_DOWN "%2.2X", key);
+        else
+          lv_label_set_text_fmt(labelkey, LV_SYMBOL_UP "%2.2X", key);
+
+       if (pressed)
         {
           uint8_t led = 0;
           switch (key)
           {
+
           case 0x2f:
             led = 1;
             break;
@@ -374,6 +424,18 @@ int main(void)
             break;
           case 0x3e:
             led = 8;
+            break;
+          case 0x68:
+            encoders.set_value(1, 0);
+            force_encoder_update = true;
+            break;
+          case 0x71:
+            encoders.set_value(2, 0);
+            force_encoder_update = true;
+            break;
+          case 0x72:
+            encoders.set_value(3, 0);
+            force_encoder_update = true;
             break;
           default:
             led = 0xff;

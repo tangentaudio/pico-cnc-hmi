@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "ws2812.hh"
 
 WS2812::WS2812()
@@ -33,7 +34,7 @@ void WS2812::update()
     }
 }
 
-void WS2812::setRing(uint8_t ring, uint8_t value)
+void WS2812::setRing(uint8_t ring, uint8_t value, uint32_t ball_color, bool update_now)
 {
     if (ring >= 3) return;
 
@@ -41,14 +42,15 @@ void WS2812::setRing(uint8_t ring, uint8_t value)
 
     for (uint8_t i = 0; i < 15; i++) {
         if (i < value) {
-            m_leds[(i + ofs)] = urgb_u32(0x0f, 0x0f, 0x0f);
+            m_leds[(i + ofs)] = 0;
         } else if (i == value) {
-            m_leds[(i + ofs)] = urgb_u32(0, 0x7f, 0);
+            m_leds[(i + ofs)] = ball_color;
         } else {
             m_leds[(i + ofs)] = 0;
         }
     }
-    update();
+    if (update_now)
+        update();
 }
 
 void WS2812::put_pixel(PIO pio, uint sm, uint32_t pixel_grb) {
