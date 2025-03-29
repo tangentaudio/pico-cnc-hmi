@@ -33,20 +33,14 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
-#include "pico/time.h"
-
 #ifdef USB_ENABLED
 #include "bsp/board_api.h"
 #include "tusb.h"
 #endif
-
 #include "i2c.hh"
-
 #include "task_encoder.hh"
 #include "task_matrix.hh"
 #include "task_led.hh"
-
-
 
 #define PIN_PERIPH_RESETN 22
 
@@ -59,14 +53,20 @@ void main_task(void *unused);
 
 int main(void)
 {
-  printf("Reset peripherals...");
+  #ifdef USB_ENABLED
+  board_init();
+  tud_init(BOARD_TUD_RHPORT);
+
+  if (board_init_after_tusb)
+    board_init_after_tusb();
+  #endif
+
   gpio_init(PIN_PERIPH_RESETN);
   gpio_set_dir(PIN_PERIPH_RESETN, GPIO_OUT);
   gpio_pull_up(PIN_PERIPH_RESETN);
   gpio_put(PIN_PERIPH_RESETN, 0);
   sleep_ms(100);
   gpio_put(PIN_PERIPH_RESETN, 1);
-  printf("OK\n");
 
   i2c = new I2C();
   i2c->init();
@@ -79,19 +79,12 @@ int main(void)
   task_led = new TaskLED();
   task_led->init(i2c);
 
-  #ifdef USB_ENABLED
-  board_init();
-  tud_init(BOARD_TUD_RHPORT);
-
-  if (board_init_after_tusb)
-    board_init_after_tusb();
-  #endif
 
 
-  BaseType_t matrix_task_status = xTaskCreate(task_matrix->task, "MATRIX_TASK", 1024, (void*)task_matrix, 3, nullptr);
-  BaseType_t encoder_task_status = xTaskCreate(task_encoder->task, "ENCODER_TASK", 1024, (void*)task_encoder, 1, nullptr);
-  BaseType_t led_task_status = xTaskCreate(task_led->task, "LED_TASK", 1024, (void*)task_led, 2, nullptr);
-  BaseType_t main_task_status = xTaskCreate(main_task, "MAIN_TASK", 1024, nullptr, 2, nullptr);
+  BaseType_t matrix_task_status = xTaskCreate(task_matrix->task, "MATRIX_TASK", 256, (void*)task_matrix, 3, nullptr);
+  BaseType_t encoder_task_status = xTaskCreate(task_encoder->task, "ENCODER_TASK", 256, (void*)task_encoder, 1, nullptr);
+  BaseType_t led_task_status = xTaskCreate(task_led->task, "LED_TASK", 256, (void*)task_led, 2, nullptr);
+  BaseType_t main_task_status = xTaskCreate(main_task, "MAIN_TASK", 512, nullptr, 2, nullptr);
 
   assert(main_task_status == pdPASS && led_task_status == pdPASS && matrix_task_status == pdPASS && encoder_task_status == pdPASS);
 
@@ -104,14 +97,17 @@ int main(void)
 
 void main_task(void* unused)
 {
-  const uint8_t key_to_led[] = {
-      0x2f, 0x30, 0x37, 0x38, 0x39, 0x3a, 0x3d, 0x3e, 0x33, 0x34, 0x35, 0x36};
 
   const uint32_t dot_colors[] = {
       WS2812::urgb_u32(0x7f, 0, 0),
       WS2812::urgb_u32(0, 0x7f, 0),
       WS2812::urgb_u32(0, 0, 0x7f),
   };
+
+  static uint8_t led_states[16];
+  for (uint i=0; i<16; i++) {
+    led_states[i] = 0;
+  }
 
   while (true)
   {
@@ -134,40 +130,29 @@ void main_task(void* unused)
     TaskMatrix::event_t mtx_evt;
     if (xQueueReceive(task_matrix->event_queue, &mtx_evt, 10) == pdTRUE)
     {
+
       printf("evt=%02x %s %s\n", mtx_evt.code, mtx_evt.press ? "press" : "release", mtx_evt.gpio ? "gpio" : "key");
 
       if (mtx_evt.gpio && mtx_evt.press) {
-        uint8_t enc = 0xff;
-        if (mtx_evt.code == 0x68) {
-          enc = 1;
-        } else if (mtx_evt.code == 0x71) {
-          enc = 2;
-        } else if (mtx_evt.code == 0x72) {
-          enc = 3;
-        }
-
-        if (enc != 0xff) {
+        uint8_t enc;
+        if (TaskMatrix::led_encoder_map(mtx_evt.code, enc)) {
+          // pressing an encoder button resets value
           TaskEncoder::cmd_t cmd;
           cmd.cmd = TaskEncoder::ENCODER_CMD_SET_VALUE;
-          cmd.encoder = enc;
+          cmd.encoder = enc + 1;
           cmd.value = 0;
           xQueueSend(task_encoder->cmd_queue, &cmd, 0);
-        } 
-        
-      } else {
-        uint8_t led = 0;
-        for (int i = 0; i < 12; i++) {
-          if (mtx_evt.code == key_to_led[i]) {
-            led = i + 1;
-            break;
-          }
         }
-        if (led > 0 && led <= 16)
-        {
+      } else if (! mtx_evt.gpio && mtx_evt.press) {
+        uint8_t led = 0;
+        if (TaskMatrix::led_key_map(mtx_evt.code, led)) {
+          led_states[led] = led_states[led] ? 0 : 128;
+
+          // pressing a key with an associated LED toggles it
           TaskLED::cmd_t cmd;
           cmd.cmd = TaskLED::LED_CMD_SET_SIMPLE_LED;
-          cmd.led = led - 1;
-          cmd.value = mtx_evt.press ? 64 : 0;
+          cmd.led = led;
+          cmd.value = led_states[led];
           cmd.update_now = true;
           xQueueSend(task_led->cmd_queue, &cmd, 0);
         }
