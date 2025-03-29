@@ -2,6 +2,8 @@
 #define __i2c_hh
 
 #include "hardware/i2c.h"
+#include <FreeRTOS.h>
+#include "semphr.h"
 
 #define I2C_SDA_PIN 20
 #define I2C_SCL_PIN 21
@@ -19,6 +21,7 @@ public:
     bool writeBuffer(uint8_t address, uint8_t *buf, uint8_t len);
 
 private:
+    SemaphoreHandle_t m_mutex;
 };
 
 #endif

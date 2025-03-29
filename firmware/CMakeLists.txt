@@ -1,15 +1,14 @@
-# Generated Cmake Pico project file
-
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.15)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# LVGL in particular is very slow to compile and upload, so this is an easy way to turn it off
+# for developing other parts of the system more quickly
 option(ENABLE_DISPLAY "Enable SPI OLED display support" OFF)
 
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
-
 # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
 if(WIN32)
     set(USERHOME $ENV{USERPROFILE})
@@ -26,20 +25,41 @@ endif()
 # ====================================================================================
 set(PICO_BOARD pico2 CACHE STRING "Board type")
 
+# Set flags and directory variables
+set(FREERTOS_CFG_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set(FREERTOS_SRC_DIRECTORY "${CMAKE_SOURCE_DIR}/FreeRTOS-Kernel")
+
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
-
 project(pico_cnc_hmi C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+# Add FreeRTOS as a library
+add_library(FreeRTOS STATIC
+    ${FREERTOS_SRC_DIRECTORY}/event_groups.c
+    ${FREERTOS_SRC_DIRECTORY}/list.c
+    ${FREERTOS_SRC_DIRECTORY}/queue.c
+    ${FREERTOS_SRC_DIRECTORY}/stream_buffer.c
+    ${FREERTOS_SRC_DIRECTORY}/tasks.c
+    ${FREERTOS_SRC_DIRECTORY}/timers.c
+    ${FREERTOS_SRC_DIRECTORY}/portable/MemMang/heap_3.c
+    ${FREERTOS_SRC_DIRECTORY}/portable/GCC/ARM_CM0/port.c
+)
+
+# Build FreeRTOS
+target_include_directories(FreeRTOS PUBLIC
+    ${FREERTOS_CFG_DIRECTORY}/
+    ${FREERTOS_SRC_DIRECTORY}/include
+    ${FREERTOS_SRC_DIRECTORY}/portable/GCC/ARM_CM0
+)
+
 # Add executable. Default name is the project name, version 0.1
-
-cmake_minimum_required(VERSION 3.13)
-
 add_executable(pico_cnc_hmi)
 
+
+# define sources and libs for display/LVGL support
 if(ENABLE_DISPLAY)
     set(display_sources 
         ${CMAKE_CURRENT_LIST_DIR}/spi.cc
@@ -71,14 +91,14 @@ target_include_directories(pico_cnc_hmi PUBLIC
         ${CMAKE_CURRENT_LIST_DIR})
 
 if(ENABLE_DISPLAY)
-# LVGL submodule
+# copy our modified lv_conf.h into the right place so the build finds it
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/lv_conf.h DESTINATION ${CMAKE_BINARY_DIR}/lvgl)
 add_subdirectory(lvgl)
 endif()
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
-target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio pico_unique_id tinyusb_device tinyusb_board hardware_pio hardware_i2c ${display_libs})
+target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio pico_unique_id FreeRTOS tinyusb_device tinyusb_board hardware_pio hardware_i2c ${display_libs})
 
 # stdio serial consoles        
 pico_enable_stdio_usb(pico_cnc_hmi 1)
@@ -89,7 +109,7 @@ pico_enable_stdio_uart(pico_cnc_hmi 1)
 
 pico_add_extra_outputs(pico_cnc_hmi)
 
-# Compile the PIO-programs and include it into the project
+# Compile the PIO programs and include them into the project
 pico_generate_pio_header(pico_cnc_hmi ${CMAKE_CURRENT_LIST_DIR}/quadrature.pio)
 pico_generate_pio_header(pico_cnc_hmi ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
 

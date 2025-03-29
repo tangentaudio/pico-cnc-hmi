@@ -1,9 +1,8 @@
 #include "tlc59116.hh"
 #include "i2c.hh"
 
-TLC59116::TLC59116(I2C &i2cbus, uint8_t address) : m_i2c(i2cbus),
-                                                   m_address(address),
-                                                   m_led_buf{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+TLC59116::TLC59116(uint8_t address) : m_address(address),
+                                      m_led_buf{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 {
 }
 
@@ -11,17 +10,19 @@ TLC59116::~TLC59116()
 {
 }
 
-void TLC59116::init()
+void TLC59116::init(I2C *i2cbus)
 {
+    m_i2c = i2cbus;
+
     // reset chip
-    // m_i2c.writeRegister(m_address, 0xA5, 0x5A);
+    // m_i2c->writeRegister(m_address, 0xA5, 0x5A);
 
-    m_i2c.writeRegister(m_address, REG_MODE1, 0x00);
+    m_i2c->writeRegister(m_address, REG_MODE1, 0x00);
 
-    m_i2c.writeRegister(m_address, REG_LEDOUT0, LEDOUT_BRIGHT);
-    m_i2c.writeRegister(m_address, REG_LEDOUT1, LEDOUT_BRIGHT);
-    m_i2c.writeRegister(m_address, REG_LEDOUT2, LEDOUT_BRIGHT);
-    m_i2c.writeRegister(m_address, REG_LEDOUT3, LEDOUT_BRIGHT);
+    m_i2c->writeRegister(m_address, REG_LEDOUT0, LEDOUT_BRIGHT);
+    m_i2c->writeRegister(m_address, REG_LEDOUT1, LEDOUT_BRIGHT);
+    m_i2c->writeRegister(m_address, REG_LEDOUT2, LEDOUT_BRIGHT);
+    m_i2c->writeRegister(m_address, REG_LEDOUT3, LEDOUT_BRIGHT);
 
     update();
 }
@@ -38,7 +39,7 @@ bool TLC59116::update()
         buf[j + 1] = m_led_buf[bidx++];
     }
 
-    if (!m_i2c.writeBuffer(m_address, buf, 17))
+    if (!m_i2c->writeBuffer(m_address, buf, 17))
     {
         return false;
     }

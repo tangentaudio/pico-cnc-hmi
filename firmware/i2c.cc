@@ -13,6 +13,15 @@ I2C::~I2C()
 
 void I2C::init()
 {
+    m_mutex = xSemaphoreCreateMutex();    
+
+    if (m_mutex == NULL)
+    {
+        printf("I2C mutex creation failed\n");
+        return;
+    }
+
+
     i2c_init(i2c0, I2C_KHZ * 1000);
     gpio_set_function(I2C_SDA_PIN, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL_PIN, GPIO_FUNC_I2C);
@@ -21,15 +30,20 @@ void I2C::init()
 
     // Make the I2C pins available to picotool
     bi_decl(bi_2pins_with_func(I2C_SDA_PIN, I2C_SCL_PIN, GPIO_FUNC_I2C));
+
+
 }
 
 bool I2C::writeRegister(uint8_t address, uint8_t reg, uint8_t value)
 {
+    xSemaphoreTake(m_mutex, portMAX_DELAY);
+
     uint8_t buf[2];
     buf[0] = reg;
     buf[1] = value;
 
     int r1 = i2c_write_blocking(i2c0, address, buf, 2, false);
+
 
     if (r1 == PICO_ERROR_GENERIC)
     {
@@ -42,14 +56,18 @@ bool I2C::writeRegister(uint8_t address, uint8_t reg, uint8_t value)
 #ifdef I2C_DEBUG
         printf("i2c write %X: reg=%x val=%x\n", address, reg, value);
 #endif
+        xSemaphoreGive(m_mutex);
         return true;
     }
 
+    xSemaphoreGive(m_mutex);
     return false;
 }
 
 bool I2C::readRegister(uint8_t address, uint8_t reg, uint8_t &value)
 {
+    xSemaphoreTake(m_mutex, portMAX_DELAY);
+
     uint8_t buffer[1] = {0};
 
     int r1 = i2c_write_blocking(i2c_default, address, &reg, 1, true); // no STOP when true
@@ -67,15 +85,18 @@ bool I2C::readRegister(uint8_t address, uint8_t reg, uint8_t &value)
         printf("i2c read %X: reg=%x val=%x\n", address, reg, buffer[0]);
 #endif
         value = buffer[0];
+        xSemaphoreGive(m_mutex);
         return true;
     }
+    xSemaphoreGive(m_mutex);
     return false;
 }
 
 bool I2C::writeBuffer(uint8_t address, uint8_t *buf, uint8_t len)
 {
+    xSemaphoreTake(m_mutex, portMAX_DELAY);
     int r1 = i2c_write_blocking(i2c0, address, buf, len, false);
-
+ 
     if (r1 == PICO_ERROR_GENERIC)
     {
 #ifdef I2C_DEBUG
@@ -92,5 +113,6 @@ bool I2C::writeBuffer(uint8_t address, uint8_t *buf, uint8_t len)
 #endif
     }
 
-    return false;
+   xSemaphoreGive(m_mutex);
+   return false;
 }

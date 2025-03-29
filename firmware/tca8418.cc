@@ -26,11 +26,11 @@
 #include "bsp/board_api.h"
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
-#include "i2c.hh"
 #include "tca8418.hh"
 
-TCA8418::TCA8418(I2C &i2c, uint8_t address) : m_i2c(i2c),
-                                              m_address(address)
+
+TCA8418::TCA8418(uint8_t address) :
+ m_address(address)
 {
 }
 
@@ -38,8 +38,10 @@ TCA8418::~TCA8418()
 {
 }
 
-bool TCA8418::init()
+bool TCA8418::init(I2C *i2cbus)
 {
+    m_i2c = i2cbus;
+
     //  GPIO
     //  set default all GIO pins to INPUT
     writeRegister(TCA8418_REG_GPIO_DIR_1, 0x00);
@@ -141,13 +143,15 @@ uint8_t TCA8418::available()
         // clear interrupt
         uint8_t r = readRegister(TCA8418_REG_INT_STAT);
         writeRegister(TCA8418_REG_INT_STAT, 0x1F);
-        if (r & 0x02) {
+        if (r & 0x02)
+        {
             uint8_t g1 = readRegister(TCA8418_REG_GPIO_INT_STAT_1);
             uint8_t g2 = readRegister(TCA8418_REG_GPIO_INT_STAT_2);
             uint8_t g3 = readRegister(TCA8418_REG_GPIO_INT_STAT_3);
         }
         bool ovf = 0;
-        if (r & 0x08) {
+        if (r & 0x08)
+        {
             ovf = 0x80;
         }
 
@@ -400,7 +404,7 @@ uint8_t TCA8418::readRegister(uint8_t reg)
 {
     uint8_t val;
 
-    m_i2c.readRegister(m_address, reg, val);
+    m_i2c->readRegister(m_address, reg, val);
     return val;
 }
 
@@ -412,5 +416,5 @@ uint8_t TCA8418::readRegister(uint8_t reg)
  */
 void TCA8418::writeRegister(uint8_t reg, uint8_t value)
 {
-    m_i2c.writeRegister(m_address, reg, value);
+    m_i2c->writeRegister(m_address, reg, value);
 }

@@ -88,16 +88,16 @@ enum tlc59116_addr
 class TLC59116
 {
 public:
-    TLC59116(I2C &i2c, uint8_t address = LED_ADDR0);
+    TLC59116(uint8_t address = LED_ADDR0);
     ~TLC59116();
 
-    void init();
+    void init(I2C* i2c);
     bool update();
     void setLED(uint8_t num, uint8_t value, bool update_now = true);
     uint8_t getLED(uint8_t num) { return m_led_buf[num % 16]; }
 
 protected:
-    I2C &m_i2c;
+    I2C* m_i2c;
     uint8_t m_address;
     uint8_t m_led_buf[16];
 };

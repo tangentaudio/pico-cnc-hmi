@@ -137,11 +137,11 @@ enum
 class TCA8418
 {
 public:
-    TCA8418(I2C &i2c, uint8_t address = TCA8418_DEFAULT_ADDR);
+    TCA8418(uint8_t address = TCA8418_DEFAULT_ADDR);
     ~TCA8418();
 
     //  initialize the TCA8418
-    bool init();
+    bool init(I2C* i2cbus);
 
     //  KEY EVENTS
     //  configure the size of the keypad.
@@ -182,7 +182,7 @@ public:
     void writeRegister(uint8_t reg, uint8_t value);
 
 protected:
-    I2C &m_i2c;
+    I2C* m_i2c;
     uint8_t m_address;
 };
 
