@@ -37,6 +37,8 @@
 #include "bsp/board_api.h"
 #include "tusb.h"
 #endif
+#include <boards/pico.h>
+#include "pico/stdlib.h"
 #include "i2c.hh"
 #include "task_encoder.hh"
 #include "task_matrix.hh"
@@ -53,6 +55,7 @@ void main_task(void *unused);
 
 int main(void)
 {
+  stdout_uart_init();
   #ifdef USB_ENABLED
   board_init();
   tud_init(BOARD_TUD_RHPORT);
@@ -99,9 +102,9 @@ void main_task(void* unused)
 {
 
   const uint32_t dot_colors[] = {
-      WS2812::urgb_u32(0x7f, 0, 0),
-      WS2812::urgb_u32(0, 0x7f, 0),
-      WS2812::urgb_u32(0, 0, 0x7f),
+      WS2812::urgb_u32(0x3f, 0x1f, 0),
+      WS2812::urgb_u32(0, 0x3f, 0x3f),
+      WS2812::urgb_u32(0x3f, 0, 0x3f),
   };
 
   static uint8_t led_states[16];
@@ -138,7 +141,7 @@ void main_task(void* unused)
         if (TaskMatrix::led_encoder_map(mtx_evt.code, enc)) {
           // pressing an encoder button resets value
           TaskEncoder::cmd_t cmd;
-          cmd.cmd = TaskEncoder::ENCODER_CMD_SET_VALUE;
+          cmd.cmd = TaskEncoder::ENCODER_CMD_SMART_SET_VALUE;
           cmd.encoder = enc + 1;
           cmd.value = 0;
           xQueueSend(task_encoder->cmd_queue, &cmd, 0);

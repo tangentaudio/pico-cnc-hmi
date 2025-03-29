@@ -1,4 +1,4 @@
-
+#include <stdio.h>
 #include "task_encoder.hh"
 
 TaskEncoder::TaskEncoder()
@@ -40,6 +40,26 @@ void TaskEncoder::task(void *param)
       {
         encoders.set_value(cmd.encoder, cmd.value);
         force_encoder_update = true;
+      }
+      else if (cmd.cmd == ENCODER_CMD_SMART_SET_VALUE)
+      {
+        if (cmd.encoder >= 1 && cmd.encoder <= 3)
+        {
+          int v = encoders.value(cmd.encoder);
+          int min = encoders.get_min(cmd.encoder);
+          int max = encoders.get_max(cmd.encoder);
+          int span = max - min;
+
+          printf("smart set encoder %d value %d min %d max %d span %d\n", cmd.encoder, v, min, max, span);
+
+          if (v < min + span / 2) {
+            encoders.set_value(cmd.encoder, max);
+            force_encoder_update = true;
+          } else {
+            encoders.set_value(cmd.encoder, min);
+            force_encoder_update = true;
+          }
+        }
       }
     }
 

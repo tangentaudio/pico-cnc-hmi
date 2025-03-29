@@ -26,6 +26,7 @@ public:
 
   typedef enum {
     ENCODER_CMD_SET_VALUE,
+    ENCODER_CMD_SMART_SET_VALUE,
   } cmds;
 
   typedef struct cmd

@@ -118,10 +118,10 @@ endif()
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
-target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio pico_unique_id FreeRTOS hardware_pio hardware_i2c ${display_libs} ${usb_libs})
+target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio_uart pico_unique_id FreeRTOS hardware_pio hardware_i2c ${display_libs} ${usb_libs})
 
 # stdio serial consoles        
-pico_enable_stdio_usb(pico_cnc_hmi 1)
+pico_enable_stdio_usb(pico_cnc_hmi 0)
 pico_enable_stdio_uart(pico_cnc_hmi 1)
 
 # Uncomment this line to enable fix for Errata RP2040-E5 (the fix requires use of GPIO 15)

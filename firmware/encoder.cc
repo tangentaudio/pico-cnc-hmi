@@ -104,7 +104,7 @@ void Encoder::set_value(uint8_t num, int val)
 {
     if (num >= NUM_ENCODERS)
         return;
-    m_cur_values[num] = val;
+    m_cur_values[num] = val * m_divisor[num];
 }
 
 int Encoder::value(uint8_t num)

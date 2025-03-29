@@ -40,6 +40,11 @@ public:
     int value(uint8_t num);
     void set_limits(uint8_t num, int min, int max, int div);
     void set_value(uint8_t num, int val);
+
+    int get_min(uint8_t num) { return m_minimum[num] / m_divisor[num]; }
+    int get_max(uint8_t num) { return m_maximum[num] / m_divisor[num]; }
+    int get_div(uint8_t num) { return m_divisor[num]; }
+
 private:
     PIO m_pio;
     const uint m_pins[NUM_ENCODERS];
