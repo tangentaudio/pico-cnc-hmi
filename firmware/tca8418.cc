@@ -23,7 +23,6 @@
  */
 
 #include <stdio.h>
-#include "bsp/board_api.h"
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 #include "tca8418.hh"

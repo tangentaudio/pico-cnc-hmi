@@ -17,7 +17,7 @@ public:
     void update();
     void setRing(uint8_t ring, uint8_t value, uint32_t ball_color, bool update_now = true);
     void setLED(uint8_t num, uint32_t value, bool update_now = true);
-    uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b);
+    static uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b);
 
 protected:
     void put_pixel(PIO pio, uint sm, uint32_t pixel_grb);

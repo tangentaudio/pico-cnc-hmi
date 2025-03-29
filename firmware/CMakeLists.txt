@@ -7,6 +7,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # for developing other parts of the system more quickly
 option(ENABLE_DISPLAY "Enable SPI OLED display support" OFF)
 
+# allow USB to be enabled/disabled
+option(ENABLE_USB "Enable USB" OFF)
+
+
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
 # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
@@ -75,6 +79,19 @@ else()
     set(display_libs "")
 endif()
 
+if(ENABLE_USB)
+    set(usb_sources
+        ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
+        )
+    set(usb_libs
+        tinyusb_device
+        tinyusb_board 
+        )
+else()
+    set(usb_sources "")
+    set(usb_libs "")
+endif()
+
 target_sources(pico_cnc_hmi PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/main.cc
         ${CMAKE_CURRENT_LIST_DIR}/encoder.cc
@@ -82,8 +99,11 @@ target_sources(pico_cnc_hmi PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/tca8418.cc
         ${CMAKE_CURRENT_LIST_DIR}/tlc59116.cc
         ${CMAKE_CURRENT_LIST_DIR}/ws2812.cc
-        ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
+        ${CMAKE_CURRENT_LIST_DIR}/task_encoder.cc
+        ${CMAKE_CURRENT_LIST_DIR}/task_matrix.cc
+        ${CMAKE_CURRENT_LIST_DIR}/task_led.cc
         ${display_sources}
+        ${usb_sources}
         )
 
 # Make sure TinyUSB can find tusb_config.h
@@ -98,7 +118,7 @@ endif()
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
-target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio pico_unique_id FreeRTOS tinyusb_device tinyusb_board hardware_pio hardware_i2c ${display_libs})
+target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio pico_unique_id FreeRTOS hardware_pio hardware_i2c ${display_libs} ${usb_libs})
 
 # stdio serial consoles        
 pico_enable_stdio_usb(pico_cnc_hmi 1)
