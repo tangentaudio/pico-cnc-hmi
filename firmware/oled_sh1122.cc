@@ -1,6 +1,5 @@
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
-#include "bsp/board_api.h"
 #include "oled_sh1122.hh"
 
 OLED::OLED(SPI &spi) : m_spi(spi),

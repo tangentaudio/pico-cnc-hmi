@@ -43,13 +43,19 @@
 #include "task_encoder.hh"
 #include "task_matrix.hh"
 #include "task_led.hh"
-
+#ifdef ENABLE_DISPLAY
+#include "task_display.hh"
+#endif
 #define PIN_PERIPH_RESETN 22
 
 I2C* i2c;
 TaskMatrix* task_matrix;
 TaskEncoder* task_encoder;
 TaskLED* task_led;
+
+#ifdef ENABLE_DISPLAY
+TaskDisplay* task_display;
+#endif
 
 void main_task(void *unused);
 
@@ -71,6 +77,11 @@ int main(void)
   sleep_ms(100);
   gpio_put(PIN_PERIPH_RESETN, 1);
 
+  #ifdef ENABLE_DISPLAY
+  task_display = new TaskDisplay();
+  task_display->init();
+  #endif
+
   i2c = new I2C();
   i2c->init();
   task_encoder = new TaskEncoder();
@@ -83,13 +94,17 @@ int main(void)
   task_led->init(i2c);
 
 
-
-  BaseType_t matrix_task_status = xTaskCreate(task_matrix->task, "MATRIX_TASK", 256, (void*)task_matrix, 3, nullptr);
+  BaseType_t matrix_task_status = xTaskCreate(task_matrix->task, "MATRIX_TASK", 256, (void*)task_matrix, 4, nullptr);
   BaseType_t encoder_task_status = xTaskCreate(task_encoder->task, "ENCODER_TASK", 256, (void*)task_encoder, 1, nullptr);
-  BaseType_t led_task_status = xTaskCreate(task_led->task, "LED_TASK", 256, (void*)task_led, 2, nullptr);
-  BaseType_t main_task_status = xTaskCreate(main_task, "MAIN_TASK", 512, nullptr, 2, nullptr);
+  BaseType_t led_task_status = xTaskCreate(task_led->task, "LED_TASK", 256, (void*)task_led, 3, nullptr);
+  #ifdef ENABLE_DISPLAY
+  BaseType_t display_task_status = xTaskCreate(task_display->task, "DISPLAY_TASK", 4096, (void*)task_display, 0, nullptr);
+  #else
+  BaseType_t display_task_status = pdPASS;
+  #endif
+  BaseType_t main_task_status = xTaskCreate(main_task, "MAIN_TASK", 1024, nullptr, 2, nullptr);
 
-  assert(main_task_status == pdPASS && led_task_status == pdPASS && matrix_task_status == pdPASS && encoder_task_status == pdPASS);
+  assert(main_task_status == pdPASS && led_task_status == pdPASS && matrix_task_status == pdPASS && encoder_task_status == pdPASS && display_task_status == pdPASS);
 
   vTaskStartScheduler();
 

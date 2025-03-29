@@ -59,6 +59,7 @@ target_include_directories(FreeRTOS PUBLIC
     ${FREERTOS_SRC_DIRECTORY}/portable/GCC/ARM_CM0
 )
 
+
 # Add executable. Default name is the project name, version 0.1
 add_executable(pico_cnc_hmi)
 
@@ -68,12 +69,15 @@ if(ENABLE_DISPLAY)
     set(display_sources 
         ${CMAKE_CURRENT_LIST_DIR}/spi.cc
         ${CMAKE_CURRENT_LIST_DIR}/oled_sh1122.cc
+        ${CMAKE_CURRENT_LIST_DIR}/task_display.cc
         )
 
     set(display_libs
         hardware_spi
         lvgl
         )
+    
+    add_definitions(-DENABLE_DISPLAY)
 else()
     set(display_sources "")
     set(display_libs "")
@@ -82,11 +86,13 @@ endif()
 if(ENABLE_USB)
     set(usb_sources
         ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
+        ${CMAKE_CURRENT_LIST_DIR}/task_usb.cc
         )
     set(usb_libs
         tinyusb_device
         tinyusb_board 
         )
+    add_definitions(-DENABLE_USB)
 else()
     set(usb_sources "")
     set(usb_libs "")
@@ -114,6 +120,12 @@ if(ENABLE_DISPLAY)
 # copy our modified lv_conf.h into the right place so the build finds it
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/lv_conf.h DESTINATION ${CMAKE_BINARY_DIR}/lvgl)
 add_subdirectory(lvgl)
+target_include_directories(lvgl PUBLIC 
+    ${FREERTOS_CFG_DIRECTORY}/
+    ${FREERTOS_SRC_DIRECTORY}/include
+    ${FREERTOS_SRC_DIRECTORY}/portable/GCC/ARM_CM0
+)
+
 endif()
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device

@@ -1,18 +1,67 @@
-
-
-#ifdef ENABLE_DISPLAY
+#include <stdio.h>
+#include <FreeRTOS.h>
+#include <task.h>
 #include "spi.hh"
 #include "oled_sh1122.hh"
 #include "lvgl.h"
-#endif
+#include "task_display.hh"
 
-#ifdef ENABLE_DISPLAY
-SPI spi;
-OLED oled(spi);
-#endif
 
-#ifdef ENABLE_DISPLAY
-void align_area(lv_event_t *e)
+TaskDisplay::TaskDisplay()
+    : m_spi(),
+      m_oled(m_spi),
+      m_display(nullptr)
+{
+}
+
+TaskDisplay::~TaskDisplay()
+{
+}
+
+void TaskDisplay::init()
+{
+    printf("init SPI\n");
+    m_spi.init();
+    printf("init OLED\n");
+    m_oled.init();
+
+    printf("init LVGL\n");
+    lv_init();
+
+    printf("lv_display_create\n");
+    m_display = lv_display_create(SH1122_HOR_RES, SH1122_VER_RES);
+
+    printf("lv_display_set_color_format\n");
+    lv_display_set_color_format(m_display, LV_COLOR_FORMAT);
+
+    printf("lv_display_set_user_data\n");
+    lv_display_set_user_data(m_display, &m_oled);
+
+    printf("lv_display_set_buffer\n");
+    lv_display_set_buffers(m_display, m_disp_buf1, NULL, sizeof(m_disp_buf1), LV_DISPLAY_RENDER_MODE_FULL);
+
+    printf("lv_display_set_flush_cb\n");
+    lv_display_set_flush_cb(m_display, [](lv_display_t *display, const lv_area_t *area, uint8_t *px_map)
+                            {
+                                OLED *oled = static_cast<OLED *>(lv_display_get_user_data(display));
+                                oled->lv_sh1122_flush_cb(display, area, px_map);
+                            });
+
+
+    #if LV_COLOR_DEPTH == 8
+    lv_display_add_event_cb(m_display, align_area, LV_EVENT_INVALIDATE_AREA, nullptr);
+    lv_display_set_antialiasing(m_display, true);
+    #endif
+
+    printf("lv_tick_Set_cb\n");
+    lv_tick_set_cb(xTaskGetTickCount);
+
+    printf("lv_display_set_default\n");
+    lv_display_set_default(m_display);
+}
+
+#if LV_COLOR_DEPTH == 8
+void TaskDisplay::align_area(lv_event_t *e)
 {
   auto *area = (lv_area_t *)lv_event_get_param(e);
 
@@ -24,49 +73,41 @@ void align_area(lv_event_t *e)
 }
 #endif
 
-#ifdef ENABLE_DISPLAY
-printf("SPI init...");
-spi.init();
-printf("OK\n");
+void TaskDisplay::task(void *param)
+{
+    TaskDisplay *inst = static_cast<TaskDisplay *>(param);
 
-printf("OLED init...");
-oled.init();
-printf("OK\n");
+    printf("display task\n");
 
-printf("LVGL init...");
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
+    lv_obj_set_style_text_font(lv_screen_active(), &lv_font_montserrat_28, LV_PART_MAIN);
+    lv_obj_set_style_text_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_line_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_line_width(lv_screen_active(), 1, LV_PART_MAIN);
 
-lv_init();
+    printf("create label\n");
+    lv_obj_t *label = lv_label_create(lv_screen_active());
+    lv_label_set_text(label, "LVGL");
+    lv_obj_set_pos(label, 0, 0);
 
-#if LV_COLOR_DEPTH == 1
-#define LV_BUFSIZE ((SH1122_HOR_RES * SH1122_VER_RES / 8) + 8)
-#define LV_COLOR_FORMAT LV_COLOR_FORMAT_I1
-#elif LV_COLOR_DEPTH == 8
-#define LV_BUFSIZE (SH1122_HOR_RES * SH1122_VER_RES)
-#define LV_COLOR_FORMAT LV_COLOR_FORMAT_L8
-#else
-#pragma message "Unsupported color depth"
-#endif
+    while (true)
+    {
+        //printf("lv_task_handler\n");
+        //lv_task_handler();
+        
+        printf("lv_timer_handler\n");
+        uint32_t time_till_next = lv_timer_handler();
 
-static uint8_t disp_buf1[LV_BUFSIZE];
-lv_display_t *display = lv_display_create(SH1122_HOR_RES, SH1122_VER_RES);
-lv_display_set_color_format(display, LV_COLOR_FORMAT);
-lv_display_set_user_data(display, &oled);
+        printf("vTaskDelay\n");
+        vTaskDelay(time_till_next / portTICK_PERIOD_MS);
 
-lv_display_set_buffers(display, disp_buf1, NULL, sizeof(disp_buf1), LV_DISPLAY_RENDER_MODE_FULL);
-lv_display_set_flush_cb(display, [](lv_display_t *display, const lv_area_t *area, uint8_t *px_map)
-                        {
-      OLED* oled = static_cast<OLED*>(lv_display_get_user_data(display));
-      oled->lv_sh1122_flush_cb(display, area, px_map); });
+        //lv_label_set_text_fmt(label, "%u", since_last_ms);
+    }
+}
 
-// lv_display_add_event_cb(display, align_area, LV_EVENT_INVALIDATE_AREA, nullptr);
 
-lv_display_set_default(display);
-// lv_display_set_antialiasing(display, true);
+/*
 
-printf("OK\n");
-#endif
-
-#ifdef ENABLE_DISPLAY
 lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
 lv_obj_set_style_text_font(lv_screen_active(), &lv_font_montserrat_28, LV_PART_MAIN);
 lv_obj_set_style_line_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
@@ -129,41 +170,21 @@ static absolute_time_t last_time = get_absolute_time();
 absolute_time_t since_last = last_time;
 absolute_time_t now = last_time;
 static int t = 0;
-#endif
 
-#ifdef ENABLE_DISPLAY
+
+
 if (pressed)
   lv_label_set_text_fmt(labelkey, LV_SYMBOL_DOWN "%2.2X", key);
 else
   lv_label_set_text_fmt(labelkey, LV_SYMBOL_UP "%2.2X", key);
-#endif
 
-#ifdef ENABLE_DISPLAY
+
+
 lv_label_set_text_fmt(labeljog, "%5d", jog);
 lv_bar_set_value(barshuttle, shuttle, LV_ANIM_OFF);
 lv_bar_set_value(barencoder[0], v1, LV_ANIM_OFF);
 lv_bar_set_value(barencoder[1], v2, LV_ANIM_OFF);
 lv_bar_set_value(barencoder[2], v3, LV_ANIM_OFF);
-#endif
 
-#ifdef ENABLE_DISPLAY
-absolute_time_t now = get_absolute_time();
 
-int64_t elapsed_time_us = absolute_time_diff_us(last_time, now);
-int64_t elapsed_time_ms = elapsed_time_us / 1000;
-
-int64_t since_last_us = absolute_time_diff_us(since_last, now);
-int64_t since_last_ms = since_last_us / 1000;
-
-if (since_last_ms >= 33)
-{
-  time_till_next = lv_timer_handler();
-
-  lv_task_handler();
-  lv_tick_inc(since_last_ms);
-
-  since_last = now;
-}
-
-last_time = now;
-#endif
+*/
