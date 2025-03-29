@@ -119,6 +119,9 @@ enum
     TCA8418_COL9  // Pin ID for column 9
 };
 
+#define PIN_KEY_INT 19
+
+// these are needed because it's an Arduino library port
 #define LOW 0
 #define HIGH 1
 #define INPUT 0

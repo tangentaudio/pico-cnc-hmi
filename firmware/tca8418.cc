@@ -1,4 +1,31 @@
+/**
+ * adapted from:
+ * I2C Driver for the Adafruit TCA8418 Keypad Matrix / GPIO Expander
+ *
+ * 	This is a library for the Adafruit TCA8418 breakout:
+ * 	https://www.adafruit.com/products/4918
+ *
+ * 	Adafruit invests time and resources providing this open source code,
+ *  please support Adafruit and open-source hardware by purchasing products from
+ * 	Adafruit!
+ *
+ *	BSD license (see license.txt)
+ */
+
+/*
+ * REV0 hardware map:
+ *
+ * ROW0..6 are the rows of the keypad matrix
+ * COL0..7 are the columns of the keypad matrix
+ * ROW7 is encoder 0 pushbutton GPIO
+ * COL8 is encoder 1 pushbutton GPIO
+ * COL9 is encoder 2 pushbutton GPIO
+ */
+
 #include <stdio.h>
+#include "bsp/board_api.h"
+#include "pico/stdlib.h"
+#include "pico/binary_info.h"
 #include "i2c.hh"
 #include "tca8418.hh"
 
@@ -13,7 +40,6 @@ TCA8418::~TCA8418()
 
 bool TCA8418::init()
 {
-
     //  GPIO
     //  set default all GIO pins to INPUT
     writeRegister(TCA8418_REG_GPIO_DIR_1, 0x00);
@@ -34,6 +60,16 @@ bool TCA8418::init()
     writeRegister(TCA8418_REG_GPIO_INT_EN_1, 0xFF);
     writeRegister(TCA8418_REG_GPIO_INT_EN_2, 0xFF);
     writeRegister(TCA8418_REG_GPIO_INT_EN_3, 0xFF);
+
+    // set up interrupt pin
+    gpio_init(PIN_KEY_INT);
+    gpio_set_dir(PIN_KEY_INT, GPIO_IN);
+    gpio_pull_up(PIN_KEY_INT);
+
+    // configure matrix and gpio
+    matrix(7, 8);
+    enableDebounce();
+    enableInterrupts();
 
     return true;
 }
@@ -96,12 +132,30 @@ bool TCA8418::matrix(uint8_t rows, uint8_t columns)
  * @brief checks if key events are available in the internal buffer
  *
  * @return number of key events in the buffer
+ *         0x80 is ORed in if there's an overflow condition
  */
 uint8_t TCA8418::available()
 {
-    uint8_t eventCount = readRegister(TCA8418_REG_KEY_LCK_EC);
-    eventCount &= 0x0F; //  lower 4 bits only
-    return eventCount;
+    if (gpio_get(PIN_KEY_INT) == 0)
+    {
+        // clear interrupt
+        uint8_t r = readRegister(TCA8418_REG_INT_STAT);
+        writeRegister(TCA8418_REG_INT_STAT, 0x1F);
+        if (r & 0x02) {
+            uint8_t g1 = readRegister(TCA8418_REG_GPIO_INT_STAT_1);
+            uint8_t g2 = readRegister(TCA8418_REG_GPIO_INT_STAT_2);
+            uint8_t g3 = readRegister(TCA8418_REG_GPIO_INT_STAT_3);
+        }
+        bool ovf = 0;
+        if (r & 0x08) {
+            ovf = 0x80;
+        }
+
+        uint8_t eventCount = readRegister(TCA8418_REG_KEY_LCK_EC);
+        eventCount &= 0x0F; //  lower 4 bits only
+        return eventCount | ovf;
+    }
+    return 0;
 }
 
 /**

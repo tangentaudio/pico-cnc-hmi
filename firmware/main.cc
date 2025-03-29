@@ -34,19 +34,21 @@
 #include "bsp/board_api.h"
 #include "pico/time.h"
 #include "tusb.h"
-#include "spi.hh"
-#include "oled_sh1122.hh"
 #include "i2c.hh"
 #include "encoder.hh"
 #include "tca8418.hh"
 #include "tlc59116.hh"
 #include "ws2812.hh"
+#ifdef ENABLE_DISPLAY
+#include "spi.hh"
+#include "oled_sh1122.hh"
 #include "lvgl.h"
+#endif
+
 
 //#define LED_TEST
 
 #define PIN_PERIPH_RESETN 22
-#define PIN_KEY_INT 19
 
 /* Blink pattern
  * - 250 ms  : device not mounted
@@ -80,7 +82,7 @@ union pkt_u
 
 
 
-
+#ifdef ENABLE_DISPLAY
 void align_area(lv_event_t *e) {
   auto *area = (lv_area_t *) lv_event_get_param(e);
 
@@ -91,18 +93,20 @@ void align_area(lv_event_t *e) {
   area->x2 = ((area->x2 + 4) & ~3) - 1;
   printf("after %d %d %d %d\n", area->x1, area->y1, area->x2, area->y2);
 }
-
+#endif
 
 
 int main(void)
 {
   Encoder encoders;
   I2C i2c;
-  TCA8418 matx(i2c);
+  TCA8418 matrix(i2c);
   TLC59116 leds(i2c);
   WS2812 rgbleds;
+  #ifdef ENABLE_DISPLAY
   SPI spi;
   OLED oled(spi);
+  #endif
 
   board_init();
   tud_init(BOARD_TUD_RHPORT);
@@ -121,6 +125,7 @@ int main(void)
   gpio_put(PIN_PERIPH_RESETN, 1);
   printf("OK\n");
 
+  #ifdef ENABLE_DISPLAY
   printf("SPI init...");
   spi.init();
   printf("OK\n");
@@ -160,18 +165,15 @@ int main(void)
   //lv_display_set_antialiasing(display, true);
 
   printf("OK\n");
+  #endif
+
 
   printf("I2C init...");
   i2c.init();
   printf("OK\n");
 
   printf("Matrix keypad init...");
-  matx.init();
-  printf("OK\n");
-  printf("Matrix keypad config...");
-  matx.matrix(7, 8);
-  matx.enableDebounce();
-  matx.enableInterrupts();
+  matrix.init();
   printf("OK\n");
 
   printf("PWM LED driver init...");
@@ -235,18 +237,13 @@ int main(void)
   encoders.set_limits(3, 0, 14, 4);
   printf("OK\n");
 
-  gpio_init(PIN_KEY_INT);
-  gpio_set_dir(PIN_KEY_INT, GPIO_IN);
-  gpio_pull_up(PIN_KEY_INT);
 
-  printf("System initialized.\n");
-
-  lv_obj_set_style_text_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
+  #ifdef ENABLE_DISPLAY
   lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
   lv_obj_set_style_text_font(lv_screen_active(), &lv_font_montserrat_28, LV_PART_MAIN);
   lv_obj_set_style_line_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
   lv_obj_set_style_line_width(lv_screen_active(), 1, LV_PART_MAIN);
-  
+
   lv_obj_t * labeljog = lv_label_create(lv_screen_active());
   lv_label_set_text(labeljog, "");
   lv_obj_set_pos(labeljog, 64, 0);
@@ -304,10 +301,13 @@ int main(void)
   absolute_time_t since_last = last_time;
   absolute_time_t now = last_time;
   static int t=0;
+  #endif
+
 
   bool force_encoder_update = false;
   while (1)
   {
+    #ifdef ENABLE_DISPLAY
     absolute_time_t now = get_absolute_time();
 
     int64_t elapsed_time_us = absolute_time_diff_us(last_time, now);
@@ -327,6 +327,8 @@ int main(void)
 
 
     last_time = now;
+    #endif
+
 
     tud_task();
     led_blinking_task();
@@ -340,9 +342,7 @@ int main(void)
       int shuttle = encoders.value(4);
       int jog = encoders.value(0);
 
-      lv_label_set_text_fmt(labeljog, "%5d", jog);
-      lv_bar_set_value(barshuttle, shuttle, LV_ANIM_OFF);
-
+      
       int v1 = encoders.value(1);
       rgbleds.setRing(0, v1, rgbleds.urgb_u32(0x7f, 0, 0), false);
 
@@ -352,9 +352,13 @@ int main(void)
       int v3 = encoders.value(3);
       rgbleds.setRing(2, v3, rgbleds.urgb_u32(0, 0, 0x7f), true);
 
+      #ifdef ENABLE_DISPLAY
+      lv_label_set_text_fmt(labeljog, "%5d", jog);
+      lv_bar_set_value(barshuttle, shuttle, LV_ANIM_OFF);
       lv_bar_set_value(barencoder[0], v1, LV_ANIM_OFF);
       lv_bar_set_value(barencoder[1], v2, LV_ANIM_OFF);
       lv_bar_set_value(barencoder[2], v3, LV_ANIM_OFF);
+      #endif
 
       printf("enc=%-05d %-05d %-05d\n", v1, v2, v3);
 
@@ -368,89 +372,95 @@ int main(void)
       tud_hid_report(0, &pkt, sizeof(pkt));
     }
 
-    if (gpio_get(PIN_KEY_INT) == 0)
+    uint8_t avail = matrix.available();
+    if (avail)
     {
-      if (matx.available())
+      if (avail & 0x80) {
+        // not really much we can do about it, just report it for debugging
+        printf("key overflow\n");
+      }
+
+      uint8_t evt = matrix.getEvent();
+      uint8_t key = evt & 0x7F;
+      bool pressed = evt & 0x80;
+
+      printf("%s event: %x %s\n", key > 0x5B ? "GPIO" : "key", key, pressed ? "press" : "release");
+
+      #ifdef ENABLE_DISPLAY
+      if (pressed)
+        lv_label_set_text_fmt(labelkey, LV_SYMBOL_DOWN "%2.2X", key);
+      else
+        lv_label_set_text_fmt(labelkey, LV_SYMBOL_UP "%2.2X", key);
+      #endif
+
+      if (pressed)
       {
-        uint8_t evt = matx.getEvent();
-        uint8_t key = evt & 0x7F;
-        bool pressed = evt & 0x80;
-
-        printf("key event: %x %s\n", evt & 0x7F, evt & 0x80 ? "press" : "release");
-
-        if (pressed)
-          lv_label_set_text_fmt(labelkey, LV_SYMBOL_DOWN "%2.2X", key);
-        else
-          lv_label_set_text_fmt(labelkey, LV_SYMBOL_UP "%2.2X", key);
-
-       if (pressed)
+        uint8_t led = 0;
+        switch (key)
         {
-          uint8_t led = 0;
-          switch (key)
-          {
 
-          case 0x2f:
-            led = 1;
-            break;
-          case 0x30:
-            led = 2;
-            break;
-          case 0x33:
-            led = 9;
-            break;
-          case 0x34:
-            led = 10;
-            break;
-          case 0x35:
-            led = 11;
-            break;
-          case 0x36:
-            led = 12;
-            break;
-          case 0x37:
-            led = 3;
-            break;
-          case 0x38:
-            led = 4;
-            break;
-          case 0x39:
-            led = 5;
-            break;
-          case 0x3a:
-            led = 6;
-            break;
-          case 0x3d:
-            led = 7;
-            break;
-          case 0x3e:
-            led = 8;
-            break;
-          case 0x68:
-            encoders.set_value(1, 0);
-            force_encoder_update = true;
-            break;
-          case 0x71:
-            encoders.set_value(2, 0);
-            force_encoder_update = true;
-            break;
-          case 0x72:
-            encoders.set_value(3, 0);
-            force_encoder_update = true;
-            break;
-          default:
-            led = 0xff;
-          }
-          if (led > 0 && led <= 16)
-          {
-            bool cur = leds.getLED(led - 1) > 0;
+        case 0x2f:
+          led = 1;
+          break;
+        case 0x30:
+          led = 2;
+          break;
+        case 0x33:
+          led = 9;
+          break;
+        case 0x34:
+          led = 10;
+          break;
+        case 0x35:
+          led = 11;
+          break;
+        case 0x36:
+          led = 12;
+          break;
+        case 0x37:
+          led = 3;
+          break;
+        case 0x38:
+          led = 4;
+          break;
+        case 0x39:
+          led = 5;
+          break;
+        case 0x3a:
+          led = 6;
+          break;
+        case 0x3d:
+          led = 7;
+          break;
+        case 0x3e:
+          led = 8;
+          break;
+        case 0x68:
+          encoders.set_value(1, 0);
+          force_encoder_update = true;
+          break;
+        case 0x71:
+          encoders.set_value(2, 0);
+          force_encoder_update = true;
+          break;
+        case 0x72:
+          encoders.set_value(3, 0);
+          force_encoder_update = true;
+          break;
+        default:
+          led = 0xff;
+        }
+        if (led > 0 && led <= 16)
+        {
+          bool cur = leds.getLED(led - 1) > 0;
 
-            leds.setLED(led - 1, cur ? 0 : 64);
-          }
+          leds.setLED(led - 1, cur ? 0 : 64);
         }
       }
     }
   }
 }
+
 
 //--------------------------------------------------------------------+
 // Device callbacks
