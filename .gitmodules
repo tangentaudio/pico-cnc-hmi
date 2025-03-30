@@ -1,3 +1,6 @@
 [submodule "firmware/lvgl"]
 	path = firmware/lvgl
 	url = https://github.com/lvgl/lvgl.git
+[submodule "firmware/FreeRTOS"]
+	path = firmware/FreeRTOS
+	url = https://github.com/raspberrypi/FreeRTOS-Kernel.git

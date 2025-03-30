@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
+set(PICO_CXX_ENABLE_EXCEPTIONS 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # LVGL in particular is very slow to compile and upload, so this is an easy way to turn it off
@@ -29,10 +30,6 @@ endif()
 # ====================================================================================
 set(PICO_BOARD pico2 CACHE STRING "Board type")
 
-# Set flags and directory variables
-set(FREERTOS_CFG_DIRECTORY "${CMAKE_SOURCE_DIR}")
-set(FREERTOS_SRC_DIRECTORY "${CMAKE_SOURCE_DIR}/FreeRTOS-Kernel")
-
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 project(pico_cnc_hmi C CXX ASM)
@@ -40,24 +37,10 @@ project(pico_cnc_hmi C CXX ASM)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-# Add FreeRTOS as a library
-add_library(FreeRTOS STATIC
-    ${FREERTOS_SRC_DIRECTORY}/event_groups.c
-    ${FREERTOS_SRC_DIRECTORY}/list.c
-    ${FREERTOS_SRC_DIRECTORY}/queue.c
-    ${FREERTOS_SRC_DIRECTORY}/stream_buffer.c
-    ${FREERTOS_SRC_DIRECTORY}/tasks.c
-    ${FREERTOS_SRC_DIRECTORY}/timers.c
-    ${FREERTOS_SRC_DIRECTORY}/portable/MemMang/heap_3.c
-    ${FREERTOS_SRC_DIRECTORY}/portable/GCC/ARM_CM0/port.c
-)
-
-# Build FreeRTOS
-target_include_directories(FreeRTOS PUBLIC
-    ${FREERTOS_CFG_DIRECTORY}/
-    ${FREERTOS_SRC_DIRECTORY}/include
-    ${FREERTOS_SRC_DIRECTORY}/portable/GCC/ARM_CM0
-)
+SET(FREERTOS_KERNEL_PATH "${CMAKE_CURRENT_LIST_DIR}/FreeRTOS" CACHE STRING "FreeRTOS pico kernel port path")
+SET(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/port/FreeRTOS-Kernel" CACHE STRING "Local FreeRTOS Config")
+include("${FREERTOS_CONFIG_FILE_DIRECTORY}/freertos_config.cmake") 
+include(FreeRTOS_Kernel_import.cmake)
 
 
 # Add executable. Default name is the project name, version 0.1
@@ -112,25 +95,26 @@ target_sources(pico_cnc_hmi PUBLIC
         ${usb_sources}
         )
 
-# Make sure TinyUSB can find tusb_config.h
 target_include_directories(pico_cnc_hmi PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR})
+        ${CMAKE_CURRENT_LIST_DIR}/port/FreeRTOS-Kernel
+        ${FREERTOS_KERNEL_PATH}/include
+        ${FREERTOS_KERNEL_PATH}/portable/ThirdParty/RP2350_ARM_NTZ/non_secure)
 
 if(ENABLE_DISPLAY)
 # copy our modified lv_conf.h into the right place so the build finds it
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/lv_conf.h DESTINATION ${CMAKE_BINARY_DIR}/lvgl)
 add_subdirectory(lvgl)
-target_include_directories(lvgl PUBLIC 
-    ${FREERTOS_CFG_DIRECTORY}/
-    ${FREERTOS_SRC_DIRECTORY}/include
-    ${FREERTOS_SRC_DIRECTORY}/portable/GCC/ARM_CM0
-)
+#target_include_directories(lvgl PUBLIC 
+#    ${FREERTOS_CFG_DIRECTORY}/
+#    ${FREERTOS_SRC_DIRECTORY}/include
+#    ${FREERTOS_SRC_DIRECTORY}/portable/GCC/ARM_CM0
+#)
 
 endif()
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
-target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio_uart pico_unique_id FreeRTOS hardware_pio hardware_i2c ${display_libs} ${usb_libs})
+target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio_uart pico_unique_id hardware_pio hardware_i2c FreeRTOS-Kernel-Heap4 freertos_config ${display_libs} ${usb_libs})
 
 # stdio serial consoles        
 pico_enable_stdio_usb(pico_cnc_hmi 0)
