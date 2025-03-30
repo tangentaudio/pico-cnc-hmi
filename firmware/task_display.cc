@@ -14,7 +14,6 @@ TaskDisplay::TaskDisplay()
       m_oled(m_spi),
       m_display(nullptr)
 {
-
 }
 
 TaskDisplay::~TaskDisplay()
@@ -23,40 +22,39 @@ TaskDisplay::~TaskDisplay()
 
 void TaskDisplay::init()
 {
-    mutex = xSemaphoreCreateMutex();    
+  cmd_queue = xQueueCreate(10, sizeof(cmd_t));
+  mutex = xSemaphoreCreateMutex();
 
-    LVGL_LOCK(mutex);
+  LVGL_LOCK(mutex);
 
-    m_spi.init();
-    m_oled.init();
+  m_spi.init();
+  m_oled.init();
 
-    lv_init();
+  lv_init();
 
-    m_display = lv_display_create(SH1122_HOR_RES, SH1122_VER_RES);
+  m_display = lv_display_create(SH1122_HOR_RES, SH1122_VER_RES);
 
-    lv_display_set_color_format(m_display, LV_COLOR_FORMAT);
+  lv_display_set_color_format(m_display, LV_COLOR_FORMAT);
 
-    lv_display_set_user_data(m_display, &m_oled);
+  lv_display_set_user_data(m_display, &m_oled);
 
-    lv_display_set_buffers(m_display, m_disp_buf1, NULL, sizeof(m_disp_buf1), LV_DISPLAY_RENDER_MODE_FULL);
+  lv_display_set_buffers(m_display, m_disp_buf1, NULL, sizeof(m_disp_buf1), LV_DISPLAY_RENDER_MODE_FULL);
 
-    lv_display_set_flush_cb(m_display, [](lv_display_t *display, const lv_area_t *area, uint8_t *px_map)
-                            {
+  lv_display_set_flush_cb(m_display, [](lv_display_t *display, const lv_area_t *area, uint8_t *px_map)
+                          {
                                 OLED *oled = static_cast<OLED *>(lv_display_get_user_data(display));
-                                oled->lv_sh1122_flush_cb(display, area, px_map);
-                            });
+                                oled->lv_sh1122_flush_cb(display, area, px_map); });
 
+#if LV_COLOR_DEPTH == 8
+  lv_display_add_event_cb(m_display, align_area, LV_EVENT_INVALIDATE_AREA, nullptr);
+  lv_display_set_antialiasing(m_display, true);
+#endif
 
-    #if LV_COLOR_DEPTH == 8
-    lv_display_add_event_cb(m_display, align_area, LV_EVENT_INVALIDATE_AREA, nullptr);
-    lv_display_set_antialiasing(m_display, true);
-    #endif
+  lv_tick_set_cb(xTaskGetTickCount);
 
-    lv_tick_set_cb(xTaskGetTickCount);
+  lv_display_set_default(m_display);
 
-    lv_display_set_default(m_display);
-
-    LVGL_UNLOCK(mutex);
+  LVGL_UNLOCK(mutex);
 }
 
 #if LV_COLOR_DEPTH == 8
@@ -74,65 +72,68 @@ void TaskDisplay::align_area(lv_event_t *e)
 
 void TaskDisplay::timer_task(void *param)
 {
-    TaskDisplay *inst = static_cast<TaskDisplay *>(param);
+  TaskDisplay *inst = static_cast<TaskDisplay *>(param);
 
-    printf("display timer task\n");
+  printf("display timer task\n");
 
-    while (true)
-    {
-        LVGL_LOCK(inst->mutex);
-        lv_timer_handler_run_in_period(5);
-        LVGL_UNLOCK(inst->mutex);
+  while (true)
+  {
+    LVGL_LOCK(inst->mutex);
+    lv_timer_handler_run_in_period(5);
+    LVGL_UNLOCK(inst->mutex);
 
-        vTaskDelay(5 / portTICK_PERIOD_MS);
-
-    }
+    vTaskDelay(5 / portTICK_PERIOD_MS);
+  }
 }
-
 
 void TaskDisplay::task_handler_task(void *param)
 {
-    TaskDisplay *inst = static_cast<TaskDisplay *>(param);
+  TaskDisplay *inst = static_cast<TaskDisplay *>(param);
 
-    printf("display task_handler task\n");
+  printf("display task_handler task\n");
 
-    while (true)
-    {
-      LVGL_LOCK(inst->mutex);
-      lv_task_handler();
-      LVGL_UNLOCK(inst->mutex);
-      vTaskDelay(100 / portTICK_PERIOD_MS);
-
-    }
+  while (true)
+  {
+    LVGL_LOCK(inst->mutex);
+    lv_task_handler();
+    LVGL_UNLOCK(inst->mutex);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+  }
 }
 
 void TaskDisplay::gui_task(void *param)
 {
-    TaskDisplay *inst = static_cast<TaskDisplay *>(param);
+  TaskDisplay *inst = static_cast<TaskDisplay *>(param);
 
-    LVGL_LOCK(inst->mutex);
+  LVGL_LOCK(inst->mutex);
 
-    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(lv_screen_active(), &roboto_64, LV_PART_MAIN);
-    lv_obj_set_style_text_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_line_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_line_width(lv_screen_active(), 1, LV_PART_MAIN);
+  lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
+  lv_obj_set_style_text_font(lv_screen_active(), &roboto_64, LV_PART_MAIN);
+  lv_obj_set_style_text_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
+  lv_obj_set_style_line_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
+  lv_obj_set_style_line_width(lv_screen_active(), 1, LV_PART_MAIN);
 
-    lv_obj_t *label = lv_label_create(lv_screen_active());
-    lv_label_set_text(label, "~~ LVGLv9 and FreeRTOS on Raspberry Pi Pico2 ~~");
-    lv_obj_set_pos(label, 0, 0);
-    lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
-    lv_obj_set_width(label, 256);
-    
-    LVGL_UNLOCK(inst->mutex);
+  lv_obj_t *label = lv_label_create(lv_screen_active());
+  lv_label_set_text(label, "~~ LVGLv9 and FreeRTOS on Raspberry Pi Pico2 ~~");
+  lv_obj_set_pos(label, 0, 0);
+  lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
+  lv_obj_set_width(label, 256);
 
-    while (true)
-    {
-      LVGL_LOCK(inst->mutex);
-      lv_label_set_text_fmt(label, "%u", xTaskGetTickCount() / portTICK_PERIOD_MS);
-      LVGL_UNLOCK(inst->mutex);
-      vTaskDelay(100 / portTICK_PERIOD_MS);
+  LVGL_UNLOCK(inst->mutex);
+
+  while (true)
+  {
+    cmd_t cmd;
+    if (xQueueReceive(inst->cmd_queue, &cmd, 100) == pdTRUE) {
+      if (cmd.cmd == DISPLAY_CMD_UPDATE_ENCODER) {
+        LVGL_LOCK(inst->mutex);
+        lv_label_set_text_fmt(label, "%u: %d", cmd.encoder, cmd.value);
+        LVGL_UNLOCK(inst->mutex);
+
+      }
     }
+
+  }
 }
 
 /*

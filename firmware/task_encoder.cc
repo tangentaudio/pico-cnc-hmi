@@ -69,7 +69,7 @@ void TaskEncoder::task(void *param)
     {
       force_encoder_update = false;
 
-      for (int i = 1; i < 5; i++)
+      for (int i = 0; i < 5; i++)
       {
         if (encoders.value(i) != last_value[i])
         {

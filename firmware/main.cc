@@ -148,6 +148,13 @@ void main_task(void* unused)
         cmd.update_now = true;
         xQueueSend(task_led->cmd_queue, &cmd, 0);
       }
+
+      TaskDisplay::cmd_t cmd;
+      cmd.cmd = TaskDisplay::DISPLAY_CMD_UPDATE_ENCODER;
+      cmd.encoder = enc_evt.encoder;
+      cmd.value = enc_evt.value;
+      xQueueSend(task_display->cmd_queue, &cmd, 0);
+      
     }
 
     TaskMatrix::event_t mtx_evt;

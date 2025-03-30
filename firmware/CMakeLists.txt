@@ -50,10 +50,10 @@ add_executable(pico_cnc_hmi)
 # define sources and libs for display/LVGL support
 if(ENABLE_DISPLAY)
     set(display_sources 
-        ${CMAKE_CURRENT_LIST_DIR}/spi.cc
-        ${CMAKE_CURRENT_LIST_DIR}/oled_sh1122.cc
-        ${CMAKE_CURRENT_LIST_DIR}/task_display.cc
+        ${CMAKE_CURRENT_LIST_DIR}/drivers/spi.cc
+        ${CMAKE_CURRENT_LIST_DIR}/drivers/oled_sh1122.cc
         ${CMAKE_CURRENT_LIST_DIR}/fonts/roboto_64.c
+        ${CMAKE_CURRENT_LIST_DIR}/task_display.cc
         )
 
     set(display_libs
@@ -69,7 +69,7 @@ endif()
 
 if(ENABLE_USB)
     set(usb_sources
-        ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c
+        ${CMAKE_CURRENT_LIST_DIR}/drivers/usb_descriptors.c
         ${CMAKE_CURRENT_LIST_DIR}/task_usb.cc
         )
     set(usb_libs
@@ -84,11 +84,11 @@ endif()
 
 target_sources(pico_cnc_hmi PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/main.cc
-        ${CMAKE_CURRENT_LIST_DIR}/encoder.cc
-        ${CMAKE_CURRENT_LIST_DIR}/i2c.cc
-        ${CMAKE_CURRENT_LIST_DIR}/tca8418.cc
-        ${CMAKE_CURRENT_LIST_DIR}/tlc59116.cc
-        ${CMAKE_CURRENT_LIST_DIR}/ws2812.cc
+        ${CMAKE_CURRENT_LIST_DIR}/drivers/encoder.cc
+        ${CMAKE_CURRENT_LIST_DIR}/drivers/i2c.cc
+        ${CMAKE_CURRENT_LIST_DIR}/drivers/tca8418.cc
+        ${CMAKE_CURRENT_LIST_DIR}/drivers/tlc59116.cc
+        ${CMAKE_CURRENT_LIST_DIR}/drivers/ws2812.cc
         ${CMAKE_CURRENT_LIST_DIR}/task_encoder.cc
         ${CMAKE_CURRENT_LIST_DIR}/task_matrix.cc
         ${CMAKE_CURRENT_LIST_DIR}/task_led.cc
@@ -97,32 +97,36 @@ target_sources(pico_cnc_hmi PUBLIC
         )
 
 target_include_directories(pico_cnc_hmi PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}/drivers
         ${FREERTOS_CONFIG_FILE_DIRECTORY}
         ${FREERTOS_KERNEL_PATH}/include
         ${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2350_ARM_NTZ/non_secure)
 
 if(ENABLE_DISPLAY)
 # copy our modified lv_conf.h into the right place so the build finds it
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/lv_conf.h DESTINATION ${CMAKE_BINARY_DIR}/lvgl)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/port/lvgl/lv_conf.h DESTINATION ${CMAKE_BINARY_DIR}/lvgl)
 add_subdirectory(lvgl)
 
 target_include_directories(lvgl PUBLIC
-/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/hardware_sync/include/
-/home/steve/.pico-sdk/sdk/2.1.1/src/common/pico_base_headers/include/
-/home/steve/.pico-sdk/sdk/2.1.1/src/rp2350/pico_platform/include/
-/home/steve/.pico-sdk/sdk/2.1.1/src/rp2350/hardware_regs/include/
-/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_platform_sections/include/
-/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_platform_compiler/include/
-/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_platform_panic/include/
-/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/hardware_base/include/
-/home/steve/.pico-sdk/sdk/2.1.1/src/rp2350/hardware_structs/include/
-/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/hardware_sync_spin_lock/include/
-build/generated/pico_base/
-
+    # clearly this is insane but it works until I can figure out how to properly include the Pico SDK paths for LVGL
+    $ENV{PICO_SDK_PATH}/src/rp2_common/hardware_sync/include/
+    $ENV{PICO_SDK_PATH}/src/common/pico_base_headers/include/
+    $ENV{PICO_SDK_PATH}/src/rp2350/pico_platform/include/
+    $ENV{PICO_SDK_PATH}/src/rp2350/hardware_regs/include/
+    $ENV{PICO_SDK_PATH}/src/rp2_common/pico_platform_sections/include/
+    $ENV{PICO_SDK_PATH}/src/rp2_common/pico_platform_compiler/include/
+    $ENV{PICO_SDK_PATH}/src/rp2_common/pico_platform_panic/include/
+    $ENV{PICO_SDK_PATH}/src/rp2_common/hardware_base/include/
+    $ENV{PICO_SDK_PATH}/src/rp2350/hardware_structs/include/
+    $ENV{PICO_SDK_PATH}/src/rp2_common/hardware_sync_spin_lock/include/
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/pico_base/
+    # needed for FreeRTOS LVGL build
     ${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2350_ARM_NTZ/non_secure
     ${FREERTOS_CONFIG_FILE_DIRECTORY}
     ${FREERTOS_KERNEL_PATH}/include)
-endif()
+
+
+    endif()
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
@@ -138,7 +142,7 @@ pico_enable_stdio_uart(pico_cnc_hmi 1)
 pico_add_extra_outputs(pico_cnc_hmi)
 
 # Compile the PIO programs and include them into the project
-pico_generate_pio_header(pico_cnc_hmi ${CMAKE_CURRENT_LIST_DIR}/quadrature.pio)
-pico_generate_pio_header(pico_cnc_hmi ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
+pico_generate_pio_header(pico_cnc_hmi ${CMAKE_CURRENT_LIST_DIR}/drivers/quadrature.pio)
+pico_generate_pio_header(pico_cnc_hmi ${CMAKE_CURRENT_LIST_DIR}/drivers/ws2812.pio)
 
 
