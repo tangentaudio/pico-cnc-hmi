@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # LVGL in particular is very slow to compile and upload, so this is an easy way to turn it off
 # for developing other parts of the system more quickly
-option(ENABLE_DISPLAY "Enable SPI OLED display support" OFF)
+option(ENABLE_DISPLAY "Enable SPI OLED display support" ON)
 
 # allow USB to be enabled/disabled
 option(ENABLE_USB "Enable USB" OFF)
@@ -96,20 +96,31 @@ target_sources(pico_cnc_hmi PUBLIC
         )
 
 target_include_directories(pico_cnc_hmi PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/port/FreeRTOS-Kernel
+        ${FREERTOS_CONFIG_FILE_DIRECTORY}
         ${FREERTOS_KERNEL_PATH}/include
-        ${FREERTOS_KERNEL_PATH}/portable/ThirdParty/RP2350_ARM_NTZ/non_secure)
+        ${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2350_ARM_NTZ/non_secure)
 
 if(ENABLE_DISPLAY)
 # copy our modified lv_conf.h into the right place so the build finds it
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/lv_conf.h DESTINATION ${CMAKE_BINARY_DIR}/lvgl)
 add_subdirectory(lvgl)
-#target_include_directories(lvgl PUBLIC 
-#    ${FREERTOS_CFG_DIRECTORY}/
-#    ${FREERTOS_SRC_DIRECTORY}/include
-#    ${FREERTOS_SRC_DIRECTORY}/portable/GCC/ARM_CM0
-#)
 
+target_include_directories(lvgl PUBLIC
+/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/hardware_sync/include/
+/home/steve/.pico-sdk/sdk/2.1.1/src/common/pico_base_headers/include/
+/home/steve/.pico-sdk/sdk/2.1.1/src/rp2350/pico_platform/include/
+/home/steve/.pico-sdk/sdk/2.1.1/src/rp2350/hardware_regs/include/
+/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_platform_sections/include/
+/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_platform_compiler/include/
+/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/pico_platform_panic/include/
+/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/hardware_base/include/
+/home/steve/.pico-sdk/sdk/2.1.1/src/rp2350/hardware_structs/include/
+/home/steve/.pico-sdk/sdk/2.1.1/src/rp2_common/hardware_sync_spin_lock/include/
+build/generated/pico_base/
+
+    ${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2350_ARM_NTZ/non_secure
+    ${FREERTOS_CONFIG_FILE_DIRECTORY}
+    ${FREERTOS_KERNEL_PATH}/include)
 endif()
 
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device

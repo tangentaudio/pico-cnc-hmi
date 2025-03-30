@@ -87,21 +87,21 @@ void TaskDisplay::task(void *param)
 
     printf("create label\n");
     lv_obj_t *label = lv_label_create(lv_screen_active());
-    lv_label_set_text(label, "LVGL");
+    lv_label_set_text(label, "~~ LVGLv9 and FreeRTOS on Raspberry Pi Pico2 ~~");
     lv_obj_set_pos(label, 0, 0);
-
+    lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
+    lv_obj_set_width(label, 256);
+    
     while (true)
     {
         //printf("lv_task_handler\n");
         //lv_task_handler();
         
-        printf("lv_timer_handler\n");
         uint32_t time_till_next = lv_timer_handler();
 
-        printf("vTaskDelay\n");
         vTaskDelay(time_till_next / portTICK_PERIOD_MS);
 
-        //lv_label_set_text_fmt(label, "%u", since_last_ms);
+        //lv_label_set_text_fmt(label, "%u", xTaskGetTickCount() / portTICK_PERIOD_MS);
     }
 }
 
