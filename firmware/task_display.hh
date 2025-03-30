@@ -15,6 +15,9 @@
 #pragma message "Unsupported color depth"
 #endif
 
+#define LVGL_LOCK(x) xSemaphoreTake(x, portMAX_DELAY);
+#define LVGL_UNLOCK(x) xSemaphoreGive(x)
+
 class TaskDisplay
 {
 public:
@@ -22,7 +25,11 @@ public:
     ~TaskDisplay();
 
     void init();
-    static void task(void *param);
+    static void timer_task(void *param);
+    static void task_handler_task(void *param);
+    static void gui_task(void *param);
+    
+    SemaphoreHandle_t mutex;
 
 protected:
     static void align_area(lv_event_t *e);
@@ -32,6 +39,7 @@ private:
     OLED m_oled;
     lv_display_t *m_display;
     uint8_t m_disp_buf1[LV_BUFSIZE];
+
 };
 
 #endif

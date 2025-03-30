@@ -53,6 +53,7 @@ if(ENABLE_DISPLAY)
         ${CMAKE_CURRENT_LIST_DIR}/spi.cc
         ${CMAKE_CURRENT_LIST_DIR}/oled_sh1122.cc
         ${CMAKE_CURRENT_LIST_DIR}/task_display.cc
+        ${CMAKE_CURRENT_LIST_DIR}/fonts/roboto_64.c
         )
 
     set(display_libs

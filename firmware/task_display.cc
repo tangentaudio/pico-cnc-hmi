@@ -1,17 +1,20 @@
 #include <stdio.h>
 #include <FreeRTOS.h>
+#include "semphr.h"
 #include <task.h>
 #include "spi.hh"
 #include "oled_sh1122.hh"
 #include "lvgl.h"
 #include "task_display.hh"
 
+extern lv_font_t roboto_64;
 
 TaskDisplay::TaskDisplay()
     : m_spi(),
       m_oled(m_spi),
       m_display(nullptr)
 {
+
 }
 
 TaskDisplay::~TaskDisplay()
@@ -20,27 +23,23 @@ TaskDisplay::~TaskDisplay()
 
 void TaskDisplay::init()
 {
-    printf("init SPI\n");
+    mutex = xSemaphoreCreateMutex();    
+
+    LVGL_LOCK(mutex);
+
     m_spi.init();
-    printf("init OLED\n");
     m_oled.init();
 
-    printf("init LVGL\n");
     lv_init();
 
-    printf("lv_display_create\n");
     m_display = lv_display_create(SH1122_HOR_RES, SH1122_VER_RES);
 
-    printf("lv_display_set_color_format\n");
     lv_display_set_color_format(m_display, LV_COLOR_FORMAT);
 
-    printf("lv_display_set_user_data\n");
     lv_display_set_user_data(m_display, &m_oled);
 
-    printf("lv_display_set_buffer\n");
     lv_display_set_buffers(m_display, m_disp_buf1, NULL, sizeof(m_disp_buf1), LV_DISPLAY_RENDER_MODE_FULL);
 
-    printf("lv_display_set_flush_cb\n");
     lv_display_set_flush_cb(m_display, [](lv_display_t *display, const lv_area_t *area, uint8_t *px_map)
                             {
                                 OLED *oled = static_cast<OLED *>(lv_display_get_user_data(display));
@@ -53,11 +52,11 @@ void TaskDisplay::init()
     lv_display_set_antialiasing(m_display, true);
     #endif
 
-    printf("lv_tick_Set_cb\n");
     lv_tick_set_cb(xTaskGetTickCount);
 
-    printf("lv_display_set_default\n");
     lv_display_set_default(m_display);
+
+    LVGL_UNLOCK(mutex);
 }
 
 #if LV_COLOR_DEPTH == 8
@@ -73,38 +72,68 @@ void TaskDisplay::align_area(lv_event_t *e)
 }
 #endif
 
-void TaskDisplay::task(void *param)
+void TaskDisplay::timer_task(void *param)
 {
     TaskDisplay *inst = static_cast<TaskDisplay *>(param);
 
-    printf("display task\n");
+    printf("display timer task\n");
+
+    while (true)
+    {
+        LVGL_LOCK(inst->mutex);
+        lv_timer_handler_run_in_period(5);
+        LVGL_UNLOCK(inst->mutex);
+
+        vTaskDelay(5 / portTICK_PERIOD_MS);
+
+    }
+}
+
+
+void TaskDisplay::task_handler_task(void *param)
+{
+    TaskDisplay *inst = static_cast<TaskDisplay *>(param);
+
+    printf("display task_handler task\n");
+
+    while (true)
+    {
+      LVGL_LOCK(inst->mutex);
+      lv_task_handler();
+      LVGL_UNLOCK(inst->mutex);
+      vTaskDelay(100 / portTICK_PERIOD_MS);
+
+    }
+}
+
+void TaskDisplay::gui_task(void *param)
+{
+    TaskDisplay *inst = static_cast<TaskDisplay *>(param);
+
+    LVGL_LOCK(inst->mutex);
 
     lv_obj_set_style_bg_color(lv_screen_active(), lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(lv_screen_active(), &lv_font_montserrat_28, LV_PART_MAIN);
+    lv_obj_set_style_text_font(lv_screen_active(), &roboto_64, LV_PART_MAIN);
     lv_obj_set_style_text_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_line_color(lv_screen_active(), lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_line_width(lv_screen_active(), 1, LV_PART_MAIN);
 
-    printf("create label\n");
     lv_obj_t *label = lv_label_create(lv_screen_active());
     lv_label_set_text(label, "~~ LVGLv9 and FreeRTOS on Raspberry Pi Pico2 ~~");
     lv_obj_set_pos(label, 0, 0);
     lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
     lv_obj_set_width(label, 256);
     
+    LVGL_UNLOCK(inst->mutex);
+
     while (true)
     {
-        //printf("lv_task_handler\n");
-        //lv_task_handler();
-        
-        uint32_t time_till_next = lv_timer_handler();
-
-        vTaskDelay(time_till_next / portTICK_PERIOD_MS);
-
-        //lv_label_set_text_fmt(label, "%u", xTaskGetTickCount() / portTICK_PERIOD_MS);
+      LVGL_LOCK(inst->mutex);
+      lv_label_set_text_fmt(label, "%u", xTaskGetTickCount() / portTICK_PERIOD_MS);
+      LVGL_UNLOCK(inst->mutex);
+      vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
-
 
 /*
 

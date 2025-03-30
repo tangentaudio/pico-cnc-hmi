@@ -98,13 +98,18 @@ int main(void)
   BaseType_t encoder_task_status = xTaskCreate(task_encoder->task, "ENCODER_TASK", 256, (void*)task_encoder, 1, nullptr);
   BaseType_t led_task_status = xTaskCreate(task_led->task, "LED_TASK", 256, (void*)task_led, 3, nullptr);
   #ifdef ENABLE_DISPLAY
-  BaseType_t display_task_status = xTaskCreate(task_display->task, "DISPLAY_TASK", 4096, (void*)task_display, 0, nullptr);
+  BaseType_t display_task1_status = xTaskCreate(task_display->timer_task, "DISPLAY_TASK_TIMER", 1024, (void*)task_display, 0, nullptr);
+  BaseType_t display_task2_status = xTaskCreate(task_display->task_handler_task, "DISPLAY_TASK_HANDLER", 1024, (void*)task_display, 0, nullptr);
+  BaseType_t display_gui_status = xTaskCreate(task_display->gui_task, "DISPLAY_GUI_TASK", 2048, (void*)task_display, 0, nullptr);
   #else
-  BaseType_t display_task_status = pdPASS;
+  BaseType_t display_task1_status = pdPASS;
+  BaseType_t display_task2_status = pdPASS;
+  BaseType_t display_gui_status = pdPASS;
   #endif
   BaseType_t main_task_status = xTaskCreate(main_task, "MAIN_TASK", 1024, nullptr, 2, nullptr);
 
-  assert(main_task_status == pdPASS && led_task_status == pdPASS && matrix_task_status == pdPASS && encoder_task_status == pdPASS && display_task_status == pdPASS);
+  assert(main_task_status == pdPASS && led_task_status == pdPASS && matrix_task_status == pdPASS 
+         && encoder_task_status == pdPASS && display_task1_status == pdPASS && display_task2_status == pdPASS && display_gui_status == pdPASS);
 
   vTaskStartScheduler();
 
