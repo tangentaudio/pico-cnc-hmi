@@ -33,19 +33,19 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
-#ifdef USB_ENABLED
-#include "bsp/board_api.h"
-#include "tusb.h"
-#endif
 #include <boards/pico.h>
 #include "pico/stdlib.h"
-#include "i2c.hh"
+#include "drivers/i2c.hh"
 #include "task_encoder.hh"
 #include "task_matrix.hh"
 #include "task_led.hh"
 #ifdef ENABLE_DISPLAY
 #include "task_display.hh"
 #endif
+#ifdef ENABLE_USB
+#include "drivers/usb.h"
+#endif
+
 #define PIN_PERIPH_RESETN 22
 
 I2C* i2c;
@@ -62,12 +62,9 @@ void main_task(void *unused);
 int main(void)
 {
   stdout_uart_init();
-  #ifdef USB_ENABLED
-  board_init();
-  tud_init(BOARD_TUD_RHPORT);
-
-  if (board_init_after_tusb)
-    board_init_after_tusb();
+  
+  #ifdef ENABLE_USB
+  usb_init();
   #endif
 
   gpio_init(PIN_PERIPH_RESETN);
@@ -95,21 +92,20 @@ int main(void)
 
 
   BaseType_t matrix_task_status = xTaskCreate(task_matrix->task, "MATRIX_TASK", 256, (void*)task_matrix, 4, nullptr);
-  BaseType_t encoder_task_status = xTaskCreate(task_encoder->task, "ENCODER_TASK", 256, (void*)task_encoder, 1, nullptr);
-  BaseType_t led_task_status = xTaskCreate(task_led->task, "LED_TASK", 256, (void*)task_led, 3, nullptr);
+  BaseType_t encoder_task_status = xTaskCreate(task_encoder->task, "ENCODER_TASK", 256, (void*)task_encoder, 4, nullptr);
+  BaseType_t led_task_status = xTaskCreate(task_led->task, "LED_TASK", 256, (void*)task_led, 2, nullptr);
   #ifdef ENABLE_DISPLAY
-  BaseType_t display_task1_status = xTaskCreate(task_display->timer_task, "DISPLAY_TASK_TIMER", 1024, (void*)task_display, 0, nullptr);
-  BaseType_t display_task2_status = xTaskCreate(task_display->task_handler_task, "DISPLAY_TASK_HANDLER", 1024, (void*)task_display, 0, nullptr);
-  BaseType_t display_gui_status = xTaskCreate(task_display->gui_task, "DISPLAY_GUI_TASK", 2048, (void*)task_display, 0, nullptr);
-  #else
-  BaseType_t display_task1_status = pdPASS;
-  BaseType_t display_task2_status = pdPASS;
-  BaseType_t display_gui_status = pdPASS;
+  BaseType_t display_task1_status = xTaskCreate(task_display->timer_task, "DISPLAY_TASK_TIMER", 1024, (void*)task_display, 3, nullptr);
+  BaseType_t display_task2_status = xTaskCreate(task_display->task_handler_task, "DISPLAY_TASK_HANDLER", 1024, (void*)task_display, 3, nullptr);
+  BaseType_t display_gui_status = xTaskCreate(task_display->gui_task, "DISPLAY_GUI_TASK", 2048, (void*)task_display, 2, nullptr);
   #endif
-  BaseType_t main_task_status = xTaskCreate(main_task, "MAIN_TASK", 1024, nullptr, 2, nullptr);
+  BaseType_t main_task_status = xTaskCreate(main_task, "MAIN_TASK", 4096, nullptr, 1, nullptr);
 
-  assert(main_task_status == pdPASS && led_task_status == pdPASS && matrix_task_status == pdPASS 
-         && encoder_task_status == pdPASS && display_task1_status == pdPASS && display_task2_status == pdPASS && display_gui_status == pdPASS);
+  assert(main_task_status == pdPASS && led_task_status == pdPASS && matrix_task_status == pdPASS && encoder_task_status == pdPASS
+  #ifdef ENABLE_DISPLAY
+         && display_task1_status == pdPASS && display_task2_status == pdPASS && display_gui_status == pdPASS
+  #endif
+  );
 
   vTaskStartScheduler();
 
@@ -134,6 +130,10 @@ void main_task(void* unused)
 
   while (true)
   {
+    #ifdef ENABLE_USB
+    usb_periodic();
+    #endif
+
     TaskEncoder::event_t enc_evt;
     if (xQueueReceive(task_encoder->event_queue, &enc_evt, 10) == pdTRUE)
     {
@@ -154,7 +154,7 @@ void main_task(void* unused)
       cmd.encoder = enc_evt.encoder;
       cmd.value = enc_evt.value;
       xQueueSend(task_display->cmd_queue, &cmd, 0);
-      
+
     }
 
     TaskMatrix::event_t mtx_evt;
@@ -162,6 +162,12 @@ void main_task(void* unused)
     {
 
       printf("evt=%02x %s %s\n", mtx_evt.code, mtx_evt.press ? "press" : "release", mtx_evt.gpio ? "gpio" : "key");
+
+      TaskDisplay::cmd_t cmd;
+      cmd.cmd = TaskDisplay::DISPLAY_CMD_UPDATE_KEY;
+      cmd.code = mtx_evt.code;
+      cmd.press = mtx_evt.press;
+      xQueueSend(task_display->cmd_queue, &cmd, 0);
 
       if (mtx_evt.gpio && mtx_evt.press) {
         uint8_t enc;
@@ -176,7 +182,7 @@ void main_task(void* unused)
       } else if (! mtx_evt.gpio && mtx_evt.press) {
         uint8_t led = 0;
         if (TaskMatrix::led_key_map(mtx_evt.code, led)) {
-          led_states[led] = led_states[led] ? 0 : 128;
+          led_states[led] = led_states[led] ? 0 : 32;
 
           // pressing a key with an associated LED toggles it
           TaskLED::cmd_t cmd;
@@ -189,10 +195,6 @@ void main_task(void* unused)
       }
 
     }
-
-    #ifdef USB_ENABLED
-    tud_task();
-    #endif
   }
 
 }

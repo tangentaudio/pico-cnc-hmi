@@ -35,7 +35,8 @@ public:
 
     typedef enum
     {
-        DISPLAY_CMD_UPDATE_ENCODER
+        DISPLAY_CMD_UPDATE_ENCODER,
+        DISPLAY_CMD_UPDATE_KEY,
     } cmds;
 
     typedef struct cmd
@@ -43,6 +44,8 @@ public:
         cmds cmd;
         uint8_t encoder;
         int8_t value;
+        uint8_t code;
+        bool press;
     } cmd_t;
 
     QueueHandle_t cmd_queue;

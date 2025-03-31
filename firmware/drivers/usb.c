@@ -1,11 +1,33 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <FreeRTOS.h>
+#include <task.h>
+#include <queue.h>
+#include <boards/pico.h>
+#include "pico/stdlib.h"
+#include "bsp/board_api.h"
+#include "tusb.h"
+#include "usb.h"
 
+void usb_init(void)
+{
+  board_init();
+  tud_init(BOARD_TUD_RHPORT);
 
+  if (board_init_after_tusb)
+    board_init_after_tusb();
+}
+
+void usb_periodic(void)
+{
+  tud_task();
+}
 
 //--------------------------------------------------------------------+
 // Device callbacks
 //--------------------------------------------------------------------+
 
-#ifdef ENABLE_USB
 // Invoked when device is mounted
 void tud_mount_cb(void)
 {
@@ -64,7 +86,6 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t rep
   // echo back anything we received from host
   // tud_hid_report(0, buffer, bufsize);
 }
-#endif
 
       /*
       pkt.s.knob1 = encoders.value(0);

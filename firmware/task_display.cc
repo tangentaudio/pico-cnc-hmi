@@ -35,11 +35,8 @@ void TaskDisplay::init()
   m_display = lv_display_create(SH1122_HOR_RES, SH1122_VER_RES);
 
   lv_display_set_color_format(m_display, LV_COLOR_FORMAT);
-
   lv_display_set_user_data(m_display, &m_oled);
-
   lv_display_set_buffers(m_display, m_disp_buf1, NULL, sizeof(m_disp_buf1), LV_DISPLAY_RENDER_MODE_FULL);
-
   lv_display_set_flush_cb(m_display, [](lv_display_t *display, const lv_area_t *area, uint8_t *px_map)
                           {
                                 OLED *oled = static_cast<OLED *>(lv_display_get_user_data(display));
@@ -51,7 +48,6 @@ void TaskDisplay::init()
 #endif
 
   lv_tick_set_cb(xTaskGetTickCount);
-
   lv_display_set_default(m_display);
 
   LVGL_UNLOCK(mutex);
@@ -127,9 +123,12 @@ void TaskDisplay::gui_task(void *param)
     if (xQueueReceive(inst->cmd_queue, &cmd, 100) == pdTRUE) {
       if (cmd.cmd == DISPLAY_CMD_UPDATE_ENCODER) {
         LVGL_LOCK(inst->mutex);
-        lv_label_set_text_fmt(label, "%u: %d", cmd.encoder, cmd.value);
+        lv_label_set_text_fmt(label, "E%u: %d", cmd.encoder, cmd.value);
         LVGL_UNLOCK(inst->mutex);
-
+      } else if (cmd.cmd == DISPLAY_CMD_UPDATE_KEY) {
+        LVGL_LOCK(inst->mutex);
+        lv_label_set_text_fmt(label, "K%2.2X: %s", cmd.code, cmd.press ? "dn" : "up");
+        LVGL_UNLOCK(inst->mutex);
       }
     }
 

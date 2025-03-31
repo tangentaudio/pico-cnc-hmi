@@ -9,8 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(ENABLE_DISPLAY "Enable SPI OLED display support" ON)
 
 # allow USB to be enabled/disabled
-option(ENABLE_USB "Enable USB" OFF)
-
+option(ENABLE_USB "Enable USB" ON)
 
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
@@ -20,9 +19,9 @@ if(WIN32)
 else()
     set(USERHOME $ENV{HOME})
 endif()
-set(sdkVersion 2.1.0)
-set(toolchainVersion 13_3_Rel1)
-set(picotoolVersion 2.1.0)
+set(sdkVersion 2.1.1)
+set(toolchainVersion 14_2_Rel1)
+set(picotoolVersion 2.1.1)
 set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
     include(${picoVscode})
@@ -37,6 +36,8 @@ project(pico_cnc_hmi C CXX ASM)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+
+
 SET(FREERTOS_KERNEL_PATH "${CMAKE_CURRENT_LIST_DIR}/FreeRTOS" CACHE STRING "FreeRTOS pico kernel port path")
 SET(FREERTOS_CONFIG_FILE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/port/FreeRTOS-Kernel" CACHE STRING "Local FreeRTOS Config")
 include("${FREERTOS_CONFIG_FILE_DIRECTORY}/freertos_config.cmake") 
@@ -45,7 +46,6 @@ include(FreeRTOS_Kernel_import.cmake)
 
 # Add executable. Default name is the project name, version 0.1
 add_executable(pico_cnc_hmi)
-
 
 # define sources and libs for display/LVGL support
 if(ENABLE_DISPLAY)
@@ -69,8 +69,8 @@ endif()
 
 if(ENABLE_USB)
     set(usb_sources
-        ${CMAKE_CURRENT_LIST_DIR}/drivers/usb_descriptors.c
-        ${CMAKE_CURRENT_LIST_DIR}/task_usb.cc
+        ${CMAKE_CURRENT_LIST_DIR}/port/tinyusb/usb_descriptors.c
+        ${CMAKE_CURRENT_LIST_DIR}/drivers/usb.c
         )
     set(usb_libs
         tinyusb_device
@@ -97,6 +97,9 @@ target_sources(pico_cnc_hmi PUBLIC
         )
 
 target_include_directories(pico_cnc_hmi PUBLIC
+if(ENABLE_USB)
+        ${CMAKE_CURRENT_LIST_DIR}/port/tinyusb
+endif()
         ${CMAKE_CURRENT_LIST_DIR}/drivers
         ${FREERTOS_CONFIG_FILE_DIRECTORY}
         ${FREERTOS_KERNEL_PATH}/include
@@ -105,31 +108,32 @@ target_include_directories(pico_cnc_hmi PUBLIC
 if(ENABLE_DISPLAY)
 # copy our modified lv_conf.h into the right place so the build finds it
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/port/lvgl/lv_conf.h DESTINATION ${CMAKE_BINARY_DIR}/lvgl)
+
 add_subdirectory(lvgl)
 
 target_include_directories(lvgl PUBLIC
     # clearly this is insane but it works until I can figure out how to properly include the Pico SDK paths for LVGL
-    $ENV{PICO_SDK_PATH}/src/rp2_common/hardware_sync/include/
-    $ENV{PICO_SDK_PATH}/src/common/pico_base_headers/include/
-    $ENV{PICO_SDK_PATH}/src/rp2350/pico_platform/include/
-    $ENV{PICO_SDK_PATH}/src/rp2350/hardware_regs/include/
-    $ENV{PICO_SDK_PATH}/src/rp2_common/pico_platform_sections/include/
-    $ENV{PICO_SDK_PATH}/src/rp2_common/pico_platform_compiler/include/
-    $ENV{PICO_SDK_PATH}/src/rp2_common/pico_platform_panic/include/
-    $ENV{PICO_SDK_PATH}/src/rp2_common/hardware_base/include/
-    $ENV{PICO_SDK_PATH}/src/rp2350/hardware_structs/include/
-    $ENV{PICO_SDK_PATH}/src/rp2_common/hardware_sync_spin_lock/include/
     ${CMAKE_CURRENT_BINARY_DIR}/generated/pico_base/
+    ${PICO_SDK_PATH}/src/common/pico_base_headers/include/
+    ${PICO_SDK_PATH}/src/rp2_common/hardware_sync/include/
+    ${PICO_SDK_PATH}/src/rp2350/pico_platform/include/
+    ${PICO_SDK_PATH}/src/rp2350/hardware_regs/include/
+    ${PICO_SDK_PATH}/src/rp2_common/pico_platform_sections/include/
+    ${PICO_SDK_PATH}/src/rp2_common/pico_platform_compiler/include/
+    ${PICO_SDK_PATH}/src/rp2_common/pico_platform_panic/include/
+    ${PICO_SDK_PATH}/src/rp2_common/hardware_base/include/
+    ${PICO_SDK_PATH}/src/rp2350/hardware_structs/include/
+    ${PICO_SDK_PATH}/src/rp2_common/hardware_sync_spin_lock/include/
     # needed for FreeRTOS LVGL build
     ${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2350_ARM_NTZ/non_secure
     ${FREERTOS_CONFIG_FILE_DIRECTORY}
-    ${FREERTOS_KERNEL_PATH}/include)
+    ${FREERTOS_KERNEL_PATH}/include
+)
 
 
-    endif()
 
-# In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
-# for TinyUSB device support and tinyusb_board for the additional board support library used by the example
+endif()
+
 target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio_uart pico_unique_id hardware_pio hardware_i2c FreeRTOS-Kernel-Heap4 freertos_config ${display_libs} ${usb_libs})
 
 # stdio serial consoles        

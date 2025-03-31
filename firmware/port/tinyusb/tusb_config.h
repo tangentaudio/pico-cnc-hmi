@@ -53,8 +53,9 @@
 #error CFG_TUSB_MCU must be defined
 #endif
 
+//#undef CFG_TUSB_OS
 #ifndef CFG_TUSB_OS
-#define CFG_TUSB_OS           OPT_OS_NONE
+#define CFG_TUSB_OS           OPT_OS_FREERTOS
 #endif
 
 #ifndef CFG_TUSB_DEBUG
@@ -106,5 +107,7 @@
 #ifdef __cplusplus
  }
 #endif
+
+
 
 #endif /* _TUSB_CONFIG_H_ */
