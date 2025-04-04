@@ -33,6 +33,9 @@ set(PICO_BOARD pico2 CACHE STRING "Board type")
 include(pico_sdk_import.cmake)
 project(pico_cnc_hmi C CXX ASM)
 
+
+#add_definitions(-DCFG_TUSB_OS=OPT_OS_FREEERTOS -DCFG_TUSB_DEBUG=3)
+add_definitions(-DCFG_TUSB_OS=OPT_OS_FREEERTOS)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
@@ -134,7 +137,7 @@ target_include_directories(lvgl PUBLIC
 
 endif()
 
-target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio_uart pico_unique_id hardware_pio hardware_i2c FreeRTOS-Kernel-Heap4 freertos_config ${display_libs} ${usb_libs})
+target_link_libraries(pico_cnc_hmi PUBLIC pico_stdlib pico_stdio_uart pico_unique_id hardware_pio hardware_i2c ${usb_libs} FreeRTOS-Kernel-Heap4 FreeRTOS-Kernel freertos_config ${display_libs} )
 
 # stdio serial consoles        
 pico_enable_stdio_usb(pico_cnc_hmi 0)

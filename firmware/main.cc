@@ -58,15 +58,13 @@ TaskDisplay* task_display;
 #endif
 
 void main_task(void *unused);
+void usb_task(void *unused);
 
 int main(void)
 {
   stdout_uart_init();
   
-  #ifdef ENABLE_USB
-  usb_init();
-  #endif
-
+ 
   gpio_init(PIN_PERIPH_RESETN);
   gpio_set_dir(PIN_PERIPH_RESETN, GPIO_OUT);
   gpio_pull_up(PIN_PERIPH_RESETN);
@@ -99,9 +97,15 @@ int main(void)
   BaseType_t display_task2_status = xTaskCreate(task_display->task_handler_task, "DISPLAY_TASK_HANDLER", 1024, (void*)task_display, 3, nullptr);
   BaseType_t display_gui_status = xTaskCreate(task_display->gui_task, "DISPLAY_GUI_TASK", 2048, (void*)task_display, 2, nullptr);
   #endif
-  BaseType_t main_task_status = xTaskCreate(main_task, "MAIN_TASK", 4096, nullptr, 1, nullptr);
+  #ifdef ENABLE_USB
+  BaseType_t usb_task_status = xTaskCreate(usb_task, "USB_TASK", 2048, nullptr, 1, nullptr);
+  #endif
+  BaseType_t main_task_status = xTaskCreate(main_task, "MAIN_TASK", 2048, nullptr, 1, nullptr);
 
   assert(main_task_status == pdPASS && led_task_status == pdPASS && matrix_task_status == pdPASS && encoder_task_status == pdPASS
+  #ifdef ENABLE_USB
+         && usb_task_status
+  #endif
   #ifdef ENABLE_DISPLAY
          && display_task1_status == pdPASS && display_task2_status == pdPASS && display_gui_status == pdPASS
   #endif
@@ -114,9 +118,23 @@ int main(void)
   }
 }
 
+void usb_task(void* unused)
+{
+  #ifdef ENABLE_USB
+  usb_init();
+  #endif
+
+  while(true) {
+    #ifdef ENABLE_USB
+    usb_periodic();
+    #endif
+    vTaskDelay(1);
+  }
+}
+
 void main_task(void* unused)
 {
-
+  bool updated = false;
   const uint32_t dot_colors[] = {
       WS2812::urgb_u32(0x3f, 0x1f, 0),
       WS2812::urgb_u32(0, 0x3f, 0x3f),
@@ -130,9 +148,6 @@ void main_task(void* unused)
 
   while (true)
   {
-    #ifdef ENABLE_USB
-    usb_periodic();
-    #endif
 
     TaskEncoder::event_t enc_evt;
     if (xQueueReceive(task_encoder->event_queue, &enc_evt, 10) == pdTRUE)
@@ -149,12 +164,15 @@ void main_task(void* unused)
         xQueueSend(task_led->cmd_queue, &cmd, 0);
       }
 
+      #ifdef ENABLE_DISPLAY
       TaskDisplay::cmd_t cmd;
       cmd.cmd = TaskDisplay::DISPLAY_CMD_UPDATE_ENCODER;
       cmd.encoder = enc_evt.encoder;
       cmd.value = enc_evt.value;
       xQueueSend(task_display->cmd_queue, &cmd, 0);
+      #endif
 
+      updated = true;
     }
 
     TaskMatrix::event_t mtx_evt;
@@ -163,11 +181,13 @@ void main_task(void* unused)
 
       printf("evt=%02x %s %s\n", mtx_evt.code, mtx_evt.press ? "press" : "release", mtx_evt.gpio ? "gpio" : "key");
 
+      #ifdef ENABLE_DISPLAY
       TaskDisplay::cmd_t cmd;
       cmd.cmd = TaskDisplay::DISPLAY_CMD_UPDATE_KEY;
       cmd.code = mtx_evt.code;
       cmd.press = mtx_evt.press;
       xQueueSend(task_display->cmd_queue, &cmd, 0);
+      #endif
 
       if (mtx_evt.gpio && mtx_evt.press) {
         uint8_t enc;
@@ -193,8 +213,20 @@ void main_task(void* unused)
           xQueueSend(task_led->cmd_queue, &cmd, 0);
         }
       }
-
     }
+
+    if (updated) {
+      usb_pkt pkt;
+      pkt.s.knob1 = task_encoder->get_value(1);
+      pkt.s.knob2 = task_encoder->get_value(2);
+      pkt.s.knob3 = task_encoder->get_value(3);
+      pkt.s.shuttle = task_encoder->get_value(4);
+      pkt.s.jog = task_encoder->get_value(0);
+
+      tud_hid_report(0, &pkt, sizeof(pkt));
+      updated = false;
+    }
+
   }
 
 }

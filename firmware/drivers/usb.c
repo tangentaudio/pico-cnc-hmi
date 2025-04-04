@@ -13,7 +13,13 @@
 void usb_init(void)
 {
   board_init();
-  tud_init(BOARD_TUD_RHPORT);
+  //tud_init(BOARD_TUD_RHPORT);
+  
+  tusb_rhport_init_t dev_init = {
+     .role = TUSB_ROLE_DEVICE,
+     .speed = TUSB_SPEED_AUTO
+  };
+  tusb_init(BOARD_TUD_RHPORT, &dev_init); // initialize device stack on roothub port 0  
 
   if (board_init_after_tusb)
     board_init_after_tusb();
@@ -32,12 +38,14 @@ void usb_periodic(void)
 void tud_mount_cb(void)
 {
   //blink_interval_ms = BLINK_MOUNTED;
+  printf("mount cb\n");
 }
 
 // Invoked when device is unmounted
 void tud_umount_cb(void)
 {
   //blink_interval_ms = BLINK_NOT_MOUNTED;
+  printf("umount cb\n");
 }
 
 // Invoked when usb bus is suspended
@@ -47,12 +55,14 @@ void tud_suspend_cb(bool remote_wakeup_en)
 {
   (void)remote_wakeup_en;
   //blink_interval_ms = BLINK_SUSPENDED;
+  printf("suspend cb\n");
 }
 
 // Invoked when usb bus is resumed
 void tud_resume_cb(void)
 {
   //blink_interval_ms = tud_mounted() ? BLINK_MOUNTED : BLINK_NOT_MOUNTED;
+  printf("resume cb\n");
 }
 
 //--------------------------------------------------------------------+
@@ -84,32 +94,6 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t rep
   (void)report_type;
 
   // echo back anything we received from host
-  // tud_hid_report(0, buffer, bufsize);
+  //tud_hid_report(0, buffer, bufsize);
 }
 
-      /*
-      pkt.s.knob1 = encoders.value(0);
-      pkt.s.knob2 = encoders.value(1);
-      pkt.s.knob3 = encoders.value(2);
-      pkt.s.button1 = 0;
-      pkt.s.button2 = 0;
-      pkt.s.button3 = 0;
-
-      tud_hid_report(0, &pkt, sizeof(pkt));
-      */
-
-/*
-union pkt_u
-{
-  struct pkt_s
-  {
-    int knob1;
-    int knob2;
-    int knob3;
-    uint8_t button1;
-    uint8_t button2;
-    uint8_t button3;
-  } s;
-  unsigned char buf[64];
-} pkt;
-*/

@@ -3,6 +3,7 @@
 
 #include <FreeRTOS.h>
 #include <queue.h>
+#include "semphr.h"
 #include "encoder.hh"
 
 class TaskEncoder
@@ -15,8 +16,10 @@ public:
   void init();
   static void task(void *param);
 
+  int get_value(uint8_t encoder);
   QueueHandle_t event_queue;
   QueueHandle_t cmd_queue;
+
 
   typedef struct event
   {
@@ -38,6 +41,7 @@ public:
 
 protected:
   Encoder m_encoders;
+  SemaphoreHandle_t m_mutex;
 };
 
 #endif

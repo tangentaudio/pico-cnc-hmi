@@ -5,6 +5,8 @@ TaskEncoder::TaskEncoder()
 {
   event_queue = xQueueCreate(10, sizeof(event_t));
   cmd_queue = xQueueCreate(10, sizeof(cmd_t));
+
+  m_mutex = xSemaphoreCreateMutex();
 }
 
 TaskEncoder::~TaskEncoder()
@@ -20,6 +22,15 @@ void TaskEncoder::init()
   m_encoders.set_limits(2, 0, 14, 4);
   m_encoders.set_limits(3, 0, 14, 4);
 }
+
+int TaskEncoder::get_value(uint8_t encoder)
+{
+  xSemaphoreTake(m_mutex, portMAX_DELAY);
+  int value = m_encoders.value(encoder);
+  xSemaphoreGive(m_mutex);
+  return value;
+}
+
 
 void TaskEncoder::task(void *param)
 {
