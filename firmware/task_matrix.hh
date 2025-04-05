@@ -30,6 +30,10 @@ public:
     static uint8_t led_key_count() { return sizeof(key_to_led_map); }
     static bool led_encoder_map(uint8_t gpio_code, uint8_t &encoder);
 
+    static bool hid_keycode(uint8_t matrix_key_code, uint8_t &hid_key_code, uint8_t &modifiers);
+    
+    static bool hid_n_key_buf_add(uint8_t* key_buf, uint8_t hid_key_code);
+    static bool hid_n_key_buf_remove(uint8_t* key_buf, uint8_t hid_key_code);
 
 protected:
     I2C *m_i2c;

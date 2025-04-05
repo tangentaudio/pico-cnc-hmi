@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # LVGL in particular is very slow to compile and upload, so this is an easy way to turn it off
 # for developing other parts of the system more quickly
-option(ENABLE_DISPLAY "Enable SPI OLED display support" ON)
+option(ENABLE_DISPLAY "Enable SPI OLED display support" OFF)
 
 # allow USB to be enabled/disabled
 option(ENABLE_USB "Enable USB" ON)

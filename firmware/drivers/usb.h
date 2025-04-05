@@ -11,6 +11,8 @@ extern "C"
 
 void usb_init(void);
 void usb_periodic(void);
+void usb_hid_periodic(void);
+
 
 typedef union pkt_u
 {
@@ -24,6 +26,14 @@ typedef union pkt_u
   } s;
   unsigned char buf[64];
 } usb_pkt;
+
+// Interface index depends on the order in configuration descriptor
+enum {
+  ITF_GENERIC_HID = 0,
+  ITF_KEYBOARD = 1,
+};
+
+
 
 
 #ifdef __cplusplus

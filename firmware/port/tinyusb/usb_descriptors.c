@@ -27,6 +27,7 @@
 #include "bsp/board_api.h"
 #include "tusb.h"
 
+
 /* A combination of interfaces must have a unique product id, since PC will save device driver after the first plug.
  * Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause system error on PC.
  *
@@ -50,7 +51,7 @@ tusb_desc_device_t const desc_device =
     .bDeviceProtocol    = 0x00,
     .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
 
-    .idVendor           = 0xCafe,
+    .idVendor           = 0xCAFE,
     .idProduct          = USB_PID,
     .bcdDevice          = 0x0100,
 
@@ -72,9 +73,14 @@ uint8_t const * tud_descriptor_device_cb(void)
 // HID Report Descriptor
 //--------------------------------------------------------------------+
 
-uint8_t const desc_hid_report[] =
+uint8_t const desc_hid_report1[] =
 {
   TUD_HID_REPORT_DESC_GENERIC_INOUT(CFG_TUD_HID_EP_BUFSIZE)
+};
+
+uint8_t const desc_hid_report2[] =
+{
+  TUD_HID_REPORT_DESC_KEYBOARD()
 };
 
 // Invoked when received GET HID REPORT DESCRIPTOR
@@ -82,41 +88,18 @@ uint8_t const desc_hid_report[] =
 // Descriptor contents must exist long enough for transfer to complete
 uint8_t const * tud_hid_descriptor_report_cb(uint8_t itf)
 {
-  (void) itf;
-  return desc_hid_report;
+  if (itf == 0)
+  {
+    return desc_hid_report1;
+  }
+  else if (itf == 1)
+  {
+    return desc_hid_report2;
+  }
+
+  return NULL;
 }
 
-//--------------------------------------------------------------------+
-// Configuration Descriptor
-//--------------------------------------------------------------------+
-
-enum
-{
-  ITF_NUM_HID,
-  ITF_NUM_TOTAL
-};
-
-#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
-
-#define EPNUM_HID   0x01
-
-uint8_t const desc_configuration[] =
-{
-  // Config number, interface count, string index, total length, attribute, power in mA
-  TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
-
-  // Interface number, string index, protocol, report descriptor len, EP Out & In address, size & polling interval
-  TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, 0x80 | EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 10)
-};
-
-// Invoked when received GET CONFIGURATION DESCRIPTOR
-// Application return pointer to descriptor
-// Descriptor contents must exist long enough for transfer to complete
-uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
-{
-  (void) index; // for multiple configurations
-  return desc_configuration;
-}
 
 //--------------------------------------------------------------------+
 // String Descriptors
@@ -128,6 +111,8 @@ enum {
   STRID_MANUFACTURER,
   STRID_PRODUCT,
   STRID_SERIAL,
+  STRID_INTERFACE_1,
+  STRID_INTERFACE_2
 };
 
 // array of pointer to string descriptors
@@ -135,11 +120,56 @@ char const *string_desc_arr[] =
 {
   (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
   "TangentAudio",                // 1: Manufacturer
-  "Pico CNC HMI",                // 2: Product
+  "Pico2 CNC HMI",               // 2: Product
   NULL,                          // 3: Serials will use unique ID if possible
+  "Generic HID",                 // 4: Interface 1 String
+  "Keyboard",                    // 5: Interface 2 String  
 };
 
 static uint16_t _desc_str[32 + 1];
+
+
+//--------------------------------------------------------------------+
+// Configuration Descriptor
+//--------------------------------------------------------------------+
+
+enum
+{
+  ITF_NUM_HID1,
+  ITF_NUM_HID2,
+  ITF_NUM_TOTAL
+};
+
+#define  CONFIG_TOTAL_LEN  (TUD_CONFIG_DESC_LEN + TUD_HID_INOUT_DESC_LEN + TUD_HID_DESC_LEN)
+
+#define EPNUM_HID1   0x01
+#define EPNUM_HID2   0x82
+
+
+uint8_t const desc_configuration[] =
+{
+  // Config number, interface count, string index, total length, attribute, power in mA
+  TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 500),
+
+  // Interface number, string index, protocol, report descriptor len, EP Out & In address, size & polling interval
+  TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID1, STRID_INTERFACE_1, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report1), EPNUM_HID1, 0x80 | EPNUM_HID1, CFG_TUD_HID_EP_BUFSIZE, 1),
+  TUD_HID_DESCRIPTOR(ITF_NUM_HID2, STRID_INTERFACE_2, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report2), EPNUM_HID2, 8, 1)
+};
+
+// Invoked when received GET CONFIGURATION DESCRIPTOR
+// Application return pointer to descriptor
+// Descriptor contents must exist long enough for transfer to complete
+uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
+{
+  (void) index; // for multiple configurations
+  return desc_configuration;
+}
+
+
+//--------------------------------------------------------------------+
+// String Descriptors (continued)
+//--------------------------------------------------------------------+
+
 
 // Invoked when received GET STRING DESCRIPTOR request
 // Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
