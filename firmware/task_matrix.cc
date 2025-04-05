@@ -89,7 +89,7 @@ bool TaskMatrix::hid_keycode(uint8_t matrix_key_code, uint8_t &hid_key_code, uin
         {0x12, {HID_KEY_M, KEYBOARD_MODIFIER_LEFTSHIFT}},
         {0x19, {HID_KEY_S, KEYBOARD_MODIFIER_LEFTSHIFT}},
         {0x1A, {HID_KEY_T, KEYBOARD_MODIFIER_LEFTSHIFT}},
-        {0x1B, {HID_KEY_KEYPAD_HASH, 0}},
+        {0x1B, {HID_KEY_3, KEYBOARD_MODIFIER_LEFTSHIFT}},
     
         {0x1C, {HID_KEY_F, KEYBOARD_MODIFIER_LEFTSHIFT}},
         {0x23, {HID_KEY_H, KEYBOARD_MODIFIER_LEFTSHIFT}},
@@ -97,9 +97,9 @@ bool TaskMatrix::hid_keycode(uint8_t matrix_key_code, uint8_t &hid_key_code, uin
         {0x25, {HID_KEY_D, KEYBOARD_MODIFIER_LEFTSHIFT}},
     
 
-        {0x26, {HID_KEY_KEYPAD_LEFT_PARENTHESIS, 0}},
-        {0x2D, {HID_KEY_KEYPAD_RIGHT_PARENTHESIS, 0}},
-        {0x2E, {HID_KEY_SPACE, 0}},
+        {0x26, {HID_KEY_9, KEYBOARD_MODIFIER_LEFTSHIFT}},
+        {0x2D, {HID_KEY_0, KEYBOARD_MODIFIER_LEFTSHIFT}},
+        {0x2E, {HID_KEY_BACKSPACE, 0}},
     
         {0x01, {HID_KEY_KEYPAD_DIVIDE, 0}},
         {0x02, {HID_KEY_KEYPAD_MULTIPLY, 0}},
@@ -121,7 +121,7 @@ bool TaskMatrix::hid_keycode(uint8_t matrix_key_code, uint8_t &hid_key_code, uin
         {0x21, {HID_KEY_3, 0}},
         {0x22, {HID_KEY_KEYPAD_ENTER, 0}},
     
-        {0x29, {HID_KEY_BACKSPACE, 0}},
+        {0x29, {HID_KEY_ESCAPE, 0}},
         {0x2A, {HID_KEY_0, 0}},
         {0x2B, {HID_KEY_KEYPAD_DECIMAL, 0}}
     };

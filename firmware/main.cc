@@ -262,6 +262,11 @@ void main_task(void *unused)
       {
         printf("key updated\n");
 
+        if (TaskMatrix::hid_n_key_buf_is_empty(keybuf))
+        {
+          modifiers = 0;
+        }
+
         tud_hid_n_keyboard_report(ITF_KEYBOARD, 0, modifiers, keybuf);
 
         key_updated = false;

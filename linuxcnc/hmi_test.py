@@ -15,10 +15,11 @@ def hex_dump(data, length=16):
         hex_string = ' '.join(f'{byte:02x}' for byte in chunk)
         print(f'{hex_string:<{length*3-1}} ')
 
-HAL.newpin('knob.0.value', hal.HAL_S32, hal.HAL_OUT)
-HAL.newpin('knob.0.button', hal.HAL_BIT, hal.HAL_OUT)
-HAL.newpin('knob.1.value', hal.HAL_S32, hal.HAL_OUT)
-HAL.newpin('knob.1.button', hal.HAL_BIT, hal.HAL_OUT)
+HAL.newpin('knob.0.value', hal.HAL_U32, hal.HAL_OUT)
+HAL.newpin('knob.1.value', hal.HAL_U32, hal.HAL_OUT)
+HAL.newpin('knob.2.value', hal.HAL_U32, hal.HAL_OUT)
+HAL.newpin('knob.jog.value', hal.HAL_S32, hal.HAL_OUT)
+HAL.newpin('knob.shuttle.value', hal.HAL_S32, hal.HAL_OUT)
 
 HAL.ready()
 
@@ -32,11 +33,12 @@ for devinfo in hid.enumerate(0xcafe):
             str_out = b'\x00'
             buf = dev.read(64, 10)
             if len(buf) == 64:
-                pkt = struct.unpack('<iiBB', buf[0:10])
+                pkt = struct.unpack('<BBBbi', buf[0:8])
                 #print(buf)
                 hex_dump(buf, 64)
                 HAL['knob.0.value'] = pkt[0]
                 HAL['knob.1.value'] = pkt[1]
-                HAL['knob.0.button'] = not pkt[2]
-                HAL['knob.1.button'] = not pkt[3]
+                HAL['knob.2.value'] = pkt[2]
+                HAL['knob.jog.value'] = pkt[3]
+                HAL['knob.shuttle.value'] = pkt[4]
 

@@ -35,6 +35,15 @@ public:
     static bool hid_n_key_buf_add(uint8_t* key_buf, uint8_t hid_key_code);
     static bool hid_n_key_buf_remove(uint8_t* key_buf, uint8_t hid_key_code);
 
+    static bool hid_n_key_buf_is_empty(uint8_t* key_buf) {
+        for (int i = 0; i < 6; i++)
+        {
+            if (key_buf[i] != 0)
+                return false;
+        }
+        return true;
+    }
+
 protected:
     I2C *m_i2c;
     TCA8418 m_matrix;
