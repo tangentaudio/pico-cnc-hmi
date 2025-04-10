@@ -133,12 +133,13 @@ void usb_task(void *unused)
   }
 }
 
-void set_led(uint8_t led, uint8_t value, bool now = false)
+void set_simple_led(uint8_t led, uint8_t value, uint8_t mode = TaskLED::NORMAL, bool now = false)
 {
   TaskLED::cmd_t cmd;
   cmd.cmd = TaskLED::LED_CMD_SET_SIMPLE_LED;
   cmd.led = led;
   cmd.value = value;
+  cmd.mode = mode;
   cmd.update_now = now;
   xQueueSend(task_led->cmd_queue, &cmd, 0);
 }
@@ -272,39 +273,39 @@ void main_task(void *unused)
         if (mtx_evt.press) {
           if (mtx_evt.code == 0x2f) {
             selected_increment = 1;
-            set_led(0, 32);
-            set_led(1, 0);
-            set_led(2, 0, true);
+            set_simple_led(0, 32);
+            set_simple_led(1, 0);
+            set_simple_led(2, 0, TaskLED::NORMAL, true);
             usb_in_pending = true;
           } else if (mtx_evt.code == 0x30) {
             selected_increment = 2;
-            set_led(0, 0);
-            set_led(1, 32);
-            set_led(2, 0, true);
+            set_simple_led(0, 0, TaskLED::NORMAL);
+            set_simple_led(1, 32, TaskLED::NORMAL);
+            set_simple_led(2, 0, TaskLED::NORMAL, true);
             usb_in_pending = true;
           } else if (mtx_evt.code == 0x37) {
             selected_increment = 3;
-            set_led(0, 0);
-            set_led(1, 0);
-            set_led(2, 32, true);
+            set_simple_led(0, 0, TaskLED::NORMAL);
+            set_simple_led(1, 0, TaskLED::NORMAL);
+            set_simple_led(2, 32, TaskLED::NORMAL, true);
             usb_in_pending = true;
           } else if (mtx_evt.code == 0x38) {
             selected_axis = 1;
-            set_led(3, 32);
-            set_led(4, 0);
-            set_led(5, 0, true);
+            set_simple_led(3, 32, TaskLED::NORMAL);
+            set_simple_led(4, 0, TaskLED::NORMAL);
+            set_simple_led(5, 0, TaskLED::NORMAL, true);
             usb_in_pending = true;
           } else if (mtx_evt.code == 0x39) {
             selected_axis = 2;
-            set_led(3, 0);
-            set_led(4, 32);
-            set_led(5, 0, true);
+            set_simple_led(3, 0, TaskLED::NORMAL);
+            set_simple_led(4, 32, TaskLED::NORMAL);
+            set_simple_led(5, 0, TaskLED::NORMAL,true);
             usb_in_pending = true;
           } else if (mtx_evt.code == 0x3a) {
             selected_axis = 3;
-            set_led(3, 0);
-            set_led(4, 0);
-            set_led(5, 32, true);
+            set_simple_led(3, 0, TaskLED::NORMAL);
+            set_simple_led(4, 0, TaskLED::NORMAL);
+            set_simple_led(5, 32, TaskLED::NORMAL, true);
             usb_in_pending = true;
           }
           /*
@@ -374,34 +375,34 @@ void main_task(void *unused)
       switch(out_pkt.s.interp_state)
       {
         case INTERP_IDLE:
-          set_led(8, 0);
-          set_led(9, 0);
-          set_led(10, 64);
-          set_led(11, 0, true);
+          set_simple_led(8, 0, TaskLED::NORMAL);
+          set_simple_led(9, 0, TaskLED::NORMAL);
+          set_simple_led(10, 64, TaskLED::NORMAL);
+          set_simple_led(11, 0, TaskLED::NORMAL, true);
           break;
         case INTERP_READING:
-          set_led(8, 0);
-          set_led(9, 0);
-          set_led(10, 0);
-          set_led(11, 16, true);
+          set_simple_led(8, 0, TaskLED::NORMAL);
+          set_simple_led(9, 0, TaskLED::NORMAL);
+          set_simple_led(10, 0, TaskLED::NORMAL);
+          set_simple_led(11, 64, TaskLED::BLINK, true);
         break;
         case INTERP_PAUSED:
-          set_led(8, 0);
-          set_led(9, 64);
-          set_led(10, 0);
-          set_led(11, 0, true);
+          set_simple_led(8, 0, TaskLED::NORMAL);
+          set_simple_led(9, 64, TaskLED::BLINK);
+          set_simple_led(10, 0, TaskLED::NORMAL);
+          set_simple_led(11, 0, TaskLED::NORMAL, true);
         break;
         case INTERP_WAITING:
-          set_led(8, 0);
-          set_led(9, 0);
-          set_led(10, 0);
-          set_led(11, 64, true);
+          set_simple_led(8, 0, TaskLED::NORMAL);
+          set_simple_led(9, 0, TaskLED::NORMAL);
+          set_simple_led(10, 0, TaskLED::NORMAL);
+          set_simple_led(11, 64, TaskLED::NORMAL, true);
         break;
         default:
-          set_led(8, 0);
-          set_led(9, 0);
-          set_led(10, 0);
-          set_led(11, 0, true);
+          set_simple_led(8, 0, TaskLED::NORMAL);
+          set_simple_led(9, 0, TaskLED::NORMAL);
+          set_simple_led(10, 0, TaskLED::NORMAL);
+          set_simple_led(11, 0, TaskLED::NORMAL, true);
       }
     }
 
