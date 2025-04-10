@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "task_encoder.hh"
 
 TaskEncoder::TaskEncoder()
@@ -23,14 +24,26 @@ void TaskEncoder::init()
   m_encoders.set_limits(3, 0, 14, 4);
 }
 
-int TaskEncoder::get_value(uint8_t encoder)
+int TaskEncoder::get_value(uint8_t encoder, bool raw)
 {
   xSemaphoreTake(m_mutex, portMAX_DELAY);
   int value = m_encoders.value(encoder);
   xSemaphoreGive(m_mutex);
+
+  if (raw)
+    return value;
+
+   if (encoder == 4) {
+    // shuttle
+    uint8_t shidx = abs(value);
+    bool pos = value >= 0;
+    const int lookup[8] = {0, 5, 10, 20, 50, 100, 250, 600};
+
+    return (pos ? lookup[shidx] : -lookup[shidx]);
+   }
+
   return value;
 }
-
 
 void TaskEncoder::task(void *param)
 {

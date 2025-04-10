@@ -16,7 +16,7 @@ public:
   void init();
   static void task(void *param);
 
-  int get_value(uint8_t encoder);
+  int get_value(uint8_t encoder, bool raw = true);
   QueueHandle_t event_queue;
   QueueHandle_t cmd_queue;
 

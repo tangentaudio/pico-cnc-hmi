@@ -133,12 +133,48 @@ void usb_task(void *unused)
   }
 }
 
+void set_led(uint8_t led, uint8_t value, bool now = false)
+{
+  TaskLED::cmd_t cmd;
+  cmd.cmd = TaskLED::LED_CMD_SET_SIMPLE_LED;
+  cmd.led = led;
+  cmd.value = value;
+  cmd.update_now = now;
+  xQueueSend(task_led->cmd_queue, &cmd, 0);
+}
+
+
+void set_encoder_value(uint8_t encoder, int8_t value, bool smart = false)
+{
+  TaskEncoder::cmd_t cmd;
+  cmd.cmd = smart ? TaskEncoder::ENCODER_CMD_SMART_SET_VALUE : TaskEncoder::ENCODER_CMD_SET_VALUE;
+  cmd.encoder = encoder;
+  cmd.value = value;
+
+  xQueueSend(task_encoder->cmd_queue, &cmd, 0) == pdTRUE;
+}
+
+
+
 void main_task(void *unused)
 {
-  bool enc_updated = false;
+  bool usb_in_pending = false;
   bool key_updated = false;
+  uint8_t selected_axis = 0;
+  uint8_t selected_increment = 0;
+  uint8_t motion_command = 0;
+
+  const uint32_t jog_increments[] = {0, 100, 10, 1};
+
   uint8_t keybuf[6] = {0, 0, 0, 0, 0, 0};
   uint8_t modifiers;
+
+  usb_out_pkt last_out_pkt;
+  bool initial_feedrate = false;
+  bool initial_rapidrate = false;
+  bool initial_maxvel = false;
+
+  bzero(&last_out_pkt, sizeof(last_out_pkt));
 
   const uint32_t dot_colors[] = {
       WS2812::urgb_u32(0x3f, 0x1f, 0),
@@ -179,7 +215,7 @@ void main_task(void *unused)
       xQueueSend(task_display->cmd_queue, &cmd, 0);
 #endif
 
-      enc_updated = true;
+      usb_in_pending = true;
     }
 
     TaskMatrix::event_t mtx_evt;
@@ -201,17 +237,77 @@ void main_task(void *unused)
         uint8_t enc;
         if (TaskMatrix::led_encoder_map(mtx_evt.code, enc))
         {
-          // pressing an encoder button resets value
-          TaskEncoder::cmd_t cmd;
-          cmd.cmd = TaskEncoder::ENCODER_CMD_SMART_SET_VALUE;
-          cmd.encoder = enc + 1;
-          cmd.value = 0;
-          xQueueSend(task_encoder->cmd_queue, &cmd, 0);
+          set_encoder_value(enc + 1, 0, true);
         }
       }
       else if (!mtx_evt.gpio)
       {
+        if (mtx_evt.code == 0x33) {
+          if (mtx_evt.press)
+            motion_command |= 0x08;
+          else
+            motion_command &= ~0x08;
+          usb_in_pending = true;
+        } else if (mtx_evt.code == 0x34) {
+          if (mtx_evt.press)
+            motion_command |= 0x04;
+          else
+            motion_command &= ~0x04;
+          usb_in_pending = true;
+        } else if (mtx_evt.code == 0x35) {
+          if (mtx_evt.press)
+            motion_command |= 0x02;
+          else
+            motion_command &= ~0x02;
+          usb_in_pending = true;
+        } else if (mtx_evt.code == 0x36) {
+          if (mtx_evt.press)
+            motion_command |= 0x01;
+          else
+            motion_command &= ~0x01;
+          usb_in_pending = true;
+        }
+
+
         if (mtx_evt.press) {
+          if (mtx_evt.code == 0x2f) {
+            selected_increment = 1;
+            set_led(0, 32);
+            set_led(1, 0);
+            set_led(2, 0, true);
+            usb_in_pending = true;
+          } else if (mtx_evt.code == 0x30) {
+            selected_increment = 2;
+            set_led(0, 0);
+            set_led(1, 32);
+            set_led(2, 0, true);
+            usb_in_pending = true;
+          } else if (mtx_evt.code == 0x37) {
+            selected_increment = 3;
+            set_led(0, 0);
+            set_led(1, 0);
+            set_led(2, 32, true);
+            usb_in_pending = true;
+          } else if (mtx_evt.code == 0x38) {
+            selected_axis = 1;
+            set_led(3, 32);
+            set_led(4, 0);
+            set_led(5, 0, true);
+            usb_in_pending = true;
+          } else if (mtx_evt.code == 0x39) {
+            selected_axis = 2;
+            set_led(3, 0);
+            set_led(4, 32);
+            set_led(5, 0, true);
+            usb_in_pending = true;
+          } else if (mtx_evt.code == 0x3a) {
+            selected_axis = 3;
+            set_led(3, 0);
+            set_led(4, 0);
+            set_led(5, 32, true);
+            usb_in_pending = true;
+          }
+          /*
           uint8_t led = 0;
           if (TaskMatrix::led_key_map(mtx_evt.code, led))
           {
@@ -225,7 +321,8 @@ void main_task(void *unused)
             cmd.update_now = true;
             xQueueSend(task_led->cmd_queue, &cmd, 0);
           }
-        }
+          */
+      }
 
         uint8_t hid_keycode = 0;
         bool found = TaskMatrix::hid_keycode(mtx_evt.code, hid_keycode, modifiers);
@@ -243,25 +340,93 @@ void main_task(void *unused)
     }
 
 #ifdef ENABLE_USB
-    if (enc_updated)
+  usb_out_pkt out_pkt;
+  if (xQueueReceive(usb_out_queue, &out_pkt, 1) == pdTRUE)
+  {
+    printf("usb_out_pkt: estop=%d enabled=%d mode=%d feedrate_override=%d rapidrate_override=%d maxvel_override=%d\n",
+           out_pkt.s.estop, out_pkt.s.enabled, out_pkt.s.mode, out_pkt.s.feedrate_override, out_pkt.s.rapidrate_override,
+           out_pkt.s.maxvel_override);
+
+    if (out_pkt.s.feedrate_override != last_out_pkt.s.feedrate_override && !initial_feedrate)
     {
-      usb_pkt pkt;
+      uint32_t feedrate_segments = (out_pkt.s.feedrate_override * 1000 + 7142 - 1) / 7142;
+      set_encoder_value(1, feedrate_segments, false);
+      printf("feedrate_segments=%d\n", feedrate_segments);
+      initial_feedrate = true;
+    }
+    if (out_pkt.s.rapidrate_override != last_out_pkt.s.rapidrate_override && !initial_rapidrate)
+    {
+      uint32_t rapidrate_segments = (out_pkt.s.rapidrate_override * 1000 + 7142 - 1) / 7142;
+      set_encoder_value(2, rapidrate_segments, false);
+      printf("rapidrate_segments=%d\n", rapidrate_segments);
+      initial_rapidrate = true;
+    }
+    if (out_pkt.s.maxvel_override != last_out_pkt.s.maxvel_override && !initial_maxvel)
+    {
+      uint32_t maxvel_segments = (out_pkt.s.maxvel_override * 1000 + 7142 - 1) / 7142;
+      set_encoder_value(3, maxvel_segments, false);
+      printf("maxvel_segments now=%d\n", maxvel_segments);
+      initial_maxvel = true;
+    }
+
+    if (out_pkt.s.interp_state != last_out_pkt.s.interp_state) 
+    {
+      switch(out_pkt.s.interp_state)
+      {
+        case INTERP_IDLE:
+          set_led(8, 0);
+          set_led(9, 0);
+          set_led(10, 64);
+          set_led(11, 0, true);
+          break;
+        case INTERP_READING:
+          set_led(8, 0);
+          set_led(9, 0);
+          set_led(10, 0);
+          set_led(11, 16, true);
+        break;
+        case INTERP_PAUSED:
+          set_led(8, 0);
+          set_led(9, 64);
+          set_led(10, 0);
+          set_led(11, 0, true);
+        break;
+        case INTERP_WAITING:
+          set_led(8, 0);
+          set_led(9, 0);
+          set_led(10, 0);
+          set_led(11, 64, true);
+        break;
+        default:
+          set_led(8, 0);
+          set_led(9, 0);
+          set_led(10, 0);
+          set_led(11, 0, true);
+      }
+    }
+
+    memcpy(&last_out_pkt, &out_pkt, sizeof(out_pkt));
+  }
+  if (usb_in_pending)
+    {
+      usb_in_pkt pkt;
       pkt.s.knob1 = task_encoder->get_value(1);
       pkt.s.knob2 = task_encoder->get_value(2);
       pkt.s.knob3 = task_encoder->get_value(3);
-      pkt.s.shuttle = task_encoder->get_value(4);
+      pkt.s.axis = selected_axis;
+      pkt.s.step = jog_increments[selected_increment];
+      pkt.s.shuttle = task_encoder->get_value(4, false);
       pkt.s.jog = task_encoder->get_value(0);
+      pkt.s.motion_cmd = motion_command;
 
       tud_hid_report(0, &pkt, sizeof(pkt));
-      enc_updated = false;
+      usb_in_pending = false;
     }
 
     if (tud_hid_n_ready(ITF_KEYBOARD))
     {
       if (key_updated)
       {
-        printf("key updated\n");
-
         if (TaskMatrix::hid_n_key_buf_is_empty(keybuf))
         {
           modifiers = 0;

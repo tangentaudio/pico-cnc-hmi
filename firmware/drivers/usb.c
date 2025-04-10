@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <FreeRTOS.h>
+#include <queue.h>
 #include <task.h>
 #include <queue.h>
 #include <boards/pico.h>
@@ -11,6 +12,7 @@
 #include "usb.h"
 
 
+QueueHandle_t usb_out_queue;
 
 void usb_init(void)
 {
@@ -25,6 +27,8 @@ void usb_init(void)
 
   if (board_init_after_tusb)
     board_init_after_tusb();
+
+  usb_out_queue = xQueueCreate(10, sizeof(usb_out_pkt));
 }
 
 void usb_periodic(void)
@@ -90,13 +94,20 @@ uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
 void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize)
 {
-  // This example doesn't use multiple report and report ID
-  (void)itf;
-  (void)report_id;
-  (void)report_type;
+  
+  if (bufsize == 64) {
+    usb_out_pkt pkt;
+    memcpy(&pkt, buffer, bufsize);
 
-  // echo back anything we received from host
-  //tud_hid_report(0, buffer, bufsize);
+    xQueueSend(usb_out_queue, &pkt, 0);
+  } else {
+    printf("report itf=%d id=%d type=%d size=%d\n", itf, report_id, report_type, bufsize);
+    for(uint8_t i=0; i<bufsize; i++)
+    {
+      printf("%02x ", buffer[i]);
+    }
+    printf("\n");
+  }
 }
 
 
