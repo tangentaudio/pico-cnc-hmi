@@ -5,6 +5,7 @@ import linuxcnc
 import struct
 import time
 import sys
+from pprint import pprint
 
 HAL = hal.component("hmi")
 
@@ -15,7 +16,15 @@ except (linuxcnc.error, detail):
     print("error", detail)
     sys.exit(1)
 
+
+
+def dump(obj):
+  for attr in dir(obj):
+    print("obj.%s = %r" % (attr, getattr(obj, attr)))
+
+
 s.poll()
+#dump(s)
 
 inifile = linuxcnc.ini(s.ini_filename)
 configured_maxvel = float(inifile.find("TRAJ", "MAX_LINEAR_VELOCITY")) or 1.0
@@ -69,9 +78,12 @@ status = {
     "estop": -1,
     "enabled": -1,
     "mode" : -1,
+    "paused" : True,
     "feedrate" : -1,
     "rapidrate" : -1,
-    "maxvel" : -1
+    "maxvel" : -1,
+    "interp_state" : -1,
+    "interp_errcode" : -1
 }
 
 def poll_status():
@@ -88,6 +100,9 @@ def poll_status():
     if status['mode'] != s.task_mode:
         status['mode'] = s.task_mode
         updated = True
+    if status['paused'] != s.paused:
+        status['paused'] = s.paused
+        updated = True
     if status['feedrate'] != s.feedrate:
         status['feedrate'] = s.feedrate
         updated = True
@@ -96,8 +111,19 @@ def poll_status():
         updated = True
     if status['maxvel'] != s.max_velocity:
         status['maxvel'] = s.max_velocity
-        #print(f"maxvel={s.max_velocity} {s.max_velocity / configured_maxvel}")
+        #print(f"status maxvel={s.max_velocity} {s.max_velocity / configured_maxvel}")
         updated = True
+    if status['interp_state'] != s.interp_state:
+        status['interp_state'] = s.interp_state
+        print(f"interp_state={s.interp_state}")
+        updated = True
+    if status['interp_errcode'] != s.interpreter_errcode:
+        status['interp_errcode'] = s.interpreter_errcode
+        print(f"interp_errcode={s.interpreter_errcode}")
+        updated = True
+
+
+
     return updated
 
 
@@ -125,11 +151,12 @@ for devinfo in hid.enumerate(0xCAFE):
 
         while True:
             if poll_status():
-                obuf = struct.pack('<BBBBBBB',
+                obuf = struct.pack('<BBBBBBBB',
                                   0xaa,
                                   status['estop'],
                                   status['enabled'],
                                   status['mode'],
+                                  status['interp_state'],
                                   int(status['feedrate'] * 100.0),
                                   int(status['rapidrate'] * 100.0),
                                   int(status['maxvel'] * 100.0 / configured_maxvel)
@@ -155,7 +182,9 @@ for devinfo in hid.enumerate(0xCAFE):
                     c.rapidrate( float(pkt[1]) / 14.0)
                 if pkt[2] != HAL['knob.2.value']:
                     HAL['knob.2.value'] = pkt[2]
-                    c.maxvel( float(pkt[2]) * configured_maxvel/ 14.0 ) 
+                    new_maxvel = float(pkt[2]) * configured_maxvel / 14.0
+                    print(f"new_maxvel={new_maxvel}")
+                    c.maxvel( new_maxvel ) 
 
                 HAL['jog.axis'] = pkt[3]
                 HAL['jog.step'] = float(pkt[4]) / 10000.0
@@ -174,7 +203,10 @@ for devinfo in hid.enumerate(0xCAFE):
                 elif cmd_start:
                     c.auto(linuxcnc.AUTO_RUN, 1)
                 elif cmd_pause:
-                    c.auto(linuxcnc.AUTO_PAUSE)
+                    if status['paused']:
+                        c.auto(linuxcnc.AUTO_RESUME)
+                    else:
+                        c.auto(linuxcnc.AUTO_PAUSE)
                 elif cmd_step:
                     c.auto(linuxcnc.AUTO_STEP)
 
