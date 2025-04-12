@@ -68,6 +68,14 @@ enum tlc59116_ledlevel
     LEDOUT_BRIGHTBLINK = 0xFF
 };
 
+enum tlc59116_ledmode
+{
+    LED_MODE_OFF = 0x00,
+    LED_MODE_FULLON = 0x01,
+    LED_MODE_BRIGHT = 0x02,
+    LED_MODE_BRIGHTBLINK = 0x03
+};
+
 enum tlc59116_addr
 {
     LED_ADDR0 = 0x60,
@@ -93,13 +101,14 @@ public:
 
     void init(I2C* i2c);
     bool update();
-    void setLED(uint8_t num, uint8_t value, bool update_now = true);
+    void setLED(uint8_t num, uint8_t value, uint8_t mode = LED_MODE_BRIGHTBLINK, bool update_now = true);
     uint8_t getLED(uint8_t num) { return m_led_buf[num % 16]; }
 
 protected:
     I2C* m_i2c;
     uint8_t m_address;
     uint8_t m_led_buf[16];
+    uint8_t m_led_mode[16];
 };
 
 #endif

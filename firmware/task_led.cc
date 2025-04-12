@@ -33,7 +33,7 @@ void TaskLED::task(void *param)
       switch (cmd.cmd)
       {
       case LED_CMD_SET_SIMPLE_LED:
-        inst->m_leds.setLED(cmd.led, cmd.value, cmd.update_now);
+        inst->m_leds.setLED(cmd.led, cmd.value, cmd.mode, cmd.update_now);
         break;
       case LED_CMD_SET_RGB_LED:
         inst->m_rgbleds.setLED(cmd.led, cmd.value, cmd.update_now);
