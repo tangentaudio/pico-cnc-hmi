@@ -99,6 +99,7 @@ def poll_status():
         updated = True
     if status['mode'] != s.task_mode:
         status['mode'] = s.task_mode
+        print(f"mode={s.task_mode}")
         updated = True
     if status['paused'] != s.paused:
         status['paused'] = s.paused
@@ -111,15 +112,13 @@ def poll_status():
         updated = True
     if status['maxvel'] != s.max_velocity:
         status['maxvel'] = s.max_velocity
-        #print(f"status maxvel={s.max_velocity} {s.max_velocity / configured_maxvel}")
+        print(f"status maxvel={s.max_velocity} {s.max_velocity / configured_maxvel}")
         updated = True
     if status['interp_state'] != s.interp_state:
         status['interp_state'] = s.interp_state
-        print(f"interp_state={s.interp_state}")
         updated = True
     if status['interp_errcode'] != s.interpreter_errcode:
         status['interp_errcode'] = s.interpreter_errcode
-        print(f"interp_errcode={s.interpreter_errcode}")
         updated = True
 
 
@@ -183,7 +182,6 @@ for devinfo in hid.enumerate(0xCAFE):
                 if pkt[2] != HAL['knob.2.value']:
                     HAL['knob.2.value'] = pkt[2]
                     new_maxvel = float(pkt[2]) * configured_maxvel / 14.0
-                    print(f"new_maxvel={new_maxvel}")
                     c.maxvel( new_maxvel ) 
 
                 HAL['jog.axis'] = pkt[3]
@@ -201,7 +199,10 @@ for devinfo in hid.enumerate(0xCAFE):
                 if cmd_stop:
                     c.abort()
                 elif cmd_start:
-                    c.auto(linuxcnc.AUTO_RUN, 1)
+                    if status['paused']:
+                        c.auto(linuxcnc.AUTO_RESUME)
+                    else:
+                        c.auto(linuxcnc.AUTO_RUN, 1)
                 elif cmd_pause:
                     if status['paused']:
                         c.auto(linuxcnc.AUTO_RESUME)
