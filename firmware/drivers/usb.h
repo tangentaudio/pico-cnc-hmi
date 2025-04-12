@@ -46,13 +46,21 @@ typedef union out_pkt_u
   unsigned char buf[64];
 }  __attribute__ ((packed)) usb_out_pkt;
 
-enum {
-  INTERP_UNKNOWN,
+typedef enum {
+  INTERP_OFF = 0,
   INTERP_IDLE,
   INTERP_READING,
   INTERP_PAUSED,
   INTERP_WAITING
-};
+} interp_t;
+
+typedef enum {
+  MODE_UNKNOWN = 0,
+  MODE_MANUAL,
+  MODE_AUTO,
+  MODE_MDI,
+  MODE_TELEOP
+} mode_t;
 
 // Interface index depends on the order in configuration descriptor
 enum {
@@ -62,10 +70,13 @@ enum {
 
 extern QueueHandle_t usb_out_queue;
 
+void usb_dump_out_pkt(usb_out_pkt* pkt);
+void usb_dump_in_pkt(usb_in_pkt* pkt);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
+
 
 
 #endif
