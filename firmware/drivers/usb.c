@@ -158,8 +158,8 @@ void usb_hid_periodic(void)
 
 void usb_dump_out_pkt(usb_out_pkt* pkt)
 {
-  printf("usb_out_pkt: estop=%d enabled=%d mode=%d interp_state=%d feedrate_override=%d rapidrate_override=%d maxvel_override=%d\n",
-    pkt->s.estop, pkt->s.enabled, pkt->s.mode, pkt->s.interp_state, pkt->s.feedrate_override, pkt->s.rapidrate_override, pkt->s.maxvel_override);
+  printf("usb_out_pkt: heartbeat=%d estop=%d enabled=%d mode=%d interp_state=%d feedrate_override=%d rapidrate_override=%d maxvel_override=%d\n",
+    pkt->s.heartbeat, pkt->s.estop, pkt->s.enabled, pkt->s.mode, pkt->s.interp_state, pkt->s.feedrate_override, pkt->s.rapidrate_override, pkt->s.maxvel_override);
 }
 
 void usb_dump_in_pkt(usb_in_pkt* pkt)

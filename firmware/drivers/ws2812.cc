@@ -36,6 +36,7 @@ void WS2812::update()
 
 void WS2812::setRing(uint8_t ring, uint8_t value, uint32_t ball_color, bool update_now)
 {
+    printf("setRing %d %d %x %d\n", ring, value, ball_color, update_now);
     if (ring >= 3) return;
 
     uint8_t ofs = ring * 15;

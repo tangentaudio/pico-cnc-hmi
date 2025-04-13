@@ -104,6 +104,12 @@ void Encoder::set_value(uint8_t num, int val)
 {
     if (num >= NUM_ENCODERS)
         return;
+
+    if (val * m_divisor[num] > m_maximum[num])
+        val = m_maximum[num] * m_divisor[num];
+    else if (val < m_minimum[num] * m_divisor[num])
+        val = m_minimum[num] * m_divisor[num];
+
     m_cur_values[num] = val * m_divisor[num];
 }
 

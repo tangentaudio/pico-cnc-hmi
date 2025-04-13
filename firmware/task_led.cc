@@ -28,7 +28,7 @@ void TaskLED::task(void *param)
   while (true)
   {
     cmd_t cmd;
-    if (xQueueReceive(inst->cmd_queue, &cmd, 250) == pdTRUE)
+    if (xQueueReceive(inst->cmd_queue, &cmd, 10) == pdTRUE)
     {
       switch (cmd.cmd)
       {
@@ -58,7 +58,7 @@ void TaskLED::task(void *param)
     }
     state = !state;
 
-    vTaskDelay(10);
+    //vTaskDelay(10);
   }
 }
 

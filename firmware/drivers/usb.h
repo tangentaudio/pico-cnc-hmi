@@ -35,6 +35,7 @@ typedef union out_pkt_u
   struct  __attribute__ ((packed)) out_pkt_s
   {
     uint8_t header;
+    uint8_t heartbeat;
     uint8_t estop;
     uint8_t enabled;
     uint8_t mode;
