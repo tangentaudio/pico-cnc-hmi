@@ -26,8 +26,12 @@ def dump(obj):
 s.poll()
 #dump(s)
 
+print(f"opening inifile={s.ini_filename}")
 inifile = linuxcnc.ini(s.ini_filename)
 configured_maxvel = float(inifile.find("TRAJ", "MAX_LINEAR_VELOCITY")) or 1.0
+
+
+
 
 #-- status
 #halui.mode.is-auto
@@ -75,6 +79,7 @@ def pad_bytes(data: bytes, target_size: int, padding_byte: bytes = b'\xFF') -> b
     return data
 
 status = {
+    "heartbeat" : 0,
     "estop": -1,
     "enabled": -1,
     "mode" : -1,
@@ -86,10 +91,19 @@ status = {
     "interp_errcode" : -1
 }
 
+last_poll_time = 0
+
 def poll_status():
-    global status
+    global status, last_poll_time
     updated = False
     
+    now = int(round(time.time() * 1000))
+
+    if now - last_poll_time > 500:
+        status['heartbeat'] = status['heartbeat'] + 1
+        last_poll_time = now
+        updated = True
+
     s.poll()
     if status['estop'] != s.estop:
         status['estop'] = s.estop
@@ -150,8 +164,9 @@ for devinfo in hid.enumerate(0xCAFE):
 
         while True:
             if poll_status():
-                obuf = struct.pack('<BBBBBBBB',
+                obuf = struct.pack('<BBBBBBBBB',
                                   0xaa,
+                                  status['heartbeat'] & 0xff,
                                   status['estop'],
                                   status['enabled'],
                                   status['mode'],
@@ -163,7 +178,7 @@ for devinfo in hid.enumerate(0xCAFE):
                 
                 obuf = pad_bytes(obuf, 64)
                 
-                print(f"writing length={len(obuf)}: {obuf}")
+                #print(f"writing length={len(obuf)}: {obuf}")
                 try:
                     dev.write(obuf)
                 except:
@@ -201,7 +216,8 @@ for devinfo in hid.enumerate(0xCAFE):
                 elif cmd_start:
                     if status['paused']:
                         c.auto(linuxcnc.AUTO_RESUME)
-                    else:
+                    elif status['interp_state'] == 1: 
+                        # INTERP_IDLE
                         c.auto(linuxcnc.AUTO_RUN, 1)
                 elif cmd_pause:
                     if status['paused']:
