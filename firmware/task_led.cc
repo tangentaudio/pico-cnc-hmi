@@ -41,6 +41,9 @@ void TaskLED::task(void *param)
       case LED_CMD_SET_RING:
         inst->m_rgbleds.setRing(cmd.led, cmd.value, cmd.color, cmd.update_now);
         break;
+      case LED_CMD_FLUSH:
+        inst->m_rgbleds.update();
+        break;
       }
     }
 

@@ -28,6 +28,7 @@ public:
     LED_CMD_SET_SIMPLE_LED,
     LED_CMD_SET_RGB_LED,
     LED_CMD_SET_RING,
+    LED_CMD_FLUSH,
   } cmds;
 
   typedef enum {

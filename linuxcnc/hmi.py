@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import hid
 import hal
 import linuxcnc
@@ -12,7 +13,7 @@ HAL = hal.component("hmi")
 try:
     s = linuxcnc.stat()
     c = linuxcnc.command()
-except (linuxcnc.error, detail):
+except linuxcnc.error as detail:
     print("error", detail)
     sys.exit(1)
 
@@ -26,9 +27,40 @@ def dump(obj):
 s.poll()
 #dump(s)
 
-print(f"opening inifile={s.ini_filename}")
-inifile = linuxcnc.ini(s.ini_filename)
-configured_maxvel = float(inifile.find("TRAJ", "MAX_LINEAR_VELOCITY")) or 1.0
+def resolve_ini_filename(timeout_s: float = 3.0, poll_s: float = 0.05) -> str:
+    # During early startup stat().ini_filename can be empty for a short time.
+    # Prefer the stat value once available, otherwise fall back to INI_FILE env.
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        s.poll()
+        if s.ini_filename:
+            return s.ini_filename
+        env_ini = (
+            os.environ.get("INI_FILE", "")
+            or os.environ.get("INI_FILE_NAME", "")
+            or os.environ.get("LINUXCNC_INI", "")
+        )
+        if env_ini:
+            return env_ini
+        time.sleep(poll_s)
+    return (
+        os.environ.get("INI_FILE", "")
+        or os.environ.get("INI_FILE_NAME", "")
+        or os.environ.get("LINUXCNC_INI", "")
+    )
+
+ini_filename = resolve_ini_filename()
+configured_maxvel = 1.0
+if not ini_filename:
+    print("warning: unable to determine LinuxCNC INI file path, using MAX_LINEAR_VELOCITY=1.0")
+else:
+    print(f"opening inifile={ini_filename}")
+    try:
+        inifile = linuxcnc.ini(ini_filename)
+        maxvel_from_ini = inifile.find("TRAJ", "MAX_LINEAR_VELOCITY")
+        configured_maxvel = float(maxvel_from_ini) if maxvel_from_ini else 1.0
+    except linuxcnc.error:
+        print("warning: inifile.open() failed, using MAX_LINEAR_VELOCITY=1.0")
 
 
 
@@ -151,16 +183,48 @@ HAL.newpin('jog.is-shuttling', hal.HAL_BIT, hal.HAL_OUT)
 
 HAL.ready()
 
+def open_hid_device(devinfo):
+    vid = devinfo['vendor_id']
+    pid = devinfo['product_id']
+
+    # hidapi python bindings exist in two common forms:
+    # 1) hid.Device(...)
+    # 2) hid.device().open(...)
+    if hasattr(hid, 'Device'):
+        return hid.Device(vid, pid)
+
+    if hasattr(hid, 'device'):
+        dev = hid.device()
+        path = devinfo.get('path')
+        if path:
+            dev.open_path(path)
+        else:
+            dev.open(vid, pid)
+        return dev
+
+    raise RuntimeError('Unsupported hid module: missing Device/device API')
+
+def hid_str(dev, attr_name, fallback_method):
+    val = getattr(dev, attr_name, None)
+    if isinstance(val, str) and val:
+        return val
+    if hasattr(dev, fallback_method):
+        try:
+            return getattr(dev, fallback_method)()
+        except Exception:
+            return ""
+    return ""
+
 for devinfo in hid.enumerate(0xCAFE):
     vid = devinfo['vendor_id']
     pid = devinfo['product_id']
     print("Found device: VID=%04x PID=%04x" % (vid, pid))
-    dev = hid.Device(vid, pid)
+    dev = open_hid_device(devinfo)
 
     if dev:
-        print(f'Device manufacturer: {dev.manufacturer}')
-        print(f'Product: {dev.product}')
-        print(f'Serial Number: {dev.serial}')    
+        print(f"Device manufacturer: {hid_str(dev, 'manufacturer', 'get_manufacturer_string')}")
+        print(f"Product: {hid_str(dev, 'product', 'get_product_string')}")
+        print(f"Serial Number: {hid_str(dev, 'serial', 'get_serial_number_string')}")
 
         while True:
             if poll_status():
@@ -171,23 +235,29 @@ for devinfo in hid.enumerate(0xCAFE):
                                   status['enabled'],
                                   status['mode'],
                                   status['interp_state'],
-                                  int(status['feedrate'] * 100.0),
-                                  int(status['rapidrate'] * 100.0),
-                                  int(status['maxvel'] * 100.0 / configured_maxvel)
+                                  int(round(status['feedrate'] * 14.0)),
+                                  int(round(status['rapidrate'] * 14.0)),
+                                  int(round(status['maxvel'] * 14.0 / configured_maxvel))
                                   )
                 
                 obuf = pad_bytes(obuf, 64)
-                
-                #print(f"writing length={len(obuf)}: {obuf}")
                 try:
                     dev.write(obuf)
                 except:
                     pass
 
             buf = dev.read(64, 1)
-            if len(buf) == 64:
+
+            # hid bindings vary: read() can return bytes/bytearray or list[int].
+            if isinstance(buf, list):
+                buf = bytes(buf)
+            elif isinstance(buf, bytearray):
+                buf = bytes(buf)
+
+            if isinstance(buf, bytes) and len(buf) >= 17:
                 pkt = struct.unpack('<BBBBIiiB', buf[0:17])
-                hex_dump(buf, 64)
+                if len(buf) == 64:
+                    hex_dump(buf, 64)
                 if pkt[0] != HAL['knob.0.value']:
                     HAL['knob.0.value'] = pkt[0]
                     c.feedrate( float(pkt[0]) / 14.0)

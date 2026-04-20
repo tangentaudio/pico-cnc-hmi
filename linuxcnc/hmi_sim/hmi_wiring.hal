@@ -1,0 +1,63 @@
+# HMI jog/shuttle integration adapted from previously working /tmp/hmi.hal.
+
+loadrt demux names=hmi-axis.demux personality=4
+loadrt and2 names=hmi-and-shuttle-x,hmi-and-shuttle-y,hmi-and-shuttle-z,hmi-and-jog-x,hmi-and-jog-y,hmi-and-jog-z
+loadrt not names=hmi-not
+loadrt ilowpass names=hmi-lowpass
+
+addf hmi-axis.demux servo-thread
+addf hmi-and-shuttle-x servo-thread
+addf hmi-and-shuttle-y servo-thread
+addf hmi-and-shuttle-z servo-thread
+addf hmi-not servo-thread
+addf hmi-and-jog-x servo-thread
+addf hmi-and-jog-y servo-thread
+addf hmi-and-jog-z servo-thread
+addf hmi-lowpass servo-thread
+
+# Outer shuttle ring controls jog speed in continuous mode.
+net hmi.shuttle-value <= hmi.jog.outer.value => halui.joint.jog-speed halui.axis.jog-speed
+
+net demux-in hmi-axis.demux.sel-u32 <= hmi.jog.axis
+
+net is-shuttling <= hmi.jog.is-shuttling => hmi-and-shuttle-x.in0 hmi-and-shuttle-y.in0 hmi-and-shuttle-z.in0 hmi-not.in
+net is-not-shuttling <= hmi-not.out => hmi-and-jog-x.in0 hmi-and-jog-y.in0 hmi-and-jog-z.in0
+
+net ax-in1 hmi-and-shuttle-x.in1 <= hmi-axis.demux.out-01 => hmi-and-jog-x.in1
+net ay-in1 hmi-and-shuttle-y.in1 <= hmi-axis.demux.out-02 => hmi-and-jog-y.in1
+net az-in1 hmi-and-shuttle-z.in1 <= hmi-axis.demux.out-03 => hmi-and-jog-z.in1
+
+net sel-shuttle-axis-x hmi-and-shuttle-x.out => halui.joint.0.plus halui.axis.x.plus
+net sel-shuttle-axis-y hmi-and-shuttle-y.out => halui.joint.1.plus halui.axis.y.plus
+net sel-shuttle-axis-z hmi-and-shuttle-z.out => halui.joint.2.plus halui.axis.z.plus
+
+net sel-jog-axis-x hmi-and-jog-x.out => axis.x.jog-enable joint.0.jog-enable
+net sel-jog-axis-y hmi-and-jog-y.out => axis.y.jog-enable joint.1.jog-enable
+net sel-jog-axis-z hmi-and-jog-z.out => axis.z.jog-enable joint.2.jog-enable
+
+setp halui.joint.0.minus 0
+setp halui.axis.x.minus 0
+setp halui.joint.1.minus 0
+setp halui.axis.y.minus 0
+setp halui.joint.2.minus 0
+setp halui.axis.z.minus 0
+
+net hmi.jog-increment <= hmi.jog.step
+
+net hmi.jog-increment => axis.x.jog-scale
+net hmi.jog-increment => axis.y.jog-scale
+net hmi.jog-increment => axis.z.jog-scale
+
+net hmi.jog-increment => joint.0.jog-scale
+net hmi.jog-increment => joint.1.jog-scale
+net hmi.jog-increment => joint.2.jog-scale
+
+setp hmi-lowpass.gain .02
+setp hmi-lowpass.scale 1
+
+net hmi.counts => hmi.jog.inner.value => hmi-lowpass.in
+
+net hmi.jog-counts <= hmi-lowpass.out
+net hmi.jog-counts => axis.x.jog-counts joint.0.jog-counts
+net hmi.jog-counts => axis.y.jog-counts joint.1.jog-counts
+net hmi.jog-counts => axis.z.jog-counts joint.2.jog-counts

@@ -1,0 +1,3 @@
+# HMI bridge for LinuxCNC simulation
+# Loads the Python bridge component that talks to the Pico HID device.
+loadusr -Wn hmi python3 /home/steve/devel/pico-cnc-hmi/linuxcnc/hmi.py

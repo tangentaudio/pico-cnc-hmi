@@ -62,8 +62,10 @@ void TaskEncoder::task(void *param)
     {
       if (cmd.cmd == ENCODER_CMD_SET_VALUE)
       {
+        // Sync encoder position: used only on startup to match ring display.
+        // After initial sync, encoder position is independent user input.
         encoders.set_value(cmd.encoder, cmd.value);
-        force_encoder_update = true;
+        last_value[cmd.encoder] = cmd.value;  // no event fired
       }
       else if (cmd.cmd == ENCODER_CMD_SMART_SET_VALUE)
       {
@@ -100,7 +102,10 @@ void TaskEncoder::task(void *param)
           event_t evt;
           evt.encoder = i;
           evt.value = encoders.value(i);
-          xQueueSend(inst->event_queue, &evt, 0);
+          if (xQueueSend(inst->event_queue, &evt, 0) != pdTRUE)
+          {
+            printf("encoder event queue full: encoder=%d value=%d\n", evt.encoder, evt.value);
+          }
           last_value[i] = encoders.value(i);
         }
       }

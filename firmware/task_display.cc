@@ -124,10 +124,17 @@ void TaskDisplay::gui_task(void *param)
       if (cmd.cmd == DISPLAY_CMD_UPDATE_ENCODER) {
         LVGL_LOCK(inst->mutex);
         lv_label_set_text_fmt(label, "E%u: %d", cmd.encoder, cmd.value);
+        lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
         LVGL_UNLOCK(inst->mutex);
       } else if (cmd.cmd == DISPLAY_CMD_UPDATE_KEY) {
         LVGL_LOCK(inst->mutex);
         lv_label_set_text_fmt(label, "K%2.2X: %s", cmd.code, cmd.press ? "dn" : "up");
+        lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
+        LVGL_UNLOCK(inst->mutex);
+      } else if (cmd.cmd == DISPLAY_CMD_RESET) {
+        LVGL_LOCK(inst->mutex);
+        lv_label_set_long_mode(label, LV_LABEL_LONG_SCROLL_CIRCULAR);
+        lv_label_set_text(label, "~~ LVGLv9 and FreeRTOS on Raspberry Pi Pico2 ~~");
         LVGL_UNLOCK(inst->mutex);
       }
     }

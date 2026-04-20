@@ -1,0 +1,541 @@
+# Mon Apr 20 17:34:21 EDT 2026
+#
+# This file:    ./hmi_sim_cmds.hal
+# Created by:   /home/steve/devel/linuxcnc/lib/hallib/basic_sim.tcl
+# With options: 
+# From inifile: /home/steve/devel/pico-cnc-hmi/linuxcnc/hmi_sim/hmi_sim.ini
+# Halfiles:     LIB:basic_sim.tcl hmi_bridge.hal hmi_wiring.hal
+#
+# This file contains the hal commands produced by basic_sim.tcl
+# (and any hal commands executed prior to its execution).
+# ------------------------------------------------------------------
+# To use ./hmi_sim_cmds.hal in the original inifile (or a copy of it),
+# edit to change:
+#     [HAL]
+#     HALFILE = LIB:basic_sim.tcl parameters
+# to:
+#     [HAL]
+#     HALFILE = ./hmi_sim_cmds.hal
+#
+# Notes:
+#  1) Inifile Variables substitutions specified in the inifile
+#     and interpreted by halcmd are automatically substituted
+#     in the created halfile (./hmi_sim_cmds.hal).
+#  2) Input pins connected to a signal with no writer are
+#     not included in the setp listings herein so must be added
+#     manually
+#
+
+# user space components
+loadusr -W hal_manualtoolchange
+
+# components
+#preloaded module: loadrt tpmod 
+#preloaded module: loadrt homemod 
+loadrt trivkins coordinates=XYZ 
+loadrt motmod base_period_nsec=0 servo_period_nsec=1000000 num_joints=3 
+#loadrt __servo-thread  (not loaded by loadrt, no args saved)
+loadrt pid names=J0_pid,J1_pid,J2_pid 
+loadrt mux2 names=J0_mux,J1_mux,J2_mux 
+loadrt ddt names=J0_vel,J0_accel,J1_vel,J1_accel,J2_vel,J2_accel 
+loadrt hypot names=hyp_xy,hyp_xyz 
+loadrt sim_home_switch names=J0_switch,J1_switch,J2_switch 
+loadrt sim_spindle names=sim_spindle 
+loadrt limit2 names=limit_speed 
+loadrt lowpass names=spindle_mass 
+loadrt near names=near_speed 
+loadrt scale names=rpm_rps 
+# pin aliases
+# param aliases
+# signals
+# nets
+net J0:acc J0_accel.out
+net J0:enable joint.0.amp-enable-out => J0_pid.enable
+net J0:homesw J0_switch.home-sw => joint.0.home-sw-in
+net J0:on-pos J0_pid.output => J0_mux.in1
+net J0:pos-cmd joint.0.motor-pos-cmd => J0_pid.command
+net J0:pos-fb J0_mux.out => J0_mux.in0 J0_switch.cur-pos J0_vel.in joint.0.motor-pos-fb
+net J0:vel J0_vel.out => J0_accel.in hyp_xy.in0 hyp_xyz.in0
+net J1:acc J1_accel.out
+net J1:enable joint.1.amp-enable-out => J1_pid.enable
+net J1:homesw J1_switch.home-sw => joint.1.home-sw-in
+net J1:on-pos J1_pid.output => J1_mux.in1
+net J1:pos-cmd joint.1.motor-pos-cmd => J1_pid.command
+net J1:pos-fb J1_mux.out => J1_mux.in0 J1_switch.cur-pos J1_vel.in joint.1.motor-pos-fb
+net J1:vel J1_vel.out => J1_accel.in hyp_xy.in1 hyp_xyz.in1
+net J2:acc J2_accel.out
+net J2:enable joint.2.amp-enable-out => J2_pid.enable
+net J2:homesw J2_switch.home-sw => joint.2.home-sw-in
+net J2:on-pos J2_pid.output => J2_mux.in1
+net J2:pos-cmd joint.2.motor-pos-cmd => J2_pid.command
+net J2:pos-fb J2_mux.out => J2_mux.in0 J2_switch.cur-pos J2_vel.in joint.2.motor-pos-fb
+net J2:vel J2_vel.out => J2_accel.in hyp_xyz.in2
+net estop:loop iocontrol.0.user-enable-out => iocontrol.0.emc-enable-in
+net sample:enable motion.motion-enabled => J0_mux.sel J1_mux.sel J2_mux.sel
+net spindle-at-speed near_speed.out => spindle.0.at-speed
+net spindle-index-enable sim_spindle.index-enable <=> spindle.0.index-enable
+net spindle-orient spindle.0.orient => spindle.0.is-oriented
+net spindle-pos sim_spindle.position-fb => spindle.0.revs
+net spindle-rpm-filtered spindle_mass.out => near_speed.in2 rpm_rps.in
+net spindle-rps-filtered rpm_rps.out => spindle.0.speed-in
+net spindle-speed-cmd spindle.0.speed-out => limit_speed.in near_speed.in1
+net spindle-speed-limited limit_speed.out => sim_spindle.velocity-cmd spindle_mass.in
+net tool:change iocontrol.0.tool-change => hal_manualtoolchange.change
+net tool:changed hal_manualtoolchange.changed => iocontrol.0.tool-changed
+net tool:prep-loop iocontrol.0.tool-prepare => iocontrol.0.tool-prepared
+net tool:prep-number iocontrol.0.tool-prep-number => hal_manualtoolchange.number
+net xy:vel hyp_xy.out
+net xyz:vel hyp_xyz.out
+# parameter values
+setp J0_accel.tmax                  0
+setp J0_mux.tmax                    0
+setp J0_pid.do-pid-calcs.tmax       0
+setp J0_switch.tmax                 0
+setp J0_vel.tmax                    0
+setp J1_accel.tmax                  0
+setp J1_mux.tmax                    0
+setp J1_pid.do-pid-calcs.tmax       0
+setp J1_switch.tmax                 0
+setp J1_vel.tmax                    0
+setp J2_accel.tmax                  0
+setp J2_mux.tmax                    0
+setp J2_pid.do-pid-calcs.tmax       0
+setp J2_switch.tmax                 0
+setp J2_vel.tmax                    0
+setp hyp_xy.tmax                    0
+setp hyp_xyz.tmax                   0
+setp limit_speed.tmax               0
+setp motion-command-handler.tmax    0
+setp motion-controller.tmax         0
+setp near_speed.difference          10
+setp near_speed.scale               1.1
+setp near_speed.tmax                0
+setp rpm_rps.tmax                   0
+setp servo-thread.tmax              0
+setp sim_spindle.scale              0.01666667
+setp sim_spindle.tmax               0
+setp spindle_mass.gain              0.07
+setp spindle_mass.tmax              0
+# Note: ALL unconnected pins follow
+#       (includes pins using default with no explicit setp command)
+setp J0_pid.Dgain                   0
+setp J0_pid.FF0                     1
+setp J0_pid.FF1                     0
+setp J0_pid.FF2                     0
+setp J0_pid.FF3                     0
+setp J0_pid.Igain                   0
+setp J0_pid.Pgain                   0
+setp J0_pid.bias                    0
+setp J0_pid.command-deriv           0
+setp J0_pid.deadband                0
+setp J0_pid.error-previous-target   TRUE
+setp J0_pid.feedback                0
+setp J0_pid.feedback-deriv          0
+setp J0_pid.index-enable            FALSE
+setp J0_pid.maxcmdD                 0
+setp J0_pid.maxcmdDD                0
+setp J0_pid.maxcmdDDD               0
+setp J0_pid.maxerror                0
+setp J0_pid.maxerrorD               0
+setp J0_pid.maxerrorI               0
+setp J0_pid.maxoutput               0
+setp J0_pid.tune-cycles             0x00000032
+setp J0_pid.tune-effort             0.5
+setp J0_pid.tune-mode               FALSE
+setp J0_pid.tune-start              FALSE
+setp J0_pid.tune-type               0x00000000
+setp J0_switch.home-pos             0.1
+setp J0_switch.hysteresis           0.05
+setp J0_switch.index-delay-ms       10
+setp J0_switch.index-enable         FALSE
+setp J1_pid.Dgain                   0
+setp J1_pid.FF0                     1
+setp J1_pid.FF1                     0
+setp J1_pid.FF2                     0
+setp J1_pid.FF3                     0
+setp J1_pid.Igain                   0
+setp J1_pid.Pgain                   0
+setp J1_pid.bias                    0
+setp J1_pid.command-deriv           0
+setp J1_pid.deadband                0
+setp J1_pid.error-previous-target   TRUE
+setp J1_pid.feedback                0
+setp J1_pid.feedback-deriv          0
+setp J1_pid.index-enable            FALSE
+setp J1_pid.maxcmdD                 0
+setp J1_pid.maxcmdDD                0
+setp J1_pid.maxcmdDDD               0
+setp J1_pid.maxerror                0
+setp J1_pid.maxerrorD               0
+setp J1_pid.maxerrorI               0
+setp J1_pid.maxoutput               0
+setp J1_pid.tune-cycles             0x00000032
+setp J1_pid.tune-effort             0.5
+setp J1_pid.tune-mode               FALSE
+setp J1_pid.tune-start              FALSE
+setp J1_pid.tune-type               0x00000000
+setp J1_switch.home-pos             0.1
+setp J1_switch.hysteresis           0.05
+setp J1_switch.index-delay-ms       10
+setp J1_switch.index-enable         FALSE
+setp J2_pid.Dgain                   0
+setp J2_pid.FF0                     1
+setp J2_pid.FF1                     0
+setp J2_pid.FF2                     0
+setp J2_pid.FF3                     0
+setp J2_pid.Igain                   0
+setp J2_pid.Pgain                   0
+setp J2_pid.bias                    0
+setp J2_pid.command-deriv           0
+setp J2_pid.deadband                0
+setp J2_pid.error-previous-target   TRUE
+setp J2_pid.feedback                0
+setp J2_pid.feedback-deriv          0
+setp J2_pid.index-enable            FALSE
+setp J2_pid.maxcmdD                 0
+setp J2_pid.maxcmdDD                0
+setp J2_pid.maxcmdDDD               0
+setp J2_pid.maxerror                0
+setp J2_pid.maxerrorD               0
+setp J2_pid.maxerrorI               0
+setp J2_pid.maxoutput               0
+setp J2_pid.tune-cycles             0x00000032
+setp J2_pid.tune-effort             0.5
+setp J2_pid.tune-mode               FALSE
+setp J2_pid.tune-start              FALSE
+setp J2_pid.tune-type               0x00000000
+setp J2_switch.home-pos             0.1
+setp J2_switch.hysteresis           0.05
+setp J2_switch.index-delay-ms       10
+setp J2_switch.index-enable         FALSE
+setp axis.a.eoffset-clear           FALSE
+setp axis.a.eoffset-counts          0
+setp axis.a.eoffset-enable          FALSE
+setp axis.a.eoffset-scale           0
+setp axis.a.jog-accel-fraction      1
+setp axis.a.jog-counts              0
+setp axis.a.jog-enable              FALSE
+setp axis.a.jog-scale               0
+setp axis.a.jog-vel-mode            FALSE
+setp axis.b.eoffset-clear           FALSE
+setp axis.b.eoffset-counts          0
+setp axis.b.eoffset-enable          FALSE
+setp axis.b.eoffset-scale           0
+setp axis.b.jog-accel-fraction      1
+setp axis.b.jog-counts              0
+setp axis.b.jog-enable              FALSE
+setp axis.b.jog-scale               0
+setp axis.b.jog-vel-mode            FALSE
+setp axis.c.eoffset-clear           FALSE
+setp axis.c.eoffset-counts          0
+setp axis.c.eoffset-enable          FALSE
+setp axis.c.eoffset-scale           0
+setp axis.c.jog-accel-fraction      1
+setp axis.c.jog-counts              0
+setp axis.c.jog-enable              FALSE
+setp axis.c.jog-scale               0
+setp axis.c.jog-vel-mode            FALSE
+setp axis.u.eoffset-clear           FALSE
+setp axis.u.eoffset-counts          0
+setp axis.u.eoffset-enable          FALSE
+setp axis.u.eoffset-scale           0
+setp axis.u.jog-accel-fraction      1
+setp axis.u.jog-counts              0
+setp axis.u.jog-enable              FALSE
+setp axis.u.jog-scale               0
+setp axis.u.jog-vel-mode            FALSE
+setp axis.v.eoffset-clear           FALSE
+setp axis.v.eoffset-counts          0
+setp axis.v.eoffset-enable          FALSE
+setp axis.v.eoffset-scale           0
+setp axis.v.jog-accel-fraction      1
+setp axis.v.jog-counts              0
+setp axis.v.jog-enable              FALSE
+setp axis.v.jog-scale               0
+setp axis.v.jog-vel-mode            FALSE
+setp axis.w.eoffset-clear           FALSE
+setp axis.w.eoffset-counts          0
+setp axis.w.eoffset-enable          FALSE
+setp axis.w.eoffset-scale           0
+setp axis.w.jog-accel-fraction      1
+setp axis.w.jog-counts              0
+setp axis.w.jog-enable              FALSE
+setp axis.w.jog-scale               0
+setp axis.w.jog-vel-mode            FALSE
+setp axis.x.eoffset-clear           FALSE
+setp axis.x.eoffset-counts          0
+setp axis.x.eoffset-enable          FALSE
+setp axis.x.eoffset-scale           0
+setp axis.x.jog-accel-fraction      1
+setp axis.x.jog-counts              0
+setp axis.x.jog-enable              FALSE
+setp axis.x.jog-scale               0
+setp axis.x.jog-vel-mode            FALSE
+setp axis.y.eoffset-clear           FALSE
+setp axis.y.eoffset-counts          0
+setp axis.y.eoffset-enable          FALSE
+setp axis.y.eoffset-scale           0
+setp axis.y.jog-accel-fraction      1
+setp axis.y.jog-counts              0
+setp axis.y.jog-enable              FALSE
+setp axis.y.jog-scale               0
+setp axis.y.jog-vel-mode            FALSE
+setp axis.z.eoffset-clear           FALSE
+setp axis.z.eoffset-counts          0
+setp axis.z.eoffset-enable          FALSE
+setp axis.z.eoffset-scale           0
+setp axis.z.jog-accel-fraction      1
+setp axis.z.jog-counts              0
+setp axis.z.jog-enable              FALSE
+setp axis.z.jog-scale               0
+setp axis.z.jog-vel-mode            FALSE
+setp hal_manualtoolchange.change_button FALSE
+setp halui.abort                    FALSE
+setp halui.axis.a.analog            0
+setp halui.axis.a.increment         0
+setp halui.axis.a.increment-minus   FALSE
+setp halui.axis.a.increment-plus    FALSE
+setp halui.axis.a.minus             FALSE
+setp halui.axis.a.plus              FALSE
+setp halui.axis.a.select            FALSE
+setp halui.axis.b.analog            0
+setp halui.axis.b.increment         0
+setp halui.axis.b.increment-minus   FALSE
+setp halui.axis.b.increment-plus    FALSE
+setp halui.axis.b.minus             FALSE
+setp halui.axis.b.plus              FALSE
+setp halui.axis.b.select            FALSE
+setp halui.axis.c.analog            0
+setp halui.axis.c.increment         0
+setp halui.axis.c.increment-minus   FALSE
+setp halui.axis.c.increment-plus    FALSE
+setp halui.axis.c.minus             FALSE
+setp halui.axis.c.plus              FALSE
+setp halui.axis.c.select            FALSE
+setp halui.axis.jog-deadband        0.2
+setp halui.axis.jog-speed           0
+setp halui.axis.selected.increment  0
+setp halui.axis.selected.increment-minus FALSE
+setp halui.axis.selected.increment-plus FALSE
+setp halui.axis.selected.minus      FALSE
+setp halui.axis.selected.plus       FALSE
+setp halui.axis.u.analog            0
+setp halui.axis.u.increment         0
+setp halui.axis.u.increment-minus   FALSE
+setp halui.axis.u.increment-plus    FALSE
+setp halui.axis.u.minus             FALSE
+setp halui.axis.u.plus              FALSE
+setp halui.axis.u.select            FALSE
+setp halui.axis.v.analog            0
+setp halui.axis.v.increment         0
+setp halui.axis.v.increment-minus   FALSE
+setp halui.axis.v.increment-plus    FALSE
+setp halui.axis.v.minus             FALSE
+setp halui.axis.v.plus              FALSE
+setp halui.axis.v.select            FALSE
+setp halui.axis.w.analog            0
+setp halui.axis.w.increment         0
+setp halui.axis.w.increment-minus   FALSE
+setp halui.axis.w.increment-plus    FALSE
+setp halui.axis.w.minus             FALSE
+setp halui.axis.w.plus              FALSE
+setp halui.axis.w.select            FALSE
+setp halui.axis.x.analog            0
+setp halui.axis.x.increment         0
+setp halui.axis.x.increment-minus   FALSE
+setp halui.axis.x.increment-plus    FALSE
+setp halui.axis.x.minus             FALSE
+setp halui.axis.x.plus              FALSE
+setp halui.axis.x.select            FALSE
+setp halui.axis.y.analog            0
+setp halui.axis.y.increment         0
+setp halui.axis.y.increment-minus   FALSE
+setp halui.axis.y.increment-plus    FALSE
+setp halui.axis.y.minus             FALSE
+setp halui.axis.y.plus              FALSE
+setp halui.axis.y.select            FALSE
+setp halui.axis.z.analog            0
+setp halui.axis.z.increment         0
+setp halui.axis.z.increment-minus   FALSE
+setp halui.axis.z.increment-plus    FALSE
+setp halui.axis.z.minus             FALSE
+setp halui.axis.z.plus              FALSE
+setp halui.axis.z.select            FALSE
+setp halui.estop.activate           FALSE
+setp halui.estop.reset              FALSE
+setp halui.feed-override.count-enable TRUE
+setp halui.feed-override.counts     0
+setp halui.feed-override.decrease   FALSE
+setp halui.feed-override.direct-value FALSE
+setp halui.feed-override.increase   FALSE
+setp halui.feed-override.reset      FALSE
+setp halui.feed-override.scale      0.1
+setp halui.flood.off                FALSE
+setp halui.flood.on                 FALSE
+setp halui.home-all                 FALSE
+setp halui.joint.0.analog           0
+setp halui.joint.0.home             FALSE
+setp halui.joint.0.increment        0
+setp halui.joint.0.increment-minus  FALSE
+setp halui.joint.0.increment-plus   FALSE
+setp halui.joint.0.minus            FALSE
+setp halui.joint.0.plus             FALSE
+setp halui.joint.0.select           FALSE
+setp halui.joint.0.unhome           FALSE
+setp halui.joint.1.analog           0
+setp halui.joint.1.home             FALSE
+setp halui.joint.1.increment        0
+setp halui.joint.1.increment-minus  FALSE
+setp halui.joint.1.increment-plus   FALSE
+setp halui.joint.1.minus            FALSE
+setp halui.joint.1.plus             FALSE
+setp halui.joint.1.select           FALSE
+setp halui.joint.1.unhome           FALSE
+setp halui.joint.2.analog           0
+setp halui.joint.2.home             FALSE
+setp halui.joint.2.increment        0
+setp halui.joint.2.increment-minus  FALSE
+setp halui.joint.2.increment-plus   FALSE
+setp halui.joint.2.minus            FALSE
+setp halui.joint.2.plus             FALSE
+setp halui.joint.2.select           FALSE
+setp halui.joint.2.unhome           FALSE
+setp halui.joint.jog-deadband       0.2
+setp halui.joint.jog-speed          0
+setp halui.joint.selected.home      FALSE
+setp halui.joint.selected.increment 0
+setp halui.joint.selected.increment-minus FALSE
+setp halui.joint.selected.increment-plus FALSE
+setp halui.joint.selected.minus     FALSE
+setp halui.joint.selected.plus      FALSE
+setp halui.joint.selected.unhome    FALSE
+setp halui.lube.off                 FALSE
+setp halui.lube.on                  FALSE
+setp halui.machine.off              FALSE
+setp halui.machine.on               FALSE
+setp halui.max-velocity.count-enable TRUE
+setp halui.max-velocity.counts      0
+setp halui.max-velocity.decrease    FALSE
+setp halui.max-velocity.direct-value FALSE
+setp halui.max-velocity.increase    FALSE
+setp halui.max-velocity.scale       0
+setp halui.mist.off                 FALSE
+setp halui.mist.on                  FALSE
+setp halui.mode.auto                FALSE
+setp halui.mode.joint               FALSE
+setp halui.mode.manual              FALSE
+setp halui.mode.mdi                 FALSE
+setp halui.mode.teleop              FALSE
+setp halui.program.block-delete.off FALSE
+setp halui.program.block-delete.on  FALSE
+setp halui.program.optional-stop.off FALSE
+setp halui.program.optional-stop.on FALSE
+setp halui.program.pause            FALSE
+setp halui.program.resume           FALSE
+setp halui.program.run              FALSE
+setp halui.program.step             FALSE
+setp halui.program.stop             FALSE
+setp halui.rapid-override.count-enable TRUE
+setp halui.rapid-override.counts    0
+setp halui.rapid-override.decrease  FALSE
+setp halui.rapid-override.direct-value FALSE
+setp halui.rapid-override.increase  FALSE
+setp halui.rapid-override.reset     FALSE
+setp halui.rapid-override.scale     0.1
+setp halui.spindle.0.brake-off      FALSE
+setp halui.spindle.0.brake-on       FALSE
+setp halui.spindle.0.decrease       FALSE
+setp halui.spindle.0.forward        FALSE
+setp halui.spindle.0.increase       FALSE
+setp halui.spindle.0.override.count-enable TRUE
+setp halui.spindle.0.override.counts 0
+setp halui.spindle.0.override.decrease FALSE
+setp halui.spindle.0.override.direct-value FALSE
+setp halui.spindle.0.override.increase FALSE
+setp halui.spindle.0.override.reset FALSE
+setp halui.spindle.0.override.scale 0.1
+setp halui.spindle.0.reverse        FALSE
+setp halui.spindle.0.start          FALSE
+setp halui.spindle.0.stop           FALSE
+setp hyp_xy.in2                     0
+setp iocontrol.0.lube_level         FALSE
+setp joint.0.amp-fault-in           FALSE
+setp joint.0.index-enable           FALSE
+setp joint.0.jog-accel-fraction     1
+setp joint.0.jog-counts             0
+setp joint.0.jog-enable             FALSE
+setp joint.0.jog-scale              0
+setp joint.0.jog-vel-mode           FALSE
+setp joint.0.neg-lim-sw-in          FALSE
+setp joint.0.pos-lim-sw-in          FALSE
+setp joint.1.amp-fault-in           FALSE
+setp joint.1.index-enable           FALSE
+setp joint.1.jog-accel-fraction     1
+setp joint.1.jog-counts             0
+setp joint.1.jog-enable             FALSE
+setp joint.1.jog-scale              0
+setp joint.1.jog-vel-mode           FALSE
+setp joint.1.neg-lim-sw-in          FALSE
+setp joint.1.pos-lim-sw-in          FALSE
+setp joint.2.amp-fault-in           FALSE
+setp joint.2.index-enable           FALSE
+setp joint.2.jog-accel-fraction     1
+setp joint.2.jog-counts             0
+setp joint.2.jog-enable             FALSE
+setp joint.2.jog-scale              0
+setp joint.2.jog-vel-mode           FALSE
+setp joint.2.neg-lim-sw-in          FALSE
+setp joint.2.pos-lim-sw-in          FALSE
+setp limit_speed.load               FALSE
+setp limit_speed.max                1e+20
+setp limit_speed.maxv               5000
+setp limit_speed.min                -1e+20
+setp motion.adaptive-feed           1
+setp motion.analog-in-00            0
+setp motion.analog-in-01            0
+setp motion.analog-in-02            0
+setp motion.analog-in-03            0
+setp motion.digital-in-00           FALSE
+setp motion.digital-in-01           FALSE
+setp motion.digital-in-02           FALSE
+setp motion.digital-in-03           FALSE
+setp motion.enable                  TRUE
+setp motion.feed-hold               FALSE
+setp motion.feed-inhibit            FALSE
+setp motion.homing-inhibit          FALSE
+setp motion.jog-inhibit             FALSE
+setp motion.jog-stop                FALSE
+setp motion.jog-stop-immediate      FALSE
+setp motion.probe-input             FALSE
+setp rpm_rps.gain                   0.0167
+setp rpm_rps.offset                 0
+setp spindle.0.amp-fault-in         FALSE
+setp spindle.0.inhibit              FALSE
+setp spindle.0.orient-fault         0
+setp spindle_mass.load              FALSE
+# realtime thread/function links
+addf motion-command-handler servo-thread
+addf motion-controller servo-thread
+addf J0_pid.do-pid-calcs servo-thread
+addf J1_pid.do-pid-calcs servo-thread
+addf J2_pid.do-pid-calcs servo-thread
+addf J0_mux servo-thread
+addf J1_mux servo-thread
+addf J2_mux servo-thread
+addf J0_vel servo-thread
+addf J0_accel servo-thread
+addf J1_vel servo-thread
+addf J1_accel servo-thread
+addf J2_vel servo-thread
+addf J2_accel servo-thread
+addf hyp_xy servo-thread
+addf hyp_xyz servo-thread
+addf J0_switch servo-thread
+addf J1_switch servo-thread
+addf J2_switch servo-thread
+addf limit_speed servo-thread
+addf spindle_mass servo-thread
+addf rpm_rps servo-thread
+addf near_speed servo-thread
+addf sim_spindle servo-thread
+

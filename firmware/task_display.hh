@@ -37,6 +37,7 @@ public:
     {
         DISPLAY_CMD_UPDATE_ENCODER,
         DISPLAY_CMD_UPDATE_KEY,
+        DISPLAY_CMD_RESET,
     } cmds;
 
     typedef struct cmd

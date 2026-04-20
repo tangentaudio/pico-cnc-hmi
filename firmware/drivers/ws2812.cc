@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include "pico/time.h"
+#include <FreeRTOS.h>
+#include <task.h>
 #include "ws2812.hh"
 
 WS2812::WS2812()
@@ -29,9 +32,30 @@ void WS2812::setLED(uint8_t num, uint32_t value, bool update_now)
 
 void WS2812::update() 
 {
+    // Enforce minimum inter-frame gap using absolute time tracking.
+    // At the start of each update(), wait until the previous frame's transmission
+    // and WS2812 reset period are guaranteed complete, then record the deadline for
+    // the *next* call before clocking any pixels.
+    //
+    // 45 pixels × 30µs/pixel (800kHz, 24-bit) = 1350µs frame time
+    // + 100µs reset margin (WS2812 needs >50µs; +30µs for OSR drain after FIFO empty)
+    // = 1450µs minimum between frame starts.
+    //
+    // This avoids the race in the FIFO-drain + sleep approach where the OSR still
+    // has one pixel in-flight after the FIFO empties, causing partial-frame corruption.
+    static absolute_time_t next_update_at = nil_time;
+    busy_wait_until(next_update_at);
+
+    // Disable FreeRTOS task preemption for the duration of the pixel write.
+    // Higher-priority encoder/matrix tasks preempting mid-loop stall the PIO,
+    // causing the strip to latch a partial frame — wrong colors on wrong rings.
+    // 45 pixels at 800kHz takes ~1.35ms; this is the critical window.
+    taskENTER_CRITICAL();
+    next_update_at = make_timeout_time_us(1450);
     for (uint8_t i = 0; i < WS2812_NUM_LEDS; i++) {
         put_pixel(m_pio, m_sm, m_leds[i]);
     }
+    taskEXIT_CRITICAL();
 }
 
 void WS2812::setRing(uint8_t ring, uint8_t value, uint32_t ball_color, bool update_now)
@@ -42,9 +66,7 @@ void WS2812::setRing(uint8_t ring, uint8_t value, uint32_t ball_color, bool upda
     uint8_t ofs = ring * 15;
 
     for (uint8_t i = 0; i < 15; i++) {
-        if (i < value) {
-            m_leds[(i + ofs)] = 0;
-        } else if (i == value) {
+        if (i == value) {
             m_leds[(i + ofs)] = ball_color;
         } else {
             m_leds[(i + ofs)] = 0;

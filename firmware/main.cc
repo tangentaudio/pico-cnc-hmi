@@ -255,7 +255,10 @@ void set_encoder_value(uint8_t encoder, int8_t value, bool smart = false)
   cmd.encoder = encoder;
   cmd.value = value;
 
-  xQueueSend(task_encoder->cmd_queue, &cmd, 0) == pdTRUE;
+  if (xQueueSend(task_encoder->cmd_queue, &cmd, pdMS_TO_TICKS(2)) != pdTRUE)
+  {
+    printf("encoder cmd queue full: encoder=%d value=%d smart=%d\n", encoder, value, smart ? 1 : 0);
+  }
 }
 
 bool g_machine_alive = false;
@@ -343,30 +346,51 @@ void main_task(void *unused)
           machine_state_changed = true;
         }
 
+        // Keep override encoders synchronized to host state even when disabled/estop,
+        // so startup defaults are reflected on the panel immediately.
+        bool feedrate_changed = (out_pkt.s.feedrate_override != last_out_pkt.s.feedrate_override);
+        bool rapidrate_changed = (out_pkt.s.rapidrate_override != last_out_pkt.s.rapidrate_override);
+        bool maxvel_changed = (out_pkt.s.maxvel_override != last_out_pkt.s.maxvel_override);
+
+        // Update ring LED displays from OUT packet feedback (host-authoritative).
+        // On first OUT packet (startup), also sync encoder so ring and encoder match initially.
+        // After that, encoder position is independent user input; don't force it to match feedback.
+        if (!initial_feedrate || machine_state_changed || feedrate_changed)
+        {
+          uint32_t feedrate_segments = out_pkt.s.feedrate_override;
+          if (!initial_feedrate)
+            set_encoder_value(1, feedrate_segments, false);  // sync on startup only
+          set_ring_led(0, feedrate_segments, dot_colors[0], false);
+          printf("feedrate_segments=%d\n", feedrate_segments);
+          initial_feedrate = true;
+        }
+        if (!initial_rapidrate || machine_state_changed || rapidrate_changed)
+        {
+          uint32_t rapidrate_segments = out_pkt.s.rapidrate_override;
+          if (!initial_rapidrate)
+            set_encoder_value(2, rapidrate_segments, false);  // sync on startup only
+          set_ring_led(1, rapidrate_segments, dot_colors[1], false);
+          printf("rapidrate_segments=%d\n", rapidrate_segments);
+          initial_rapidrate = true;
+        }
+        if (!initial_maxvel || machine_state_changed || maxvel_changed)
+        {
+          uint32_t maxvel_segments = out_pkt.s.maxvel_override;          printf("MAXVEL SYNC: out_pkt.s.maxvel_override=%d (0x%02x)\n", maxvel_segments, maxvel_segments);          if (!initial_maxvel)
+            set_encoder_value(3, maxvel_segments, false);  // sync on startup only
+          set_ring_led(2, maxvel_segments, dot_colors[2], false);
+          printf("maxvel_segments=%d\n", maxvel_segments);
+          initial_maxvel = true;
+        }
+        // Flush all ring LED updates atomically — avoids intermediate-state blips
+        // from three separate full-strip refreshes.
+        {
+          TaskLED::cmd_t fcmd;
+          fcmd.cmd = TaskLED::LED_CMD_FLUSH;
+          xQueueSend(task_led->cmd_queue, &fcmd, 0);
+        }
+
         if (!machine_estop && machine_enabled)
         {
-          if (machine_state_changed || out_pkt.s.feedrate_override != last_out_pkt.s.feedrate_override && !initial_feedrate)
-          {
-            uint32_t feedrate_segments = (out_pkt.s.feedrate_override * 1000) / 7142;
-            set_encoder_value(1, feedrate_segments, false);
-            printf("feedrate_segments=%d\n", feedrate_segments);
-            initial_feedrate = true;
-          }
-          if (machine_state_changed || out_pkt.s.rapidrate_override != last_out_pkt.s.rapidrate_override && !initial_rapidrate)
-          {
-            uint32_t rapidrate_segments = (out_pkt.s.rapidrate_override * 1000) / 7142;
-            set_encoder_value(2, rapidrate_segments, false);
-            printf("rapidrate_segments=%d\n", rapidrate_segments);
-            initial_rapidrate = true;
-          }
-          if (machine_state_changed || out_pkt.s.maxvel_override != last_out_pkt.s.maxvel_override && !initial_maxvel)
-          {
-            uint32_t maxvel_segments = (out_pkt.s.maxvel_override * 1000) / 7142;
-            set_encoder_value(3, maxvel_segments, false);
-            printf("maxvel_segments=%d\n", maxvel_segments);
-            initial_maxvel = true;
-          }
-
           if ((machine_mode == MODE_AUTO || machine_mode == MODE_TELEOP) && machine_state_changed)
           {
             // in MODE_AUTO show the current interp_state on the start/stop/pause/step LEDs
@@ -382,9 +406,6 @@ void main_task(void *unused)
         {
           // machine is in estop or disabled, turn off the start/stop/pause/step LEDs
           set_led_interp_state(INTERP_OFF);
-          initial_feedrate = false;
-          initial_rapidrate = false;
-          initial_maxvel = false;
         }
 
         memcpy(&last_out_pkt, &out_pkt, sizeof(out_pkt));
@@ -398,10 +419,11 @@ void main_task(void *unused)
       {
         printf("encoder=%d value=%d\n", enc_evt.encoder, enc_evt.value);
 
-        if (enc_evt.encoder >= 1 && enc_evt.encoder <= 3)
-        {
-          set_ring_led(enc_evt.encoder - 1, enc_evt.value, dot_colors[enc_evt.encoder - 1], true);
-        }
+        // For encoders 1-3 (override rings), suppress ring LED updates from encoder events.
+        // The display is host-authoritative (follows LinuxCNC feedback from OUT packets),
+        // not physical encoder position. This prevents flicker from competing sources.
+        // Encoder events still trigger USB IN packets (user input), but LED updates
+        // only come from OUT packets (host feedback).
 
   #ifdef ENABLE_DISPLAY
         TaskDisplay::cmd_t cmd;
@@ -574,13 +596,25 @@ void main_task(void *unused)
     }
     else
     {
-      // machine is not alive, turn off all the LEDs
-      set_led_selected_axis(0);
-      set_led_selected_increment(0);
-      set_led_interp_state(INTERP_OFF);
-      set_ring_led(0, 0, 0);
-      set_ring_led(1, 0, 0);
-      set_ring_led(2, 0, 0, true);
+      // machine is not alive — turn off LEDs once on transition, then just wait
+      static bool leds_cleared = false;
+      if (!leds_cleared)
+      {
+        set_led_selected_axis(0);
+        set_led_selected_increment(0);
+        set_led_interp_state(INTERP_OFF);
+        set_ring_led(0, 0, 0);
+        set_ring_led(1, 0, 0);
+        set_ring_led(2, 0, 0, true);
+#ifdef ENABLE_DISPLAY
+        {
+          TaskDisplay::cmd_t dcmd;
+          dcmd.cmd = TaskDisplay::DISPLAY_CMD_RESET;
+          xQueueSend(task_display->cmd_queue, &dcmd, 0);
+        }
+#endif
+        leds_cleared = true;
+      }
 
       printf("waiting for USB ...\n");
 
@@ -590,6 +624,10 @@ void main_task(void *unused)
         usb_dump_out_pkt(&out_pkt);
 
         g_machine_alive = true;
+        leds_cleared = false;   // re-arm for next disconnect
+        initial_feedrate = false;
+        initial_rapidrate = false;
+        initial_maxvel = false;
         bzero(&last_out_pkt, sizeof(last_out_pkt));
       }
 
