@@ -330,6 +330,10 @@ void main_task(void *unused)
   bool machine_inpos = true;
   bool machine_coolant = false;
   bool machine_optional_stop = false;
+  bool machine_homed = false;
+
+  TickType_t slow_blink_last = 0;
+  bool slow_blink_on = false;
 
   mode_t machine_mode = MODE_UNKNOWN;
 
@@ -421,6 +425,13 @@ void main_task(void *unused)
           machine_state_changed = true;
         }
 
+        if (out_pkt.s.homed != machine_homed)
+        {
+          printf("machine_homed %d -> %d\n", machine_homed, out_pkt.s.homed);
+          machine_homed = out_pkt.s.homed;
+          machine_state_changed = true;
+        }
+
         // Keep override encoders synchronized to host state even when disabled/estop,
         // so startup defaults are reflected on the panel immediately.
         bool feedrate_changed = (out_pkt.s.feedrate_override != last_out_pkt.s.feedrate_override);
@@ -466,10 +477,22 @@ void main_task(void *unused)
 
         if (!machine_estop && machine_enabled && machine_state_changed)
         {
-          // Always reflect interp state on the LEDs when machine is enabled,
-          // regardless of mode. STOP LED lit = machine idle/ready.
-          // The keys that trigger cycle commands are still gated on MODE_AUTO/TELEOP.
-          set_led_interp_state(machine_interp_state, machine_task_paused, machine_inpos);
+          if (!machine_homed)
+          {
+            // Not homed: clear program LEDs; STOP LED slow-blinks via tick loop below.
+            set_simple_led(8, 0, TaskLED::NORMAL);
+            set_simple_led(9, 0, TaskLED::NORMAL);
+            set_simple_led(11, 0, TaskLED::NORMAL, true);
+            // Start blink phase lit so feedback is immediate.
+            slow_blink_last = xTaskGetTickCount();
+            slow_blink_on = true;
+            set_simple_led(10, 32, TaskLED::NORMAL, true);
+          }
+          else
+          {
+            // Homed: normal interp state presentation.
+            set_led_interp_state(machine_interp_state, machine_task_paused, machine_inpos);
+          }
         }
         else if (machine_state_changed)
         {
@@ -485,6 +508,20 @@ void main_task(void *unused)
         }
 
         memcpy(&last_out_pkt, &out_pkt, sizeof(out_pkt));
+      }
+
+      // Slow blink for not-homed indicator on STOP LED (LED 10), ~0.5 Hz.
+      // Runs every loop iteration (independent of packet arrival) so the blink
+      // continues even when the host isn't sending state changes.
+      if (!machine_estop && machine_enabled && !machine_homed)
+      {
+        TickType_t now_ticks = xTaskGetTickCount();
+        if ((now_ticks - slow_blink_last) >= pdMS_TO_TICKS(1000))
+        {
+          slow_blink_last = now_ticks;
+          slow_blink_on = !slow_blink_on;
+          set_simple_led(10, slow_blink_on ? 32 : 0, TaskLED::NORMAL, true);
+        }
       }
 
       #endif

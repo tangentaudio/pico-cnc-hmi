@@ -47,6 +47,7 @@ typedef union out_pkt_u
     uint8_t inpos;
     uint8_t coolant;
     uint8_t optional_stop;
+    uint8_t homed;
   } s;
   unsigned char buf[64];
 }  __attribute__ ((packed)) usb_out_pkt;

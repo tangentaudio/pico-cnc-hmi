@@ -182,6 +182,7 @@ status = {
     "exec_state" : -1,
     "coolant" : -1,
     "optional_stop" : -1,
+    "homed" : -1,
     "feedrate" : -1,
     "rapidrate" : -1,
     "maxvel" : -1,
@@ -271,6 +272,11 @@ def poll_status():
         updated = True
     if status['optional_stop'] != int(bool(s.optional_stop)):
         status['optional_stop'] = int(bool(s.optional_stop))
+        updated = True
+    all_homed = int(s.joints > 0 and s.homed.count(1) == s.joints)
+    if status['homed'] != all_homed:
+        status['homed'] = all_homed
+        print(f"homed={all_homed} (joints={s.joints} homed_tuple={s.homed})")
         updated = True
 
     return updated
@@ -388,7 +394,7 @@ while True:
     try:
         while True:
             if poll_status():
-                obuf = struct.pack('<BBBBBBBBBBBBB',
+                obuf = struct.pack('<BBBBBBBBBBBBBB',
                                   0xaa,
                                   status['heartbeat'] & 0xff,
                                   status['estop'],
@@ -401,7 +407,8 @@ while True:
                                   int(in_step_mode()),
                                   int(bool(status['inpos'])),
                                   int(bool(status['optional_stop'])),
-                                  int(bool(status['coolant']))
+                                  int(bool(status['coolant'])),
+                                  int(bool(status['homed']))
                                   )
                 obuf = pad_bytes(obuf, 64)
                 dev.write(obuf)  # raises on disconnect — caught below
@@ -445,6 +452,9 @@ while True:
                 if cmd_stop:
                     print(f"cmd: STOP (interp={s.interp_state} step={in_step_mode()})")
                     c.abort()
+                elif not status['homed']:
+                    if cmd_start or cmd_pause or cmd_step:
+                        print(f"cmd: blocked — not homed")
                 elif cmd_start:
                     print(f"cmd: CYCLE START (interp={s.interp_state} step={in_step_mode()} paused={s.paused})")
                     if in_step_mode():
