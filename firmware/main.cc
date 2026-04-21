@@ -304,7 +304,7 @@ void set_encoder_value(uint8_t encoder, int8_t value, bool smart = false)
   }
 }
 
-bool g_machine_alive = false;
+volatile bool g_machine_alive = false;
   
 
 void main_task(void *unused)
@@ -367,6 +367,10 @@ void main_task(void *unused)
         {
           xTimerReset(hbeat_timer, 0);
           g_machine_alive = true;
+          if (usb_out_queue_drops > 0) {
+            printf("usb: %lu OUT packets dropped\n", (unsigned long)usb_out_queue_drops);
+            usb_out_queue_drops = 0;
+          }
         }
 
         if (out_pkt.s.estop != machine_estop)
@@ -697,6 +701,7 @@ void main_task(void *unused)
     if (usb_in_pending && initial_feedrate && initial_rapidrate && initial_maxvel)
       {
         usb_in_pkt pkt;
+        bzero(&pkt, sizeof(pkt));
         pkt.s.knob1 = task_encoder->get_value(1);
         pkt.s.knob2 = task_encoder->get_value(2);
         pkt.s.knob3 = task_encoder->get_value(3);
@@ -706,8 +711,13 @@ void main_task(void *unused)
         pkt.s.jog = task_encoder->get_value(0);
         pkt.s.motion_cmd = motion_command;
 
-        tud_hid_report(0, &pkt, sizeof(pkt));
-        usb_in_pending = false;
+        if (tud_hid_n_ready(ITF_GENERIC_HID)) {
+          tud_hid_report(0, &pkt, sizeof(pkt));
+          usb_in_pending = false;
+        } else {
+          printf("usb: generic HID not ready, drop\n");
+          usb_in_pending = false;
+        }
       }
 
       if (tud_hid_n_ready(ITF_KEYBOARD))
@@ -735,6 +745,8 @@ void main_task(void *unused)
         set_led_selected_axis(0);
         set_led_selected_increment(0);
         set_led_interp_state(INTERP_OFF);
+        set_simple_led(6, 0, TaskLED::NORMAL);
+        set_simple_led(7, 0, TaskLED::NORMAL, true);
         set_ring_led(0, 0, 0);
         set_ring_led(1, 0, 0);
         set_ring_led(2, 0, 0, true);

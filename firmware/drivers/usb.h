@@ -9,9 +9,10 @@ extern "C"
 #include "bsp/board_api.h"
 #include "tusb.h"
 
+extern volatile uint32_t usb_out_queue_drops;
+
 void usb_init(void);
 void usb_periodic(void);
-void usb_hid_periodic(void);
 
 
 typedef union in_pkt_u

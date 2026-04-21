@@ -443,41 +443,25 @@ lowest impact.
 
 ---
 
-### HACK-1: CFG_TUSB_OS=OPT_OS_NONE + manual polling USB_TASK
-**Files**: `port/tinyusb/tusb_config.h`, `main.cc`, `drivers/usb.c`
-**Category**: architectural workaround
+### HACK-1: CFG_TUSB_OS — CLOSED (not a bug)
+**Status**: ~~Deferred~~ → **Closed 2026-04-21 — no change needed**
 
-What was done:
-- TinyUSB is configured with `OPT_OS_NONE`, meaning it has no knowledge of FreeRTOS.
-- A dedicated `USB_TASK` calls `usb_periodic()` → `tud_task()` every 1ms via `vTaskDelay(1)`.
-- The USB task runs at priority 1 (the lowest in the system), so it can be starved by other tasks.
+The original entry assumed `OPT_OS_PICO` was a workaround and `OPT_OS_FREERTOS` was the correct
+target. Investigation proved the opposite:
 
-Why it is a hack:
-- TinyUSB has supported FreeRTOS OS integration (`OPT_OS_FREERTOS`) since TinyUSB 0.13 and it is
-  explicitly supported and tested on RP2040/RP2350 via the pico-sdk.
-- With `OPT_OS_NONE`, all USB traffic processing happens only when `tud_task()` is explicitly called.
-  USB interrupts still fire (the IRQ handler just sets a flag), but data is not processed until the
-  poll runs. This introduces up to 1ms latency on every USB event.
-- With `OPT_OS_FREERTOS`, the USB IRQ posts to a semaphore and TinyUSB wakes a dedicated task only
-  when there is actual work to do. Latency drops to the IRQ → task wake path (typically <100µs).
-  No continuous polling needed.
+- The Pico SDK's `family.cmake` sets `CFG_TUSB_OS=OPT_OS_PICO` by default for RP2040/RP2350 and
+  this is the **intentional, tested choice** — not a fallback.
+- `OPT_OS_PICO` uses `osal_pico.h` which wraps `pico/sem.h` primitives. These are explicitly
+  designed to be FreeRTOS-interoperable via `configSUPPORT_PICO_SYNC_INTEROP=1` in FreeRTOSConfig.h.
+- Attempting to switch to `OPT_OS_FREERTOS` via `set(TINYUSB_OPT_OS OPT_OS_FREERTOS)` in
+  CMakeLists.txt caused the HMI to fail to enter offline mode (all LEDs stuck) on hmi.py
+  disconnect — a clear regression on the RP2350 SMP FreeRTOS port.
+- The old `add_definitions(-DCFG_TUSB_OS=OPT_OS_FREEERTOS)` line (note: typo, double-E) was
+  harmless (evaluated to 0, overridden by SDK target definition) and has been removed as noise.
+  No replacement needed.
 
-How to fix:
-1. Change `CFG_TUSB_OS` from `OPT_OS_NONE` to `OPT_OS_FREERTOS` in `tusb_config.h`.
-2. The pico-sdk FreeRTOS port supplies the required `osal_freertos.h` glue automatically; no custom
-   port code is needed.
-3. The `USB_TASK` loop changes from polling to a blocking `tud_task()` that sleeps on the semaphore:
-   ```c
-   void usb_task(void *unused) {
-     while (true) tud_task();  // blocks internally on FreeRTOS semaphore
-   }
-   ```
-4. `vTaskDelay(1)` in the USB task loop is removed.
-5. USB task priority can be raised (to 2 or 3) since it will sleep when idle rather than burning a
-   scheduling slot every tick.
-
-Reference: pico-examples `dev_hid_freertos` demonstrates this exact pattern.
-Risk: medium — requires confirming the correct FreeRTOS include path in tusb_config.h; straightforward once SDK version is confirmed post-upgrade.
+The `USB_TASK` + `vTaskDelay(1)` polling pattern is therefore correct and intentional for this
+platform. Latency is bounded at 1ms which is acceptable for a CNC HMI.
 
 ---
 
@@ -669,7 +653,7 @@ Risk: low — change only affects what the descriptor advertises, not actual cur
 
 | # | Issue | File(s) | Impact | Effort |
 |---|---|---|---|---|
-| HACK-1 | OPT_OS_NONE polling instead of FreeRTOS integration | tusb_config.h, main.cc, usb.c | High — USB latency, CPU waste | Medium |
+| HACK-1 | ~~OPT_OS_NONE polling~~ | — | — | **CLOSED** — OPT_OS_PICO is correct |
 | HACK-2 | Dead usb_hid_periodic() template code | usb.c, usb.h | Low — confusion, dead code | Trivial |
 | HACK-3 | Commented-out old API call | usb.c | Cosmetic | Trivial |
 | HACK-4 | No readiness check on generic HID IN send | main.cc | Medium — silent packet loss | Low |
@@ -682,8 +666,8 @@ Risk: low — change only affects what the descriptor advertises, not actual cur
 Recommended cleanup order:
 1. HACK-2, 3, 6, 7, 8, 9 — all trivial; do in one pass before any other USB work.
 2. HACK-4 and HACK-5 — add readiness guard and drop counter; do before testing USB stability.
-3. HACK-1 — do after SDK upgrade (Section 2.1 Step 1) is confirmed working; this is the main
-   architectural improvement and should be tested in isolation.
+3. HACK-1 — CLOSED. OPT_OS_PICO is the correct SDK default for RP2040/RP2350 + FreeRTOS.
+   Switching to OPT_OS_FREERTOS caused regressions. No action required.
 
 ---
 
@@ -865,4 +849,68 @@ Requirements for a safe implementation:
 - Do NOT call any LinuxCNC HAL/command APIs during the disconnected period (HAL pins hold last value).
 - Do NOT restart LinuxCNC or the HAL component.
 - On reconnect, force a full OUT packet re-sync to the HMI so all LEDs come up correct immediately.
+
+---
+
+## 13. Debug Session 2026-04-21 — HACK Cleanup + LED Disconnect Bugs
+
+### 13.1 HACK Cleanup (HACK-2 through HACK-9)
+
+All trivial and medium HACs from Section 10 were resolved in a single pass:
+
+| HACK | Resolution |
+|---|---|
+| HACK-2 | Deleted `usb_hid_periodic()` from `usb.c` and its declaration from `usb.h` |
+| HACK-3 | Removed stale `//tud_init(BOARD_TUD_RHPORT)` comment |
+| HACK-4 | Wrapped `tud_hid_report(0,...)` in `tud_hid_n_ready(ITF_GENERIC_HID)` guard |
+| HACK-5 | Added `volatile uint32_t usb_out_queue_drops`; logged per-heartbeat from `main_task` |
+| HACK-6 | Added `bzero(&pkt, sizeof(pkt))` before IN packet field population |
+| HACK-7 | `g_machine_alive` changed to `volatile bool` |
+| HACK-8 | Removed duplicate `#include <queue.h>` |
+| HACK-9 | USB config descriptor power changed `500` → `200` mA |
+
+### 13.2 HACK-1: Closed as Not-a-Bug
+
+Attempted to fix HACK-1 by setting `TINYUSB_OPT_OS OPT_OS_FREERTOS` in CMakeLists.txt. This caused
+the HMI to fail to enter offline mode on hmi.py stop (all LEDs stuck, rings held last state).
+Reverting to `OPT_OS_PICO` (the SDK default) restored correct behavior.
+
+**Conclusion**: `OPT_OS_PICO` is correct for RP2040/RP2350 + FreeRTOS. The Pico SDK's `osal_pico.h`
+uses `pico/sem.h` primitives that are FreeRTOS-interoperable via `configSUPPORT_PICO_SYNC_INTEROP=1`.
+`OPT_OS_FREERTOS` is for bare FreeRTOS ports without the Pico SDK layer. HACK-1 is closed; the
+broken `add_definitions(-DCFG_TUSB_OS=OPT_OS_FREEERTOS)` line (typo, harmless but confusing) was
+removed. No replacement needed.
+
+### 13.3 Homed State + Program Control Gating
+
+- Added `homed` byte (byte 13) to OUT packet: `s.homed.count(1) == s.joints`.
+- `hmi.py` gates start/pause/step buttons when `status['homed']` is false.
+- Firmware slow-blinks STOP LED (LED10) at 1 s period when enabled but not homed.
+- OUT packet is now 14 bytes total.
+
+### 13.4 LED Disconnect Clear Bug (Queue Overflow)
+
+**Symptom**: On hmi.py stop, LED rings held last state; M1 Stop and Coolant LEDs remained lit.
+
+**Root cause 1 — Queue overflow**: The `leds_cleared` block in `main_task` sends 15+ LED commands
+in a burst. The LED task `cmd_queue` was depth 10 → commands after the 10th (rings 1+2, LEDs 6+7)
+were silently dropped by `xQueueSend(..., 0)`.
+**Fix**: Raised LED task queue depth from 10 → 32 (`task_led.cc`).
+
+**Root cause 2 — Missing I2C flush**: `set_simple_led(6, 0, NORMAL)` and `set_simple_led(7, 0, NORMAL)`
+were queued without `now=true`. LED 7 (`now=false`) left both LEDs 6 and 7 in the I2C buffer with
+no subsequent `now=true` call to flush them to hardware.
+**Fix**: Changed `set_simple_led(7, 0, NORMAL)` → `set_simple_led(7, 0, NORMAL, true)`.
+
+### 13.5 Files Changed This Session
+
+| File | Change |
+|---|---|
+| `firmware/drivers/usb.c` | HACK-2,3,5,8; added `usb_out_queue_drops`; drop logged per-heartbeat |
+| `firmware/drivers/usb.h` | HACK-2: removed `usb_hid_periodic` decl; added `extern usb_out_queue_drops` |
+| `firmware/main.cc` | HACK-4,6,7; homed state vars; not-homed slow blink; LEDs 6+7 in disconnect clear; flush fix |
+| `firmware/task_led.cc` | Queue depth 10 → 32 |
+| `firmware/port/tinyusb/usb_descriptors.c` | HACK-9: 500 → 200 mA |
+| `firmware/CMakeLists.txt` | Removed broken `add_definitions(-DCFG_TUSB_OS=OPT_OS_FREEERTOS)` |
+| `linuxcnc/hmi.py` | homed byte; program control gating; coolant/opt_stop edge detection |
 

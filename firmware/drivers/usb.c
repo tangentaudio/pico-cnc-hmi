@@ -4,7 +4,6 @@
 #include <FreeRTOS.h>
 #include <queue.h>
 #include <task.h>
-#include <queue.h>
 #include <boards/pico.h>
 #include "pico/stdlib.h"
 #include "bsp/board_api.h"
@@ -13,12 +12,12 @@
 
 
 QueueHandle_t usb_out_queue;
+volatile uint32_t usb_out_queue_drops = 0;
 
 void usb_init(void)
 {
   board_init();
-  //tud_init(BOARD_TUD_RHPORT);
-  
+
   tusb_rhport_init_t dev_init = {
      .role = TUSB_ROLE_DEVICE,
      .speed = TUSB_SPEED_AUTO
@@ -99,7 +98,12 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t rep
     usb_out_pkt pkt;
     memcpy(&pkt, buffer, bufsize);
 
-    xQueueSend(usb_out_queue, &pkt, 0);
+    if (xQueueSend(usb_out_queue, &pkt, 0) != pdTRUE) {
+      // Cannot block or printf safely in USB callback; count silently.
+      // main_task() logs usb_out_queue_drops periodically if non-zero.
+      extern volatile uint32_t usb_out_queue_drops;
+      usb_out_queue_drops++;
+    }
   } else {
     printf("report itf=%d id=%d type=%d size=%d\n", itf, report_id, report_type, bufsize);
     for(uint8_t i=0; i<bufsize; i++)
@@ -108,52 +112,6 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t rep
     }
     printf("\n");
   }
-}
-
-
-void usb_hid_periodic(void)
-{
-  // Poll every 10ms
-  const uint32_t interval_ms = 10;
-  static uint32_t start_ms = 0;
-
-  if ( board_millis() - start_ms < interval_ms) return; // not enough time
-  start_ms += interval_ms;
-
-  uint32_t const btn = board_button_read();
-
-  #ifdef REMOTE_WAKEUP
-  // Remote wakeup
-  if ( tud_suspended() && btn )
-  {
-    // Wake up host if we are in suspend mode
-    // and REMOTE_WAKEUP feature is enabled by host
-    tud_remote_wakeup();
-  }
-  #endif
-
-  // Keeb
-  if ( tud_hid_n_ready(ITF_KEYBOARD) )
-  {
-    // use to avoid send multiple consecutive zero report for keyboard
-    static bool has_key = false;
-
-    if ( btn )
-    {
-      uint8_t keycode[6] = { 0 };
-      keycode[0] = HID_KEY_A;
-
-      tud_hid_n_keyboard_report(ITF_KEYBOARD, 0, 0, keycode);
-
-      has_key = true;
-    }else
-    {
-      // send empty key report if previously has key pressed
-      if (has_key) tud_hid_n_keyboard_report(ITF_KEYBOARD, 0, 0, NULL);
-      has_key = false;
-    }
-  }
-
 }
 
 void usb_dump_out_pkt(usb_out_pkt* pkt)

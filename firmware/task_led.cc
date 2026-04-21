@@ -2,7 +2,7 @@
 
 TaskLED::TaskLED()
 {
-  cmd_queue = xQueueCreate(10, sizeof(cmd_t));
+  cmd_queue = xQueueCreate(32, sizeof(cmd_t));
 }
 
 TaskLED::~TaskLED()

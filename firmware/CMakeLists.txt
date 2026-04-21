@@ -33,9 +33,6 @@ set(PICO_BOARD pico2 CACHE STRING "Board type")
 include(pico_sdk_import.cmake)
 project(pico_cnc_hmi C CXX ASM)
 
-
-#add_definitions(-DCFG_TUSB_OS=OPT_OS_FREEERTOS -DCFG_TUSB_DEBUG=3)
-add_definitions(-DCFG_TUSB_OS=OPT_OS_FREEERTOS)
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
