@@ -75,13 +75,15 @@ Flow A: Manual jog workflow (current core behavior)
 5. LinuxCNC host bridge applies values via HAL and command interfaces.
 
 Flow B: Program execution control workflow (current core behavior)
-1. Operator presses Section C controls (Cycle Start / Stop / Pause / Single Step).
+1. Operator presses Section C controls (Cycle Start / Stop / Pause / Single Step / M1 Optional Stop / Coolant).
 2. Firmware maps these to motion command bits and sends them to host.
 3. Host bridge translates command bits to LinuxCNC commands:
 - Stop -> abort
-- Start -> resume or run (if idle)
-- Pause -> pause/resume toggle
-- Single Step -> step
+- Cycle Start -> AUTO_RUN (from IDLE), AUTO_RESUME (from normal pause), AUTO_STEP (in step mode)
+- Pause -> AUTO_PAUSE (gates: READING/WAITING, not step mode, not already paused)
+- Single Step -> AUTO_STEP from IDLE (enters step mode; Cycle Start then advances each step)
+- M1 Optional Stop -> toggle c.set_optional_stop() on press edge
+- Coolant -> toggle c.flood(FLOOD_ON/OFF) on press edge
 4. Host state update returns over HID output report.
 5. Firmware updates Section C LED feedback according to machine/interpreter state.
 
@@ -124,16 +126,24 @@ Section E selection LEDs (manual mode only):
 	- Axis 3 -> LED 5 on
 - Outside manual mode or when estop/disabled, these selection LEDs are forced off.
 
-Section C program-control LEDs (interp state presentation):
-- Controlled by interpreter state while enabled and not estop, in AUTO/TELEOP behavior path.
-- LED index mapping in current code:
-	- LED 8,9,10,11 are used as the four program-state indicators.
-- State presentation:
-	- INTERP_IDLE: LED 10 on steady
-	- INTERP_READING: LED 11 blinking
-	- INTERP_PAUSED: LED 9 blinking
-	- INTERP_WAITING: LED 11 on steady
-	- INTERP_OFF/default: all off
+Section C program-control LEDs (interp state presentation, 2026-04-20 milestone):
+- LED index to physical key mapping:
+	- LED 6 = M1 Optional Stop (0x3d): solid on = optional stop enabled, off = disabled
+	- LED 7 = Coolant/Flood (0x3e): solid on = flood on, off = flood off
+	- LED 8 = Single Step (0x33)
+	- LED 9 = Pause (0x34)
+	- LED 10 = Stop (0x35)
+	- LED 11 = Cycle Start (0x36)
+- Interp state presentation (LEDs 8-11, gated on enabled and not estop):
+	- INTERP_IDLE: LED 10 (Stop) solid
+	- INTERP_READING, normal run: LED 11 (Cycle Start) solid
+	- INTERP_READING, step mode: LED 8 (Step) + LED 11 (Cycle Start) solid if inpos, blink if not
+	- INTERP_PAUSED, normal run (AUTO_PAUSE): LED 9 (Pause) blink
+	- INTERP_PAUSED, step mode: LED 8 + LED 11 blink (waiting for Cycle Start) or solid (machine moving)
+	- INTERP_WAITING, normal run: LED 11 solid
+	- INTERP_WAITING, step mode: LED 8 + LED 11 blink or solid (same as PAUSED step logic)
+	- estop or disabled: all off
+- M1 and Coolant LEDs (6 and 7) always follow host state regardless of estop/enabled.
 
 Section D RGB encoder rings:
 - Ring 0 follows encoder 1 value and uses color urgb(0x3f, 0x1f, 0x00).
@@ -165,12 +175,12 @@ Section E and Section C controls (mapped):
 | Axis X select | 0x38 | 3 | selected_axis = 1 | pkt.axis = 1 |
 | Axis Y select | 0x39 | 4 | selected_axis = 2 | pkt.axis = 2 |
 | Axis Z select | 0x3a | 5 | selected_axis = 3 | pkt.axis = 3 |
-| M1 Stop (assumed) | 0x3d | 6 | LED-capable key in map; function not finalized | no dedicated motion_cmd bit currently |
-| Coolant (assumed) | 0x3e | 7 | LED-capable key in map; function not finalized | no dedicated motion_cmd bit currently |
-| Single Step | 0x33 | 8 | motion command key | motion_cmd bit 0x08 -> AUTO_STEP |
-| Pause | 0x34 | 9 | motion command key | motion_cmd bit 0x04 -> AUTO_PAUSE/RESUME |
-| Stop | 0x35 | 10 | motion command key | motion_cmd bit 0x02 -> abort |
-| Cycle Start | 0x36 | 11 | motion command key | motion_cmd bit 0x01 -> resume/run |
+| M1 Optional Stop | 0x3d | 6 | motion_cmd bit 0x10 (edge-detected) | toggle c.set_optional_stop(); LED = s.optional_stop |
+| Coolant/Flood | 0x3e | 7 | motion_cmd bit 0x20 (edge-detected) | toggle c.flood(ON/OFF); LED = bool(s.flood) |
+| Single Step | 0x33 | 8 | motion_cmd bit 0x08 | enters step mode from IDLE; Cycle Start advances steps |
+| Pause | 0x34 | 9 | motion_cmd bit 0x04 | AUTO_PAUSE (gated: READING/WAITING, not step mode) |
+| Stop | 0x35 | 10 | motion_cmd bit 0x02 | always c.abort() |
+| Cycle Start | 0x36 | 11 | motion_cmd bit 0x01 | AUTO_RUN/RESUME/STEP depending on state |
 
 Section D encoder and ring mapping:
 
@@ -188,7 +198,7 @@ Special jog/shuttle mapping (Section E concentric control):
 | Outer shuttle ring (spring return) | pkt.shuttle | HAL jog.outer.value and jog.is-shuttling |
 
 Open labeling note:
-- Matrix codes 0x3d and 0x3e are LED-addressable in the current map and likely correspond to M1 Stop/Coolant based on panel description, but exact lock-in should be confirmed when key legends/functions are finalized.
+- All Section C keys (0x3d through 0x36) are now fully implemented and locked in. No open physical-to-code mapping ambiguity remains for Section C.
 
 ## 1.5 Deployment Context and Primary Use Cases (Confirmed)
 
