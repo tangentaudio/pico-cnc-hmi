@@ -19,7 +19,7 @@ if(WIN32)
 else()
     set(USERHOME $ENV{HOME})
 endif()
-set(sdkVersion 2.1.1)
+set(sdkVersion 2.2.0)
 set(toolchainVersion 14_2_Rel1)
 set(picotoolVersion 2.1.1)
 set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
@@ -106,8 +106,12 @@ endif()
         ${FREERTOS_KERNEL_PATH}/portable/ThirdParty/GCC/RP2350_ARM_NTZ/non_secure)
 
 if(ENABLE_DISPLAY)
-# copy our modified lv_conf.h into the right place so the build finds it
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/port/lvgl/lv_conf.h DESTINATION ${CMAKE_BINARY_DIR}/lvgl)
+# Tell LVGL where to find our lv_conf.h (9.5.0+ uses LV_BUILD_CONF_DIR)
+set(LV_BUILD_CONF_DIR ${CMAKE_CURRENT_SOURCE_DIR}/port/lvgl CACHE PATH "" FORCE)
+
+# LVGL 9.5.0 registers this as a cmake dependency but doesn't include it in the
+# repo (it's an optional user hook). Without it ninja loops re-running cmake.
+file(TOUCH ${CMAKE_CURRENT_SOURCE_DIR}/lvgl/env_support/cmake/custom.cmake)
 
 add_subdirectory(lvgl)
 
@@ -121,6 +125,7 @@ target_include_directories(lvgl PUBLIC
     ${PICO_SDK_PATH}/src/rp2_common/pico_platform_sections/include/
     ${PICO_SDK_PATH}/src/rp2_common/pico_platform_compiler/include/
     ${PICO_SDK_PATH}/src/rp2_common/pico_platform_panic/include/
+    ${PICO_SDK_PATH}/src/rp2_common/pico_platform_common/include/
     ${PICO_SDK_PATH}/src/rp2_common/hardware_base/include/
     ${PICO_SDK_PATH}/src/rp2350/hardware_structs/include/
     ${PICO_SDK_PATH}/src/rp2_common/hardware_sync_spin_lock/include/

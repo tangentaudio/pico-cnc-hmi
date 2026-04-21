@@ -1,6 +1,6 @@
 # Pico CNC HMI Firmware - Project Summary
 
-Date: 2026-04-20 (updated same day after active debug session)
+Date: 2026-04-20 (last updated 2026-04-21 after SDK 2.2.0 + LVGL 9.5.0 upgrade)
 Scope: Source-based review of firmware plus LinuxCNC host bridge script.
 
 Current maturity (confirmed by user):
@@ -225,10 +225,46 @@ Top-level CMake options:
 - ENABLE_USB: enables TinyUSB HID interfaces and USB task.
 
 Key dependencies used directly:
-- Pico SDK
+- Pico SDK 2.2.0
 - FreeRTOS kernel
-- TinyUSB
-- LVGL (optional)
+- TinyUSB 0.18.0 (bundled with SDK 2.2.0)
+- LVGL 9.5.0 (optional, vendored at firmware/lvgl/)
+
+### 2.2 Build Quirks (2026-04-21 upgrade notes)
+
+The following issues were encountered upgrading from SDK 2.1.1 + LVGL 9.3.0 and are now addressed in CMakeLists.txt.
+Document them here so a fresh clone doesn't repeat the debugging.
+
+**Clean build required after LVGL version change**
+LVGL uses `file(GLOB_RECURSE ...)` to collect its source list. After a version upgrade, stale .o files from the
+old version persist in the build tree and cmake's dependency tracking carries them into the new build.ninja.
+Always wipe the build directory after changing the LVGL submodule version:
+```
+rm -rf build/ && mkdir build && cd build && cmake -G Ninja ..
+```
+
+**LVGL 9.5.0: lv_conf.h discovery changed**
+In 9.5.0, LVGL no longer finds `lv_conf.h` by looking in `${CMAKE_BINARY_DIR}/lvgl/`.
+Instead, use the `LV_BUILD_CONF_DIR` cache variable set before `add_subdirectory(lvgl)`.
+Must be declared with `CACHE PATH "" FORCE` so it overrides the cached default on a clean configure:
+```cmake
+set(LV_BUILD_CONF_DIR ${CMAKE_CURRENT_SOURCE_DIR}/port/lvgl CACHE PATH "" FORCE)
+```
+
+**LVGL 9.5.0: custom.cmake ninja loop**
+LVGL 9.5.0 registers `lvgl/env_support/cmake/custom.cmake` as a cmake input dependency, but does not
+include this file in the repository (it is an optional user-customization hook). When the file doesn't
+exist, ninja sees its phony output as perpetually dirty and loops re-running cmake indefinitely.
+CMakeLists.txt now creates this file automatically with `file(TOUCH ...)` before `add_subdirectory(lvgl)`.
+
+**SDK 2.2.0: new pico_platform_common module**
+SDK 2.2.0 split platform common headers into a new module `pico_platform_common`. Any library that
+indirectly pulls in Pico headers (LVGL does, via FreeRTOS portmacro.h) needs this include added manually
+since it is not automatically propagated through the LVGL cmake target:
+```
+${PICO_SDK_PATH}/src/rp2_common/pico_platform_common/include/
+```
+This is added to the `target_include_directories(lvgl ...)` block in CMakeLists.txt.
 
 ## 2.1 2026 SDK Landscape Audit (For This Project)
 
