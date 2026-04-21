@@ -157,7 +157,7 @@ void set_simple_led(uint8_t led, uint8_t value, uint8_t mode = TaskLED::NORMAL, 
   xQueueSend(task_led->cmd_queue, &cmd, 0);
 }
 
-void set_led_interp_state(interp_t state)
+void set_led_interp_state(interp_t state, bool task_paused = false, bool inpos = true)
 {
   switch (state)
   {
@@ -168,22 +168,65 @@ void set_led_interp_state(interp_t state)
     set_simple_led(11, 0, TaskLED::NORMAL, true);
     break;
   case INTERP_READING:
-    set_simple_led(8, 0, TaskLED::NORMAL);
-    set_simple_led(9, 0, TaskLED::NORMAL);
-    set_simple_led(10, 0, TaskLED::NORMAL);
-    set_simple_led(11, 64, TaskLED::BLINK, true);
+    if (task_paused)
+    {
+      // Single-step: executing — solid if machine is moving, blink if inpos (non-motion step).
+      TaskLED::modes m = inpos ? TaskLED::BLINK : TaskLED::NORMAL;
+      set_simple_led(8, 64, m);
+      set_simple_led(9, 0, TaskLED::NORMAL);
+      set_simple_led(10, 0, TaskLED::NORMAL);
+      set_simple_led(11, 64, m, true);
+    }
+    else
+    {
+      // Normal run: program executing — run LED solid.
+      set_simple_led(8, 0, TaskLED::NORMAL);
+      set_simple_led(9, 0, TaskLED::NORMAL);
+      set_simple_led(10, 0, TaskLED::NORMAL);
+      set_simple_led(11, 64, TaskLED::NORMAL, true);
+    }
     break;
   case INTERP_PAUSED:
-    set_simple_led(8, 0, TaskLED::NORMAL);
-    set_simple_led(9, 64, TaskLED::BLINK);
-    set_simple_led(10, 0, TaskLED::NORMAL);
-    set_simple_led(11, 0, TaskLED::NORMAL, true);
+    if (task_paused)
+    {
+      // Single-step: waiting=blink, executing non-motion step (inpos still True but
+      // PAUSED is transient here so blink is correct — we won't see READING for fast steps).
+      // Use inpos to differentiate: not-inpos means motion in progress → solid.
+      TaskLED::modes m = inpos ? TaskLED::BLINK : TaskLED::NORMAL;
+      set_simple_led(8, 64, m);
+      set_simple_led(9, 0, TaskLED::NORMAL);
+      set_simple_led(10, 0, TaskLED::NORMAL);
+      set_simple_led(11, 64, m, true);
+    }
+    else
+    {
+      // Mid-run pause (AUTO_PAUSE) — pause LED blink.
+      set_simple_led(8, 0, TaskLED::NORMAL);
+      set_simple_led(9, 64, TaskLED::BLINK);
+      set_simple_led(10, 0, TaskLED::NORMAL);
+      set_simple_led(11, 0, TaskLED::NORMAL, true);
+    }
     break;
   case INTERP_WAITING:
-    set_simple_led(8, 0, TaskLED::NORMAL);
-    set_simple_led(9, 0, TaskLED::NORMAL);
-    set_simple_led(10, 0, TaskLED::NORMAL);
-    set_simple_led(11, 64, TaskLED::NORMAL, true);
+    if (task_paused)
+    {
+      // Single-step: WAITING+task_paused after a motion step.
+      // inpos=True → done, waiting for Cycle Start → blink.
+      // inpos=False → motion still settling → solid.
+      TaskLED::modes m = inpos ? TaskLED::BLINK : TaskLED::NORMAL;
+      set_simple_led(8, 64, m);
+      set_simple_led(9, 0, TaskLED::NORMAL);
+      set_simple_led(10, 0, TaskLED::NORMAL);
+      set_simple_led(11, 64, m, true);
+    }
+    else
+    {
+      // Normal run: briefly waiting for motion queue to drain — run LED stays solid.
+      set_simple_led(8, 0, TaskLED::NORMAL);
+      set_simple_led(9, 0, TaskLED::NORMAL);
+      set_simple_led(10, 0, TaskLED::NORMAL);
+      set_simple_led(11, 64, TaskLED::NORMAL, true);
+    }
     break;
   default:
     // off
@@ -283,6 +326,10 @@ void main_task(void *unused)
   bool machine_estop = true;
   bool machine_enabled = false;
   interp_t machine_interp_state = INTERP_OFF;
+  bool machine_task_paused = false;
+  bool machine_inpos = true;
+  bool machine_coolant = false;
+  bool machine_optional_stop = false;
 
   mode_t machine_mode = MODE_UNKNOWN;
 
@@ -346,6 +393,34 @@ void main_task(void *unused)
           machine_state_changed = true;
         }
 
+        if (out_pkt.s.task_paused != machine_task_paused)
+        {
+          printf("machine_task_paused %d -> %d\n", machine_task_paused, out_pkt.s.task_paused);
+          machine_task_paused = out_pkt.s.task_paused;
+          machine_state_changed = true;
+        }
+
+        if (out_pkt.s.inpos != machine_inpos)
+        {
+          printf("machine_inpos %d -> %d\n", machine_inpos, out_pkt.s.inpos);
+          machine_inpos = out_pkt.s.inpos;
+          machine_state_changed = true;
+        }
+
+        if (out_pkt.s.coolant != machine_coolant)
+        {
+          printf("machine_coolant %d -> %d\n", machine_coolant, out_pkt.s.coolant);
+          machine_coolant = out_pkt.s.coolant;
+          machine_state_changed = true;
+        }
+
+        if (out_pkt.s.optional_stop != machine_optional_stop)
+        {
+          printf("machine_optional_stop %d -> %d\n", machine_optional_stop, out_pkt.s.optional_stop);
+          machine_optional_stop = out_pkt.s.optional_stop;
+          machine_state_changed = true;
+        }
+
         // Keep override encoders synchronized to host state even when disabled/estop,
         // so startup defaults are reflected on the panel immediately.
         bool feedrate_changed = (out_pkt.s.feedrate_override != last_out_pkt.s.feedrate_override);
@@ -389,23 +464,24 @@ void main_task(void *unused)
           xQueueSend(task_led->cmd_queue, &fcmd, 0);
         }
 
-        if (!machine_estop && machine_enabled)
+        if (!machine_estop && machine_enabled && machine_state_changed)
         {
-          if ((machine_mode == MODE_AUTO || machine_mode == MODE_TELEOP) && machine_state_changed)
-          {
-            // in MODE_AUTO show the current interp_state on the start/stop/pause/step LEDs
-            set_led_interp_state(machine_interp_state);
-          }
-          else if (machine_state_changed)
-          {
-            // not in MODE_AUTO so shut off the start/stop/pause/step LEDs
-            set_led_interp_state(INTERP_OFF);
-          }
+          // Always reflect interp state on the LEDs when machine is enabled,
+          // regardless of mode. STOP LED lit = machine idle/ready.
+          // The keys that trigger cycle commands are still gated on MODE_AUTO/TELEOP.
+          set_led_interp_state(machine_interp_state, machine_task_paused, machine_inpos);
         }
-        else
+        else if (machine_state_changed)
         {
           // machine is in estop or disabled, turn off the start/stop/pause/step LEDs
           set_led_interp_state(INTERP_OFF);
+        }
+
+        if (machine_state_changed)
+        {
+          // Coolant and optional-stop LEDs always reflect host state.
+          set_simple_led(6, machine_coolant ? 64 : 0, TaskLED::NORMAL);
+          set_simple_led(7, machine_optional_stop ? 64 : 0, TaskLED::NORMAL, true);
         }
 
         memcpy(&last_out_pkt, &out_pkt, sizeof(out_pkt));
@@ -460,8 +536,11 @@ void main_task(void *unused)
         }
         else if (!mtx_evt.gpio)
         {
-          if (!machine_estop && machine_enabled && (machine_mode == MODE_AUTO || machine_mode == MODE_TELEOP))
+          if (!machine_estop && machine_enabled)
           {
+            // Cycle commands: gate only on estop/enabled.
+            // LinuxCNC rejects c.auto() calls when not in AUTO/TELEOP mode,
+            // so let hmi.py pass the command through and let LinuxCNC handle it.
             if (mtx_evt.code == 0x33)
             {
               if (mtx_evt.press)
@@ -492,6 +571,22 @@ void main_task(void *unused)
                 motion_command |= 0x01;
               else
                 motion_command &= ~0x01;
+              usb_in_pending = true;
+            }
+            else if (mtx_evt.code == 0x3d)
+            {
+              if (mtx_evt.press)
+                motion_command |= 0x10;
+              else
+                motion_command &= ~0x10;
+              usb_in_pending = true;
+            }
+            else if (mtx_evt.code == 0x3e)
+            {
+              if (mtx_evt.press)
+                motion_command |= 0x20;
+              else
+                motion_command &= ~0x20;
               usb_in_pending = true;
             }
           }
@@ -562,7 +657,7 @@ void main_task(void *unused)
         set_led_selected_axis(0);
       }
     }
-    if (usb_in_pending)
+    if (usb_in_pending && initial_feedrate && initial_rapidrate && initial_maxvel)
       {
         usb_in_pkt pkt;
         pkt.s.knob1 = task_encoder->get_value(1);
@@ -629,6 +724,50 @@ void main_task(void *unused)
         initial_rapidrate = false;
         initial_maxvel = false;
         bzero(&last_out_pkt, sizeof(last_out_pkt));
+
+        // Process the first OUT packet's override values immediately so encoder
+        // positions are correct before any IN packet can be sent.  Without this
+        // the sync is deferred until the second OUT packet (up to 500ms later)
+        // and any knob touch in that window sends 0s to LinuxCNC.
+        xTimerStart(hbeat_timer, 0);
+        machine_estop       = out_pkt.s.estop;
+        machine_enabled     = out_pkt.s.enabled;
+        machine_mode        = (mode_t)out_pkt.s.mode;
+        machine_interp_state = (interp_t)out_pkt.s.interp_state;
+        machine_task_paused = out_pkt.s.task_paused;
+        machine_inpos       = out_pkt.s.inpos;
+        set_encoder_value(1, out_pkt.s.feedrate_override, false);
+        set_encoder_value(2, out_pkt.s.rapidrate_override, false);
+        set_encoder_value(3, out_pkt.s.maxvel_override, false);
+        set_ring_led(0, out_pkt.s.feedrate_override, dot_colors[0], false);
+        set_ring_led(1, out_pkt.s.rapidrate_override, dot_colors[1], false);
+        set_ring_led(2, out_pkt.s.maxvel_override, dot_colors[2], false);
+        {
+          TaskLED::cmd_t fcmd;
+          fcmd.cmd = TaskLED::LED_CMD_FLUSH;
+          xQueueSend(task_led->cmd_queue, &fcmd, 0);
+        }
+        // Reflect full machine state on all LEDs immediately at connect time,
+        // without waiting for a state-change transition.
+        if (!machine_estop && machine_enabled)
+        {
+          set_led_interp_state(machine_interp_state, machine_task_paused, machine_inpos);
+          if (machine_mode == MODE_MANUAL)
+          {
+            set_led_selected_increment(selected_increment);
+            set_led_selected_axis(selected_axis);
+          }
+        }
+        else
+        {
+          set_led_interp_state(INTERP_OFF);
+          set_led_selected_increment(0);
+          set_led_selected_axis(0);
+        }
+        initial_feedrate = true;
+        initial_rapidrate = true;
+        initial_maxvel = true;
+        memcpy(&last_out_pkt, &out_pkt, sizeof(out_pkt));
       }
 
     }

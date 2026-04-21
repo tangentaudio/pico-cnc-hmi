@@ -53,7 +53,11 @@ void TaskEncoder::task(void *param)
 
   bool force_encoder_update = false;
 
-  int last_value[5] = {-1, -1, -1, -1, -1};
+  // Initialize last_value to 0 (not -1) to match the hardware-reset encoder
+  // state on startup.  Using -1 would cause spurious "0 != -1" events to fire
+  // immediately, triggering IN packets with knob=0 before the startup sync
+  // (set_encoder_value) can set them to the correct LinuxCNC values.
+  int last_value[5] = {0, 0, 0, 0, 0};
 
   while (true)
   {

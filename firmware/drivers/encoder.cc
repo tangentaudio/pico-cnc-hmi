@@ -3,7 +3,7 @@
 #include "quadrature.pio.h"
 
 Encoder::Encoder() : m_pins{6, 12, 14, 16},
-                     m_last_values{-1, -1, -1, -1},
+                     m_last_values{0, 0, 0, 0},
                      m_cur_values{0, 0, 0, 0},
                      m_minimum{0, 0, 0, 0},
                      m_maximum{100, 100, 100, 100},

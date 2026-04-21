@@ -43,6 +43,10 @@ typedef union out_pkt_u
     uint8_t feedrate_override;
     uint8_t rapidrate_override;
     uint8_t maxvel_override;
+    uint8_t task_paused;
+    uint8_t inpos;
+    uint8_t coolant;
+    uint8_t optional_stop;
   } s;
   unsigned char buf[64];
 }  __attribute__ ((packed)) usb_out_pkt;

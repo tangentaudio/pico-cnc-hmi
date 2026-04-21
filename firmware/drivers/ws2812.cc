@@ -4,6 +4,10 @@
 #include <task.h>
 #include "ws2812.hh"
 
+// Define RING_LED_FULL_BAR to light all LEDs from 0 up to (and including) value.
+// Comment out to show only the single "ball" LED at the current value.
+#define RING_LED_FULL_BAR
+
 WS2812::WS2812()
 {
     for (int i = 0; i < WS2812_NUM_LEDS; i++) {
@@ -65,13 +69,26 @@ void WS2812::setRing(uint8_t ring, uint8_t value, uint32_t ball_color, bool upda
 
     uint8_t ofs = ring * 15;
 
+#ifdef RING_LED_FULL_BAR
+    // Full-bar mode: LEDs 0..(value-1) dimmed, LED value at full brightness.
+    // Dim by dividing each colour channel by 4 (shift right 2, mask to prevent
+    // inter-byte bleed: 0x3F3F3F keeps the lower 6 bits of each byte).
+    uint32_t bar_color = (ball_color >> 4) & 0x0F0F0F;
     for (uint8_t i = 0; i < 15; i++) {
-        if (i == value) {
-            m_leds[(i + ofs)] = ball_color;
-        } else {
-            m_leds[(i + ofs)] = 0;
-        }
+        if (i < value)
+            m_leds[i + ofs] = bar_color;
+        else if (i == value)
+            m_leds[i + ofs] = ball_color;
+        else
+            m_leds[i + ofs] = 0;
     }
+#else
+    // Ball mode: only the LED at value is lit.
+    for (uint8_t i = 0; i < 15; i++) {
+        m_leds[i + ofs] = (i == value) ? ball_color : 0;
+    }
+#endif
+
     if (update_now)
         update();
 }
