@@ -117,7 +117,7 @@ void TaskDisplay::gui_task(void *param)
   static lv_point_precise_t div_pts[2] = {{0, MID - 1}, {W - 1, MID - 1}};
   lv_obj_t *divider = lv_line_create(scr);
   lv_line_set_points(divider, div_pts, 2);
-  lv_obj_set_style_line_color(divider, lv_color_white(), LV_PART_MAIN);
+  lv_obj_set_style_line_color(divider, lv_color_make(0x30, 0x30, 0x30), LV_PART_MAIN);
   lv_obj_set_style_line_width(divider, 1, LV_PART_MAIN);
   lv_obj_set_style_line_opa(divider, LV_OPA_TRANSP, LV_PART_MAIN); // hidden until connected
 
@@ -130,23 +130,34 @@ void TaskDisplay::gui_task(void *param)
   lv_obj_set_pos(lbl_power, 2, 5);
   lv_label_set_text(lbl_power, "");
 
-  // Mode (MANUAL / AUTO / MDI)
+  // Mode (MAN / AUTO / MDI)
   lv_obj_t *lbl_mode = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_mode, &lv_font_montserrat_18, LV_PART_MAIN);
-  lv_obj_set_pos(lbl_mode, 2, 5);
+  lv_obj_set_style_text_font(lbl_mode, &lv_font_montserrat_14, LV_PART_MAIN);
+  lv_obj_align(lbl_mode, LV_ALIGN_TOP_LEFT, 3, 8);
   lv_label_set_text(lbl_mode, "");
 
-  // Interp state (IDLE / RUNNING / PAUSED / WAITING)
+  // Interp state (IDLE / RUN / PAUSE / STEP) — fixed-width centred in row 1
   lv_obj_t *lbl_interp = lv_label_create(scr);
   lv_obj_set_style_text_font(lbl_interp, &lv_font_montserrat_18, LV_PART_MAIN);
-  lv_obj_set_pos(lbl_interp, 120, 5);
+  lv_obj_set_style_text_align(lbl_interp, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+  lv_obj_set_width(lbl_interp, 90);
+  lv_obj_align(lbl_interp, LV_ALIGN_TOP_MID, 0, 5);
   lv_label_set_text(lbl_interp, "");
 
-  // Homed indicator (right side of row 1)
+  // Homed indicator — LV_SYMBOL_HOME icon, right side of row 1
   lv_obj_t *lbl_homed = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_homed, &lv_font_montserrat_14, LV_PART_MAIN);
-  lv_obj_align(lbl_homed, LV_ALIGN_TOP_RIGHT, -2, 4);
+  lv_obj_set_style_text_font(lbl_homed, &lv_font_montserrat_20, LV_PART_MAIN);
+  lv_obj_align(lbl_homed, LV_ALIGN_TOP_RIGHT, -3, 5);
   lv_label_set_text(lbl_homed, "");
+
+  // Slash drawn over the home icon when not homed.
+  // Coordinates approximate the icon bounding box at font_20, TOP_RIGHT (-3, 5).
+  static lv_point_precise_t slash_pts[2] = {{233, 28}, {254, 4}};
+  lv_obj_t *slash_homed = lv_line_create(scr);
+  lv_line_set_points(slash_homed, slash_pts, 2);
+  lv_obj_set_style_line_color(slash_homed, lv_color_white(), LV_PART_MAIN);
+  lv_obj_set_style_line_width(slash_homed, 2, LV_PART_MAIN);
+  lv_obj_add_flag(slash_homed, LV_OBJ_FLAG_HIDDEN);
 
   // ---------------------------------------------------------------
   // Row 2 labels  (y=32..63)
@@ -436,21 +447,21 @@ void TaskDisplay::gui_task(void *param)
       const char *interp_str;
 
       if (!ms.enabled) {
-        mode_str   = "MACHINE OFF";
+        mode_str   = "OFF";
         interp_str = "";
       } else {
         switch (ms.mode) {
-          case MODE_MANUAL: mode_str = "MANUAL"; break;
-          case MODE_AUTO:   mode_str = "AUTO";   break;
-          case MODE_MDI:    mode_str = "MDI";    break;
-          default:          mode_str = "---";    break;
+          case MODE_MANUAL: mode_str = "MAN";  break;
+          case MODE_AUTO:   mode_str = "AUTO"; break;
+          case MODE_MDI:    mode_str = "MDI";  break;
+          default:          mode_str = "---";  break;
         }
         switch (ms.interp_state) {
-          case INTERP_IDLE:    interp_str = "IDLE";    break;
+          case INTERP_IDLE:    interp_str = "IDLE";  break;
           case INTERP_READING: interp_str = ms.task_paused ? "STEP" : "RUN"; break;
-          case INTERP_PAUSED:  interp_str = "PAUSED";  break;
-          case INTERP_WAITING: interp_str = "WAITING"; break;
-          default:             interp_str = "OFF";     break;
+          case INTERP_PAUSED:  interp_str = "PAUSE"; break;
+          case INTERP_WAITING: interp_str = "RUN";   break;
+          default:             interp_str = "OFF";   break;
         }
       }
 
@@ -472,11 +483,14 @@ void TaskDisplay::gui_task(void *param)
       lv_obj_add_flag(lbl_power, LV_OBJ_FLAG_HIDDEN);  // power icon folded into lbl_mode
       lv_label_set_text(lbl_mode,   mode_str);
       lv_label_set_text(lbl_interp, interp_str);
-      lv_label_set_text(lbl_homed,
-          ms.homed ? "HOMED" : "NOT HOMED");
-      lv_obj_set_style_text_color(lbl_homed,
-          ms.homed ? lv_color_white() : lv_color_make(0xA0, 0xA0, 0x00),
-          LV_PART_MAIN);
+      lv_label_set_text(lbl_homed, LV_SYMBOL_HOME);
+      if (ms.homed) {
+        lv_obj_set_style_text_color(lbl_homed, lv_color_white(), LV_PART_MAIN);
+        lv_obj_add_flag(slash_homed, LV_OBJ_FLAG_HIDDEN);
+      } else {
+        lv_obj_set_style_text_color(lbl_homed, lv_color_make(0x30, 0x30, 0x30), LV_PART_MAIN);
+        lv_obj_remove_flag(slash_homed, LV_OBJ_FLAG_HIDDEN);
+      }
       lv_label_set_text(lbl_feed,  feed_buf);
       lv_label_set_text(lbl_rapid, rapid_buf);
       lv_label_set_text(lbl_vel,   vel_buf);
