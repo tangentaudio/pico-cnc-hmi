@@ -341,7 +341,9 @@ void main_task(void *unused)
   const uint32_t jog_increments[] = {0, 100, 10, 1};
 
   uint8_t keybuf[6] = {0, 0, 0, 0, 0, 0};
-  uint8_t modifiers;
+  uint8_t modifiers = 0;
+  bool sec_a_shift = false;          // true while Section A wide modifier key is held
+  uint8_t pressed_hid[0x60] = {};   // maps matrix code -> HID keycode sent on press (for correct release)
 
   usb_out_pkt last_out_pkt;
 
@@ -779,17 +781,34 @@ void main_task(void *unused)
 #endif
           }
 
-          uint8_t hid_keycode = 0;
-          bool found = TaskMatrix::hid_keycode(mtx_evt.code, hid_keycode, modifiers);
-          if (found && mtx_evt.press)
-          {
-            TaskMatrix::hid_n_key_buf_add(keybuf, hid_keycode);
-            key_updated = true;
-          }
-          else if (found && !mtx_evt.press)
-          {
-            TaskMatrix::hid_n_key_buf_remove(keybuf, hid_keycode);
-            key_updated = true;
+          if (TaskMatrix::is_section_a_shift(mtx_evt.code)) {
+            // Wide modifier key: track state only, send nothing to host.
+            sec_a_shift = mtx_evt.press;
+          } else {
+            uint8_t key_hid = 0;
+            bool found = false;
+            if (sec_a_shift)
+              found = TaskMatrix::hid_keycode_shifted(mtx_evt.code, key_hid, modifiers);
+            if (!found)
+              found = TaskMatrix::hid_keycode(mtx_evt.code, key_hid, modifiers);
+            if (found && mtx_evt.press)
+            {
+              if (mtx_evt.code < sizeof(pressed_hid))
+                pressed_hid[mtx_evt.code] = key_hid;
+              TaskMatrix::hid_n_key_buf_add(keybuf, key_hid);
+              key_updated = true;
+            }
+            else if (found && !mtx_evt.press)
+            {
+              // Use the keycode recorded at press time so release always matches,
+              // regardless of whether the shift modifier state has changed.
+              uint8_t remove_hid = (mtx_evt.code < sizeof(pressed_hid) && pressed_hid[mtx_evt.code] != 0)
+                                   ? pressed_hid[mtx_evt.code] : key_hid;
+              if (mtx_evt.code < sizeof(pressed_hid))
+                pressed_hid[mtx_evt.code] = 0;
+              TaskMatrix::hid_n_key_buf_remove(keybuf, remove_hid);
+              key_updated = true;
+            }
           }
         }
       }
