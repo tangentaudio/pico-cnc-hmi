@@ -105,6 +105,22 @@ Added `max_velocity` float rounding to suppress jitter-driven spurious status up
 
 ### STOP+CYCLE START chord: home all axes (2026-04-22)
 Hold STOP then CYCLE START for 2 seconds (only when enabled and not homed) to trigger
-`c.home(-1)`. STOP LED fast-blinks (4 Hz) during countdown; both LEDs flash full brightness
-on fire. Bit 0x40 added to `motion_cmd` byte. Guard: chord only active when
-`!estop && enabled && !homed`; hmi.py also checks `!status['homed']` before calling `c.home()`.
+`c.home(-1)` and pulse `hmi.home-all` → `halui.home-all`. STOP LED fast-blinks (4 Hz)
+during countdown; both LEDs flash full brightness on fire. Bit 0x40 added to `motion_cmd`
+byte. Guard: chord only active when `!estop && enabled && !homed`.
+
+### Probe Basic (QtPyVCP) sim config (2026-04-22)
+`linuxcnc/pb_sim/` — standalone config alongside `hmi_sim/` (AXIS).
+- 3-axis XYZ, inch, same HMI bridge and wiring as hmi_sim
+- `DISPLAY = probe_basic`; venv (`~/dev/venv/bin/`) prepended to PATH in `run_pb_sim.sh`
+- HAL: `core_sim_3.hal` + `simulated_home_probe_basic_3.hal` + `spindle_sim.hal`
+- Local `hallib/probe_basic_postgui.hal` loads `not names=pb-not` to avoid conflict
+  with `hmi_wiring.hal`'s `names=hmi-not` (POSIX sim can't `loadrt` same module twice)
+- `subroutines/`, `user_buttons/`, `user_dro_display/`, `custom_config.yml`,
+  `user_atc_buttons/` all symlinked from `~/dev/probe_basic/configs/probe_basic/`
+
+### hmi.home-all HAL pin (2026-04-22)
+`hmi.home-all` BIT OUT pin added to hmi.py. Pulsed TRUE for one cycle on the
+STOP+CYCLE-START chord (bit 0x40). Wired to `halui.home-all` in both
+`hmi_sim/hmi_wiring.hal` and `pb_sim/hmi_wiring.hal`. This is the same
+path Probe Basic's "REF ALL" button uses, so the UI tracks homing correctly.

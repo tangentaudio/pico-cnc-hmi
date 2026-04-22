@@ -1,0 +1,4 @@
+# HMI bridge for Probe Basic simulation
+# Loads the Python bridge component that talks to the Pico HID device.
+# Identical to hmi_sim/hmi_bridge.hal — the bridge is GUI-agnostic.
+loadusr -Wn hmi python3 /home/steve/devel/pico-cnc-hmi/linuxcnc/hmi.py

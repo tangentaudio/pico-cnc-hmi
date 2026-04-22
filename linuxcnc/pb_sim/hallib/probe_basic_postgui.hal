@@ -1,0 +1,29 @@
+# probe_basic_postgui.hal — local copy for pb_sim.
+#
+# 'not' RT module is loaded by hmi_wiring.hal as 'loadrt not names=hmi-not,pb-not'.
+# pb-not is also addf'd to servo-thread there.  This postgui only needs 'net' for it.
+# 'time' is not loaded by any pre-GUI file so it is safe to loadrt here.
+
+loadrt time
+
+addf time.0 servo-thread
+
+net prog-running pb-not.in <= halui.program.is-idle
+net prog-paused halui.program.is-paused => time.0.pause
+net cycle-timer time.0.start <= pb-not.out
+net cycle-seconds qtpyvcp.timerseconds.in <= time.0.seconds
+net cycle-minutes qtpyvcp.timerminutes.in <= time.0.minutes
+net cycle-hours qtpyvcp.timerhours.in <= time.0.hours
+# *** Time items required for Probe Basic to run ***
+
+#  ---manual tool change signals---
+net tool-change-request     =>  qtpyvcp_manualtoolchange.change
+net tool-change-confirmed   <=  qtpyvcp_manualtoolchange.changed
+net tool-number             =>  qtpyvcp_manualtoolchange.number
+
+# *** Probe graphic simulation trigger push probe tip ***
+net probe-in  =>  qtpyvcp.probe-in.out
+net probe-in  <=  qtpyvcp.probe-led.on
+
+# *** Set line below for actual spindle readout from your hal file ***
+net spindle-rpm-filtered scale_to_rpm.out  =>  qtpyvcp.spindle-encoder-rpm.in

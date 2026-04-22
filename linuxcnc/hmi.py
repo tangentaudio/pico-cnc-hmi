@@ -345,6 +345,10 @@ HAL.newpin('jog.step', hal.HAL_FLOAT, hal.HAL_OUT)
 HAL.newpin('jog.inner.value', hal.HAL_S32, hal.HAL_OUT)
 HAL.newpin('jog.outer.value', hal.HAL_FLOAT, hal.HAL_OUT)
 HAL.newpin('jog.is-shuttling', hal.HAL_BIT, hal.HAL_OUT)
+# Pulsed TRUE for one cycle when the STOP+CYCLE-START chord fires.
+# Wire to halui.home-all in the HAL config so both AXIS and Probe Basic
+# GUIs respond to it without relying solely on c.home(-1).
+HAL.newpin('home-all', hal.HAL_BIT, hal.HAL_OUT)
 
 HAL.ready()
 
@@ -548,14 +552,33 @@ while True:
                 HAL['jog.outer.value'] = float(pkt[6]) / 10.0
                 HAL['jog.is-shuttling'] = not (pkt[6] == 0)
 
+                # Auto-clear the home-all pulse from the previous cycle.
+                if HAL['home-all']:
+                    HAL['home-all'] = False
+
                 motion_cmd = pkt[7]
                 cmd_step = motion_cmd & 0x08
                 cmd_pause = motion_cmd & 0x04
                 cmd_stop = motion_cmd & 0x02
                 cmd_start = motion_cmd & 0x01
-                cmd_coolant_edge = (motion_cmd & 0x20) and not (prev_motion_cmd & 0x20)
+                cmd_coolant_edge     = (motion_cmd & 0x20) and not (prev_motion_cmd & 0x20)
                 cmd_optional_stop_edge = (motion_cmd & 0x10) and not (prev_motion_cmd & 0x10)
+                cmd_home_all_edge    = (motion_cmd & 0x40) and not (prev_motion_cmd & 0x40)
                 prev_motion_cmd = motion_cmd
+
+                if cmd_home_all_edge:
+                    if not status['homed']:
+                        print(f"cmd: HOME ALL (joints={s.joints})")
+                        # Pulse halui.home-all — works with both AXIS and Probe Basic.
+                        # c.home(-1) is also issued as a direct fallback in case
+                        # halui.home-all is not wired in the HAL config.
+                        HAL['home-all'] = True
+                        if status['mode'] != linuxcnc.MODE_MANUAL:
+                            c.mode(linuxcnc.MODE_MANUAL)
+                            c.wait_complete()
+                        c.home(-1)
+                    else:
+                        print("cmd: HOME ALL ignored — already homed")
 
                 if cmd_stop:
                     print(f"cmd: STOP (interp={s.interp_state} step={in_step_mode()})")
@@ -619,22 +642,3 @@ while True:
         print("HMI: waiting for device to reconnect...")
 
     time.sleep(1)
-
-
-
-            
-            
-
-
-
-
-    time.sleep(1)
-
-
-
-            
-            
-
-
-
-

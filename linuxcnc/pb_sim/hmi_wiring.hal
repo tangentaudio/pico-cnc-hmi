@@ -1,8 +1,13 @@
-# HMI jog/shuttle integration adapted from previously working /tmp/hmi.hal.
+# HMI jog/shuttle integration for Probe Basic sim.
+# Adapted from hmi_sim/hmi_wiring.hal with one modification:
+# In POSIX non-realtime (sim) mode, the 'not' RT module can only be loaded
+# once per LinuxCNC session.  hmi_wiring needs 'hmi-not' for shuttle logic,
+# and probe_basic_postgui needs 'pb-not' for the cycle timer.  Load both
+# instances in a single loadrt call here so the postgui only needs 'net'.
 
 loadrt demux names=hmi-axis.demux personality=4
 loadrt and2 names=hmi-and-shuttle-x,hmi-and-shuttle-y,hmi-and-shuttle-z,hmi-and-jog-x,hmi-and-jog-y,hmi-and-jog-z
-loadrt not names=hmi-not
+loadrt not names=hmi-not,pb-not
 loadrt ilowpass names=hmi-lowpass
 
 addf hmi-axis.demux servo-thread
@@ -10,6 +15,7 @@ addf hmi-and-shuttle-x servo-thread
 addf hmi-and-shuttle-y servo-thread
 addf hmi-and-shuttle-z servo-thread
 addf hmi-not servo-thread
+addf pb-not servo-thread       # reserved for probe_basic_postgui cycle timer
 addf hmi-and-jog-x servo-thread
 addf hmi-and-jog-y servo-thread
 addf hmi-and-jog-z servo-thread

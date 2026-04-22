@@ -1,0 +1,6 @@
+# Runtime-generated files — do not commit
+*.var.bak
+pb_sim.log
+pb_sim.pref
+.vcp_persistent_data.pickle
+__pycache__/
