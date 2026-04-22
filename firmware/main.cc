@@ -369,6 +369,13 @@ void main_task(void *unused)
   bool initial_rapidrate = false;
   bool initial_maxvel = false;
 
+  // Per-encoder flag: set when the user physically moves (or button-toggles) a
+  // knob.  While false, host feedback changes are re-synced immediately to the
+  // encoder so that LinuxCNC's startup settling packets don't leave the encoder
+  // stuck at a transient 0 value.  Reset to false at each reconnect.
+  bool enc_user_moved[4] = {false, false, false, false};
+
+
   bzero(&last_out_pkt, sizeof(last_out_pkt));
 
   const uint32_t dot_colors[] = {
@@ -478,8 +485,8 @@ void main_task(void *unused)
         // shuttle returns to neutral due to simulator settling or following-error noise.
         if (pos_changed && shuttle_active &&
             !machine_estop && machine_enabled && machine_mode == MODE_MANUAL) {
-          printf("[main] pos-feedback JOG: shuttle_active=%d pos=%.4f,%.4f,%.4f\n",
-              (int)shuttle_active, (double)g_machine_pos[0], (double)g_machine_pos[1], (double)g_machine_pos[2]);
+          // printf("[main] pos-feedback JOG: shuttle_active=%d pos=%.4f,%.4f,%.4f\n",
+          //     (int)shuttle_active, (double)g_machine_pos[0], (double)g_machine_pos[1], (double)g_machine_pos[2]);
           // DISPLAY_CMD_JOG disabled
           if (false) {
           TaskDisplay::cmd_t dcmd;
@@ -501,32 +508,31 @@ void main_task(void *unused)
         bool maxvel_changed = (out_pkt.s.maxvel_override != last_out_pkt.s.maxvel_override);
 
         // Update ring LED displays from OUT packet feedback (host-authoritative).
-        // On first OUT packet (startup), also sync encoder so ring and encoder match initially.
-        // After that, encoder position is independent user input; don't force it to match feedback.
+        // Also re-sync encoder position while the user hasn't physically moved it,
+        // so that LinuxCNC's startup settling sequence (e.g. 0→7, 0→14) doesn't
+        // leave the encoder stuck at a transient value and waste the first button press.
         if (!initial_feedrate || machine_state_changed || feedrate_changed)
         {
           uint32_t feedrate_segments = out_pkt.s.feedrate_override;
-          if (!initial_feedrate)
-            set_encoder_value(1, feedrate_segments, false);  // sync on startup only
+          if (!enc_user_moved[1])
+            task_encoder->sync_value_immediate(1, feedrate_segments);
           set_ring_led(0, feedrate_segments, dot_colors[0], false);
-          printf("feedrate_segments=%d\n", feedrate_segments);
           initial_feedrate = true;
         }
         if (!initial_rapidrate || machine_state_changed || rapidrate_changed)
         {
           uint32_t rapidrate_segments = out_pkt.s.rapidrate_override;
-          if (!initial_rapidrate)
-            set_encoder_value(2, rapidrate_segments, false);  // sync on startup only
+          if (!enc_user_moved[2])
+            task_encoder->sync_value_immediate(2, rapidrate_segments);
           set_ring_led(1, rapidrate_segments, dot_colors[1], false);
-          printf("rapidrate_segments=%d\n", rapidrate_segments);
           initial_rapidrate = true;
         }
         if (!initial_maxvel || machine_state_changed || maxvel_changed)
         {
-          uint32_t maxvel_segments = out_pkt.s.maxvel_override;          printf("MAXVEL SYNC: out_pkt.s.maxvel_override=%d (0x%02x)\n", maxvel_segments, maxvel_segments);          if (!initial_maxvel)
-            set_encoder_value(3, maxvel_segments, false);  // sync on startup only
+          uint32_t maxvel_segments = out_pkt.s.maxvel_override;
+          if (!enc_user_moved[3])
+            task_encoder->sync_value_immediate(3, maxvel_segments);
           set_ring_led(2, maxvel_segments, dot_colors[2], false);
-          printf("maxvel_segments=%d\n", maxvel_segments);
           initial_maxvel = true;
         }
         // Flush all ring LED updates atomically — avoids intermediate-state blips
@@ -603,7 +609,8 @@ void main_task(void *unused)
       TaskEncoder::event_t enc_evt;
       if (xQueueReceive(task_encoder->event_queue, &enc_evt, 1) == pdTRUE)
       {
-        printf("encoder=%d value=%d\n", enc_evt.encoder, enc_evt.value);
+        if (enc_evt.encoder >= 1 && enc_evt.encoder <= 3)
+          printf("knob enc=%d val=%d\n", enc_evt.encoder, enc_evt.value);
 
         // For encoders 1-3 (override rings), suppress ring LED updates from encoder events.
         // The display is host-authoritative (follows LinuxCNC feedback from OUT packets),
@@ -624,7 +631,7 @@ void main_task(void *unused)
             bool continuous = (enc_evt.encoder == 4); // enc 0 = incremental, enc 4 = shuttle
             if (continuous) {
               shuttle_active = (enc_evt.value != 0); // enc_evt.value is raw -7..+7, 0 = neutral
-              printf("[main] shuttle enc value=%d shuttle_active=%d\n", enc_evt.value, (int)shuttle_active);
+              // printf("[main] shuttle enc value=%d shuttle_active=%d\n", enc_evt.value, (int)shuttle_active);
             }
             last_jog_continuous = continuous;
             // DISPLAY_CMD_JOG disabled
@@ -640,6 +647,11 @@ void main_task(void *unused)
           }
         }
   #endif
+
+        // Once the user physically rotates or button-toggles an override knob,
+        // stop re-syncing that encoder from host feedback.
+        if (enc_evt.encoder >= 1 && enc_evt.encoder <= 3)
+          enc_user_moved[enc_evt.encoder] = true;
 
         usb_in_pending = true;
       }  // if (xQueueReceive(task_encoder...))
@@ -672,8 +684,24 @@ void main_task(void *unused)
             if      (enc == 0) reset_seg = hmi_config.valid ? hmi_feed_reset_seg()  : 14;
             else if (enc == 1) reset_seg = hmi_config.valid ? hmi_rapid_reset_seg() : 14;
             else               reset_seg = 14;
-            set_encoder_value(enc + 1, cur == 0 ? reset_seg : 0, false);
-            usb_in_pending = true;
+            uint8_t target = cur == 0 ? reset_seg : 0;
+            printf("knob btn: code=0x%02x enc=%d cur=%d target=%d\n", mtx_evt.code, enc, cur, target);
+            // Use SET_VALUE_NOTIFY so the encoder task fires an event after
+            // applying the value.  The event triggers usb_in_pending in the
+            // encoder event handler, ensuring get_value() returns the new value
+            // when the IN packet is formed.  Setting usb_in_pending directly
+            // here would send stale values because get_value() reads the old
+            // state before the async SET_VALUE is processed by the encoder task.
+            {
+              TaskEncoder::cmd_t ecmd;
+              ecmd.cmd = TaskEncoder::ENCODER_CMD_SET_VALUE_NOTIFY;
+              ecmd.encoder = enc + 1;
+              ecmd.value = target;
+              if (xQueueSend(task_encoder->cmd_queue, &ecmd, pdMS_TO_TICKS(2)) != pdTRUE)
+              {
+                printf("encoder cmd queue full: enc=%d val=%d\n", enc + 1, target);
+              }
+            }
           }
         }
         else if (!mtx_evt.gpio)
@@ -818,7 +846,7 @@ void main_task(void *unused)
     {
       if (!machine_estop && machine_enabled && machine_mode == MODE_MANUAL)
       {
-        printf("enabled and in manual mode selected_increment=%d selected_axis=%d\n", selected_increment, selected_axis);
+        // printf("enabled and in manual mode selected_increment=%d selected_axis=%d\n", selected_increment, selected_axis);
         // show the selected increment and axis on the LEDs if enabled and in MODE_MANUAL
         set_led_selected_increment(selected_increment);
         set_led_selected_axis(selected_axis);
@@ -842,6 +870,8 @@ void main_task(void *unused)
         pkt.s.shuttle = task_encoder->get_value(4, false);
         pkt.s.jog = task_encoder->get_value(0);
         pkt.s.motion_cmd = motion_command;
+
+        printf("IN pkt: k1=%d k2=%d k3=%d\n", pkt.s.knob1, pkt.s.knob2, pkt.s.knob3);
 
         if (tud_hid_n_ready(ITF_GENERIC_HID)) {
           tud_hid_report(0, &pkt, sizeof(pkt));
@@ -904,6 +934,7 @@ void main_task(void *unused)
         initial_feedrate = false;
         initial_rapidrate = false;
         initial_maxvel = false;
+        enc_user_moved[1] = enc_user_moved[2] = enc_user_moved[3] = false;
         bzero(&last_out_pkt, sizeof(last_out_pkt));
 
         // Process the first OUT packet's override values immediately so encoder
@@ -920,9 +951,15 @@ void main_task(void *unused)
         g_machine_pos[0]    = out_pkt.s.pos_x * (1.0f / 10000.0f);
         g_machine_pos[1]    = out_pkt.s.pos_y * (1.0f / 10000.0f);
         g_machine_pos[2]    = out_pkt.s.pos_z * (1.0f / 10000.0f);
-        set_encoder_value(1, out_pkt.s.feedrate_override, false);
-        set_encoder_value(2, out_pkt.s.rapidrate_override, false);
-        set_encoder_value(3, out_pkt.s.maxvel_override, false);
+        // Synchronously set all 3 override encoders and their change-detection
+        // shadow under the mutex.  This guarantees get_value() returns the
+        // correct host-authoritative value before any user button press can
+        // arrive, without relying on the encoder task draining an async queue
+        // message within its next 10 ms loop tick.
+        task_encoder->sync_all_immediate(
+            out_pkt.s.feedrate_override,
+            out_pkt.s.rapidrate_override,
+            out_pkt.s.maxvel_override);
         set_ring_led(0, out_pkt.s.feedrate_override, dot_colors[0], false);
         set_ring_led(1, out_pkt.s.rapidrate_override, dot_colors[1], false);
         set_ring_led(2, out_pkt.s.maxvel_override, dot_colors[2], false);

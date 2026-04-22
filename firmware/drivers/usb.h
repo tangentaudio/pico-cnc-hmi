@@ -121,8 +121,12 @@ static inline uint16_t hmi_feed_pct(uint8_t seg) {
     return (uint16_t)(100u + (uint32_t)(seg - 7u) * over / 7u);
 }
 static inline uint16_t hmi_rapid_pct(uint8_t seg) {
+    // When max rapid <= 100%: full ring spans 0-100% linearly.
+    // When max rapid > 100%: piecewise, seg 7 = 100% anchor.
+    if (!hmi_config.valid || hmi_config.max_rapid_pct <= 100u)
+        return (uint16_t)((uint32_t)seg * 100u / 14u);
     if (seg <= 7) return (uint16_t)((uint32_t)seg * 100u / 7u);
-    uint16_t over = (hmi_config.max_rapid_pct > 100u) ? (hmi_config.max_rapid_pct - 100u) : 0u;
+    uint16_t over = hmi_config.max_rapid_pct - 100u;
     return (uint16_t)(100u + (uint32_t)(seg - 7u) * over / 7u);
 }
 
@@ -131,9 +135,12 @@ static inline uint16_t hmi_rapid_pct(uint8_t seg) {
 // Uses the same power-law mapping as hmi.py seg_to_maxvel().
 uint16_t hmi_maxvel_x10(uint8_t seg);
 
-// Segment 7 is the hardcoded 100% anchor for both feed and rapid.
+// Feed: segment 7 is the 100% anchor (piecewise range can exceed 100%).
+// Rapid: full ring when max <= 100% (reset to seg 14), piecewise anchor at seg 7 otherwise.
 static inline uint8_t hmi_feed_reset_seg(void)  { return 7; }
-static inline uint8_t hmi_rapid_reset_seg(void) { return 7; }
+static inline uint8_t hmi_rapid_reset_seg(void) {
+    return (hmi_config.valid && hmi_config.max_rapid_pct > 100u) ? 7 : 14;
+}
 
 // Interface index depends on the order in configuration descriptor
 enum {

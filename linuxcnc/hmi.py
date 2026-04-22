@@ -134,23 +134,23 @@ def feed_seg_to_override(seg: int) -> float:
 
 def rapid_override_to_seg(override: float) -> int:
     """Convert a rapidrate fraction (1.0 = 100%) to ring segment 0-14.
-    Piecewise linear: segs 0-7 span 0-100%, segs 7-14 span 100%-max.
-    Segment 7 is always the exact 100% anchor."""
+    When max rapid <= 100%: linear, full ring spans 0-100%.
+    When max rapid > 100%: piecewise, seg 7 anchors at 100%."""
+    if configured_max_rapid_override <= 1.0:
+        return min(14, int(round(override * 14.0)))
     if override <= 1.0:
         return int(round(override * 7.0))
     over_range = configured_max_rapid_override - 1.0
-    if over_range <= 0:
-        return 7
     return min(14, int(round(7.0 + (override - 1.0) * 7.0 / over_range)))
 
 
 def rapid_seg_to_override(seg: int) -> float:
     """Convert ring segment 0-14 to rapidrate fraction (1.0 = 100%)."""
+    if configured_max_rapid_override <= 1.0:
+        return seg / 14.0
     if seg <= 7:
         return seg / 7.0
     over_range = configured_max_rapid_override - 1.0
-    if over_range <= 0:
-        return 1.0
     return 1.0 + (seg - 7) * over_range / 7.0
 
 
@@ -290,9 +290,10 @@ def poll_status():
     if status['rapidrate'] != s.rapidrate:
         status['rapidrate'] = s.rapidrate
         updated = True
-    if status['maxvel'] != s.max_velocity:
-        status['maxvel'] = s.max_velocity
-        print(f"status maxvel={s.max_velocity} seg={maxvel_to_seg(s.max_velocity)}")
+    new_maxvel = round(s.max_velocity, 6)
+    if status['maxvel'] != new_maxvel:
+        status['maxvel'] = new_maxvel
+        print(f"status maxvel={new_maxvel} seg={maxvel_to_seg(new_maxvel)}")
         updated = True
     if status['interp_state'] != s.interp_state:
         status['interp_state'] = s.interp_state
@@ -402,9 +403,40 @@ def hmi_safe_stop():
 
 
 def find_hid_device(vid=0xCAFE):
-    """Return the first devinfo for the given VID, or None if not found."""
+    """Return the devinfo for the Generic HID interface (interface 0).
+
+    The Pico exposes two HID interfaces with the same VID/PID:
+      - Interface 0: Generic HID INOUT  (ITF_NUM_HID1) — the one we need
+      - Interface 1: Keyboard IN-only   (ITF_NUM_HID2)
+
+    hid.enumerate() returns both.  Picking devlist[0] is non-deterministic
+    under VM USB passthrough.  We filter by interface_number first (most
+    reliably populated by hidapi), then fall back to usage_page (0xFF00,
+    vendor-defined, set by TUD_HID_REPORT_DESC_GENERIC_INOUT) if
+    interface_number metadata is absent.
+    """
     devlist = hid.enumerate(vid)
-    return devlist[0] if devlist else None
+    if not devlist:
+        return None
+
+    # Primary: interface_number is reliably populated by all hidapi versions.
+    # ITF_NUM_HID1 = 0 in the firmware USB descriptor (usb_descriptors.c).
+    for dev in devlist:
+        if dev.get('interface_number', -1) == 0:
+            return dev
+
+    # Secondary: usage_page=0xFF00 (vendor-defined) is set by GENERIC_INOUT.
+    # Some hidapi builds omit interface_number but do report usage_page.
+    for dev in devlist:
+        if dev.get('usage_page', 0) == 0xFF00:
+            return dev
+
+    # Last resort: couldn't identify the correct interface; warn and use first.
+    print("HMI: WARNING — could not identify Generic HID interface by "
+          "interface_number or usage_page; using devlist[0]. "
+          "If sync fails, check HID interface ordering.")
+    return devlist[0]
+
 
 
 # Outer reconnect loop — tolerates the HMI going away and coming back.
@@ -423,7 +455,11 @@ while True:
         time.sleep(1)
         continue
 
-    print("HMI: device connected VID=%04x PID=%04x" % (devinfo['vendor_id'], devinfo['product_id']))
+    print("HMI: device connected VID=%04x PID=%04x interface=%d path=%s usage_page=0x%04x" % (
+        devinfo['vendor_id'], devinfo['product_id'],
+        devinfo.get('interface_number', -1),
+        devinfo.get('path', b'?').decode(errors='replace'),
+        devinfo.get('usage_page', 0)))
     print(f"  manufacturer: {hid_str(dev, 'manufacturer', 'get_manufacturer_string')}")
     print(f"  product:      {hid_str(dev, 'product', 'get_product_string')}")
 
@@ -441,11 +477,22 @@ while True:
         int(configured_maxvel_curve * 100),              # curve_x100
     )
     cfg_pkt = pad_bytes(cfg_pkt, 64)
-    dev.write(cfg_pkt)
-    print(f"HMI: config sent — feed_max={configured_max_feed_override*100:.0f}% "
-          f"rapid_max={configured_max_rapid_override*100:.0f}% "
-          f"maxvel={configured_maxvel*60:.1f} minvel={configured_maxvel_min*60:.1f} units/min "
-          f"curve={configured_maxvel_curve}")
+    # Retry the config write: on VM USB passthrough the device can appear in
+    # the enumeration list before its endpoints are ready to accept writes.
+    # A silent failure here would leave hmi_config.valid=false on the firmware,
+    # causing the display to show default (possibly wrong) units forever.
+    for attempt in range(3):
+        try:
+            dev.write(cfg_pkt)
+            print(f"HMI: config sent (attempt {attempt+1}) — "
+                  f"feed_max={configured_max_feed_override*100:.0f}% "
+                  f"rapid_max={configured_max_rapid_override*100:.0f}% "
+                  f"maxvel={configured_maxvel*60:.1f} minvel={configured_maxvel_min*60:.1f} units/min "
+                  f"curve={configured_maxvel_curve}")
+            break
+        except Exception as e:
+            print(f"HMI: config write attempt {attempt+1} failed: {e}")
+            time.sleep(0.1)
 
     # Reset status to force a full OUT packet re-sync on reconnect so the HMI
     # LEDs come up immediately correct without waiting for the next state change.
@@ -455,16 +502,22 @@ while True:
     status['position'] = (0.0, 0.0, 0.0)
     last_poll_time = 0
 
-    # Seed knob tracking to the current LinuxCNC segment values.
-    # This way the first IN packet only triggers c.feedrate/rapidrate/maxvel
-    # if the encoder actually differs from the host value (e.g. the user turned
-    # a knob while the HMI was powered off).  Using 0xFFFFFFFF here would cause
-    # any first IN packet — including startup-state packets where the Pico
-    # rebooted and all encoders are at 0 — to call c.feedrate(0) etc.
+    # Wait briefly for LinuxCNC's override values to settle before seeding
+    # the knob tracking.  During LinuxCNC startup the first poll() often returns
+    # feedrate=0/rapidrate=0/maxvel=0 transiently before the real defaults are
+    # applied.  Seeding from those zeros would make the HMI firmware believe the
+    # overrides are 0, causing the first button press to "set" the knob to its
+    # already-correct value rather than toggling it.
+    # 150 ms is well within the USB HID connect timeout and comfortably covers
+    # the LinuxCNC initialization settling window.
+    time.sleep(0.15)
     s.poll()
     HAL['knob.0.value'] = feed_override_to_seg(s.feedrate)
     HAL['knob.1.value'] = rapid_override_to_seg(s.rapidrate)
     HAL['knob.2.value'] = maxvel_to_seg(s.max_velocity)
+    print(f"HMI: knob seed — feed={s.feedrate:.3f}(seg={HAL['knob.0.value']}) "
+          f"rapid={s.rapidrate:.3f}(seg={HAL['knob.1.value']}) "
+          f"maxvel={s.max_velocity:.3f}(seg={HAL['knob.2.value']})")
 
     prev_motion_cmd = 0
     try:

@@ -67,8 +67,9 @@ bool Encoder::task()
             {
                 if ((m_maximum[i] == 0 && m_minimum[i] == 0) || m_cur_values[i] + diff > m_minimum[i])
                     m_cur_values[i] += diff;
-                else
+                else {
                     m_cur_values[i] = m_minimum[i];
+                }
             }
 
             m_last_values[i] = new_value;
@@ -105,12 +106,13 @@ void Encoder::set_value(uint8_t num, int val)
     if (num >= NUM_ENCODERS)
         return;
 
-    if (val * m_divisor[num] > m_maximum[num])
-        val = m_maximum[num] * m_divisor[num];
-    else if (val < m_minimum[num] * m_divisor[num])
-        val = m_minimum[num] * m_divisor[num];
+    int scaled = val * m_divisor[num];
+    if (scaled > m_maximum[num])
+        scaled = m_maximum[num];
+    else if (scaled < m_minimum[num])
+        scaled = m_minimum[num];
 
-    m_cur_values[num] = val * m_divisor[num];
+    m_cur_values[num] = scaled;
 }
 
 int Encoder::value(uint8_t num)
