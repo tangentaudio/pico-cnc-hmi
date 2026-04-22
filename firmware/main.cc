@@ -375,6 +375,13 @@ void main_task(void *unused)
   // stuck at a transient 0 value.  Reset to false at each reconnect.
   bool enc_user_moved[4] = {false, false, false, false};
 
+  // STOP + CYCLE START hold-to-home chord state.
+  // Active only when: !machine_estop && machine_enabled && !machine_homed.
+  // Sequence: press STOP, then press START while STOP held, hold both ≥ 2s → HOME ALL.
+  bool       chord_stop_held   = false;  // STOP (0x35) currently pressed
+  bool       chord_start_held  = false;  // START (0x36) currently pressed while STOP held
+  bool       chord_fired       = false;  // chord completed; suppress release bits
+  TickType_t chord_start_time  = 0;      // tick when both STOP+START were first held together
 
   bzero(&last_out_pkt, sizeof(last_out_pkt));
 
@@ -589,17 +596,47 @@ void main_task(void *unused)
         memcpy(&last_out_pkt, &out_pkt, sizeof(out_pkt));
       }
 
-      // Slow blink for not-homed indicator on STOP LED (LED 10), ~0.5 Hz.
-      // Runs every loop iteration (independent of packet arrival) so the blink
-      // continues even when the host isn't sending state changes.
+      // Not-homed STOP LED blink.  Normally slow (~0.5 Hz).  Accelerates to
+      // fast (~4 Hz) while the STOP+START home-all chord is being held.
+      // Also checks whether the chord has been held for 2 s and fires if so.
       if (!machine_estop && machine_enabled && !machine_homed)
       {
         TickType_t now_ticks = xTaskGetTickCount();
-        if ((now_ticks - slow_blink_last) >= pdMS_TO_TICKS(1000))
+        bool in_chord = chord_stop_held && chord_start_held && !chord_fired;
+
+        if (in_chord)
         {
-          slow_blink_last = now_ticks;
-          slow_blink_on = !slow_blink_on;
-          set_simple_led(10, slow_blink_on ? 32 : 0, TaskLED::NORMAL, true);
+          // Check for 2-second hold completion.
+          if ((now_ticks - chord_start_time) >= pdMS_TO_TICKS(2000))
+          {
+            printf("chord: HOME ALL fired\n");
+            motion_command |= 0x40;  // HOME_ALL bit — decoded by hmi.py
+            usb_in_pending  = true;
+            chord_fired = true;
+            // Brief full-brightness flash on both STOP and RUN LEDs as confirmation.
+            set_simple_led(10, 64, TaskLED::NORMAL);
+            set_simple_led(11, 64, TaskLED::NORMAL, true);
+          }
+          else
+          {
+            // Fast blink (~4 Hz = 125 ms half-period) during countdown.
+            if ((now_ticks - slow_blink_last) >= pdMS_TO_TICKS(125))
+            {
+              slow_blink_last = now_ticks;
+              slow_blink_on = !slow_blink_on;
+              set_simple_led(10, slow_blink_on ? 32 : 0, TaskLED::NORMAL, true);
+            }
+          }
+        }
+        else
+        {
+          // Normal slow blink (~0.5 Hz = 1000 ms half-period).
+          if ((now_ticks - slow_blink_last) >= pdMS_TO_TICKS(1000))
+          {
+            slow_blink_last = now_ticks;
+            slow_blink_on = !slow_blink_on;
+            set_simple_led(10, slow_blink_on ? 32 : 0, TaskLED::NORMAL, true);
+          }
         }
       }
 
@@ -727,21 +764,68 @@ void main_task(void *unused)
                 motion_command &= ~0x04;
               usb_in_pending = true;
             }
-            else if (mtx_evt.code == 0x35)
+            else if (mtx_evt.code == 0x35)  // STOP
             {
-              if (mtx_evt.press)
-                motion_command |= 0x02;
+              if (!machine_homed)
+              {
+                // In not-homed state, intercept STOP for chord detection.
+                // Do not send the STOP bit to LinuxCNC (nothing to abort).
+                if (mtx_evt.press)
+                {
+                  chord_stop_held = true;
+                  chord_fired     = false;
+                }
+                else
+                {
+                  // STOP released — cancel chord and restore RUN LED.
+                  chord_stop_held  = false;
+                  chord_start_held = false;
+                  chord_fired      = false;
+                  set_simple_led(11, 0, TaskLED::NORMAL, true);
+                  // Reset blink timer so slow-blink resumes cleanly.
+                  slow_blink_last = xTaskGetTickCount() - pdMS_TO_TICKS(1000);
+                }
+              }
               else
-                motion_command &= ~0x02;
-              usb_in_pending = true;
+              {
+                // Normal STOP behavior when homed.
+                if (mtx_evt.press)
+                  motion_command |= 0x02;
+                else
+                  motion_command &= ~0x02;
+                usb_in_pending = true;
+              }
             }
-            else if (mtx_evt.code == 0x36)
+            else if (mtx_evt.code == 0x36)  // CYCLE START
             {
-              if (mtx_evt.press)
-                motion_command |= 0x01;
+              if (!machine_homed && chord_stop_held)
+              {
+                // In not-homed state with STOP already held: join the chord.
+                if (mtx_evt.press && !chord_fired)
+                {
+                  chord_start_held = true;
+                  chord_start_time = xTaskGetTickCount();
+                  // Dim RUN LED to signal chord countdown has begun.
+                  set_simple_led(11, 16, TaskLED::NORMAL, true);
+                  printf("chord: STOP+START held, counting...\n");
+                }
+                else if (!mtx_evt.press)
+                {
+                  chord_start_held = false;
+                  if (!chord_fired)
+                    set_simple_led(11, 0, TaskLED::NORMAL, true);  // cancelled
+                  chord_fired = false;
+                }
+              }
               else
-                motion_command &= ~0x01;
-              usb_in_pending = true;
+              {
+                // Normal CYCLE START behavior when homed or STOP not held.
+                if (mtx_evt.press)
+                  motion_command |= 0x01;
+                else
+                  motion_command &= ~0x01;
+                usb_in_pending = true;
+              }
             }
             else if (mtx_evt.code == 0x3d)
             {

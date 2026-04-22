@@ -290,10 +290,9 @@ def poll_status():
     if status['rapidrate'] != s.rapidrate:
         status['rapidrate'] = s.rapidrate
         updated = True
-    new_maxvel = round(s.max_velocity, 6)
-    if status['maxvel'] != new_maxvel:
-        status['maxvel'] = new_maxvel
-        print(f"status maxvel={new_maxvel} seg={maxvel_to_seg(new_maxvel)}")
+    if status['maxvel'] != s.max_velocity:
+        status['maxvel'] = s.max_velocity
+        print(f"status maxvel={s.max_velocity} seg={maxvel_to_seg(s.max_velocity)}")
         updated = True
     if status['interp_state'] != s.interp_state:
         status['interp_state'] = s.interp_state
@@ -403,40 +402,30 @@ def hmi_safe_stop():
 
 
 def find_hid_device(vid=0xCAFE):
-    """Return the devinfo for the Generic HID interface (interface 0).
+    """Return the devinfo for the vendor HID interface (usage_page=0xFF00).
 
     The Pico exposes two HID interfaces with the same VID/PID:
-      - Interface 0: Generic HID INOUT  (ITF_NUM_HID1) — the one we need
-      - Interface 1: Keyboard IN-only   (ITF_NUM_HID2)
+      - Interface 0: Generic HID (INOUT, usage_page=0xFF00, vendor-defined)
+      - Interface 1: Keyboard    (IN-only, usage_page=0x0001)
 
     hid.enumerate() returns both.  Picking devlist[0] is non-deterministic
-    under VM USB passthrough.  We filter by interface_number first (most
-    reliably populated by hidapi), then fall back to usage_page (0xFF00,
-    vendor-defined, set by TUD_HID_REPORT_DESC_GENERIC_INOUT) if
-    interface_number metadata is absent.
+    (ordering varies between hidapi versions and VM USB passthrough sessions).
+    We must filter explicitly to avoid opening the keyboard interface, which
+    would silently drop all writes and return malformed reads.
     """
     devlist = hid.enumerate(vid)
-    if not devlist:
-        return None
-
-    # Primary: interface_number is reliably populated by all hidapi versions.
-    # ITF_NUM_HID1 = 0 in the firmware USB descriptor (usb_descriptors.c).
-    for dev in devlist:
-        if dev.get('interface_number', -1) == 0:
-            return dev
-
-    # Secondary: usage_page=0xFF00 (vendor-defined) is set by GENERIC_INOUT.
-    # Some hidapi builds omit interface_number but do report usage_page.
+    # Prefer the vendor-defined usage page (0xFF00) used by GENERIC_INOUT.
     for dev in devlist:
         if dev.get('usage_page', 0) == 0xFF00:
             return dev
-
-    # Last resort: couldn't identify the correct interface; warn and use first.
-    print("HMI: WARNING — could not identify Generic HID interface by "
-          "interface_number or usage_page; using devlist[0]. "
-          "If sync fails, check HID interface ordering.")
-    return devlist[0]
-
+    # Fallback: if usage_page metadata is unavailable (some hidapi builds omit
+    # it), prefer the entry with the largest max_input_report_size or just
+    # return the first entry with a warning.
+    if devlist:
+        print("HMI: WARNING — usage_page metadata unavailable, using devlist[0]; "
+              "if sync fails, check HID interface ordering")
+        return devlist[0]
+    return None
 
 
 # Outer reconnect loop — tolerates the HMI going away and coming back.
@@ -455,11 +444,7 @@ while True:
         time.sleep(1)
         continue
 
-    print("HMI: device connected VID=%04x PID=%04x interface=%d path=%s usage_page=0x%04x" % (
-        devinfo['vendor_id'], devinfo['product_id'],
-        devinfo.get('interface_number', -1),
-        devinfo.get('path', b'?').decode(errors='replace'),
-        devinfo.get('usage_page', 0)))
+    print("HMI: device connected VID=%04x PID=%04x" % (devinfo['vendor_id'], devinfo['product_id']))
     print(f"  manufacturer: {hid_str(dev, 'manufacturer', 'get_manufacturer_string')}")
     print(f"  product:      {hid_str(dev, 'product', 'get_product_string')}")
 
@@ -477,22 +462,11 @@ while True:
         int(configured_maxvel_curve * 100),              # curve_x100
     )
     cfg_pkt = pad_bytes(cfg_pkt, 64)
-    # Retry the config write: on VM USB passthrough the device can appear in
-    # the enumeration list before its endpoints are ready to accept writes.
-    # A silent failure here would leave hmi_config.valid=false on the firmware,
-    # causing the display to show default (possibly wrong) units forever.
-    for attempt in range(3):
-        try:
-            dev.write(cfg_pkt)
-            print(f"HMI: config sent (attempt {attempt+1}) — "
-                  f"feed_max={configured_max_feed_override*100:.0f}% "
-                  f"rapid_max={configured_max_rapid_override*100:.0f}% "
-                  f"maxvel={configured_maxvel*60:.1f} minvel={configured_maxvel_min*60:.1f} units/min "
-                  f"curve={configured_maxvel_curve}")
-            break
-        except Exception as e:
-            print(f"HMI: config write attempt {attempt+1} failed: {e}")
-            time.sleep(0.1)
+    dev.write(cfg_pkt)
+    print(f"HMI: config sent — feed_max={configured_max_feed_override*100:.0f}% "
+          f"rapid_max={configured_max_rapid_override*100:.0f}% "
+          f"maxvel={configured_maxvel*60:.1f} minvel={configured_maxvel_min*60:.1f} units/min "
+          f"curve={configured_maxvel_curve}")
 
     # Reset status to force a full OUT packet re-sync on reconnect so the HMI
     # LEDs come up immediately correct without waiting for the next state change.
@@ -643,6 +617,16 @@ while True:
         except Exception:
             pass
         print("HMI: waiting for device to reconnect...")
+
+    time.sleep(1)
+
+
+
+            
+            
+
+
+
 
     time.sleep(1)
 
