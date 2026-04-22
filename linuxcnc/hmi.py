@@ -110,6 +110,50 @@ def seg_to_maxvel(seg: int) -> float:
     return configured_maxvel_min + (configured_maxvel - configured_maxvel_min) * frac
 
 
+def feed_override_to_seg(override: float) -> int:
+    """Convert a feedrate fraction (1.0 = 100%) to ring segment 0-14.
+    Piecewise linear: segs 0-7 span 0-100%, segs 7-14 span 100%-max.
+    Segment 7 is always the exact 100% anchor."""
+    if override <= 1.0:
+        return int(round(override * 7.0))
+    over_range = configured_max_feed_override - 1.0
+    if over_range <= 0:
+        return 7
+    return min(14, int(round(7.0 + (override - 1.0) * 7.0 / over_range)))
+
+
+def feed_seg_to_override(seg: int) -> float:
+    """Convert ring segment 0-14 to feedrate fraction (1.0 = 100%)."""
+    if seg <= 7:
+        return seg / 7.0
+    over_range = configured_max_feed_override - 1.0
+    if over_range <= 0:
+        return 1.0
+    return 1.0 + (seg - 7) * over_range / 7.0
+
+
+def rapid_override_to_seg(override: float) -> int:
+    """Convert a rapidrate fraction (1.0 = 100%) to ring segment 0-14.
+    Piecewise linear: segs 0-7 span 0-100%, segs 7-14 span 100%-max.
+    Segment 7 is always the exact 100% anchor."""
+    if override <= 1.0:
+        return int(round(override * 7.0))
+    over_range = configured_max_rapid_override - 1.0
+    if over_range <= 0:
+        return 7
+    return min(14, int(round(7.0 + (override - 1.0) * 7.0 / over_range)))
+
+
+def rapid_seg_to_override(seg: int) -> float:
+    """Convert ring segment 0-14 to rapidrate fraction (1.0 = 100%)."""
+    if seg <= 7:
+        return seg / 7.0
+    over_range = configured_max_rapid_override - 1.0
+    if over_range <= 0:
+        return 1.0
+    return 1.0 + (seg - 7) * over_range / 7.0
+
+
 # Map raw LinuxCNC interp_state values (1,2,4,8) to the sequential firmware enum
 # (INTERP_OFF=0, INTERP_IDLE=1, INTERP_READING=2, INTERP_PAUSED=3, INTERP_WAITING=4).
 # LinuxCNC uses power-of-2 values; the firmware uses 0-4 sequentially.
@@ -187,10 +231,12 @@ status = {
     "rapidrate" : -1,
     "maxvel" : -1,
     "interp_state" : -1,
-    "interp_errcode" : -1
+    "interp_errcode" : -1,
+    "position" : (0.0, 0.0, 0.0)
 }
 
 last_poll_time = 0
+last_pos_update_time = 0.0
 
 def in_step_mode() -> bool:
     # Derived purely from observable LinuxCNC state — works regardless of which
@@ -204,7 +250,7 @@ def in_step_mode() -> bool:
     return status['exec_state'] != linuxcnc.EXEC_WAITING_FOR_MOTION_AND_IO
 
 def poll_status():
-    global status, last_poll_time
+    global status, last_poll_time, last_pos_update_time
     updated = False
     
     now = int(round(time.time() * 1000))
@@ -277,6 +323,15 @@ def poll_status():
     if status['homed'] != all_homed:
         status['homed'] = all_homed
         print(f"homed={all_homed} (joints={s.joints} homed_tuple={s.homed})")
+        updated = True
+
+    new_pos = tuple(s.position[:3])
+    cur_pos = status['position'] if isinstance(status['position'], tuple) else (0.0, 0.0, 0.0)
+    now_mono = time.monotonic()
+    if (any(abs(new_pos[i] - cur_pos[i]) > 0.00005 for i in range(3))
+            and (now_mono - last_pos_update_time) >= 0.03):  # max ~33 Hz
+        status['position'] = new_pos
+        last_pos_update_time = now_mono
         updated = True
 
     return updated
@@ -372,11 +427,32 @@ while True:
     print(f"  manufacturer: {hid_str(dev, 'manufacturer', 'get_manufacturer_string')}")
     print(f"  product:      {hid_str(dev, 'product', 'get_product_string')}")
 
+    # Send one-time configuration packet (header 0xAB) so the HMI firmware can
+    # display real units and compute the 100%-reset segment for each knob.
+    # Fields use fixed-point encoding; see usb.h usb_cfg_pkt for full description.
+    # MAX_LINEAR_VELOCITY and HMI_MAXVEL_MIN are in units/second internally;
+    # multiply by 60 to convert to units/minute (IPM for inch machines) for display.
+    cfg_pkt = struct.pack('<BHHHHH',
+        0xAB,
+        int(configured_max_feed_override  * 100),        # max_feed_pct
+        int(configured_max_rapid_override * 100),        # max_rapid_pct
+        int(configured_maxvel     * 60 * 10),            # max_vel_x10  (units/min * 10)
+        int(configured_maxvel_min * 60 * 10),            # min_vel_x10  (units/min * 10)
+        int(configured_maxvel_curve * 100),              # curve_x100
+    )
+    cfg_pkt = pad_bytes(cfg_pkt, 64)
+    dev.write(cfg_pkt)
+    print(f"HMI: config sent — feed_max={configured_max_feed_override*100:.0f}% "
+          f"rapid_max={configured_max_rapid_override*100:.0f}% "
+          f"maxvel={configured_maxvel*60:.1f} minvel={configured_maxvel_min*60:.1f} units/min "
+          f"curve={configured_maxvel_curve}")
+
     # Reset status to force a full OUT packet re-sync on reconnect so the HMI
     # LEDs come up immediately correct without waiting for the next state change.
     for key in list(status.keys()):
         status[key] = -1
     status['heartbeat'] = 0
+    status['position'] = (0.0, 0.0, 0.0)
     last_poll_time = 0
 
     # Seed knob tracking to the current LinuxCNC segment values.
@@ -386,29 +462,34 @@ while True:
     # any first IN packet — including startup-state packets where the Pico
     # rebooted and all encoders are at 0 — to call c.feedrate(0) etc.
     s.poll()
-    HAL['knob.0.value'] = int(round(s.feedrate * 14.0 / configured_max_feed_override))
-    HAL['knob.1.value'] = int(round(s.rapidrate * 14.0 / configured_max_rapid_override))
+    HAL['knob.0.value'] = feed_override_to_seg(s.feedrate)
+    HAL['knob.1.value'] = rapid_override_to_seg(s.rapidrate)
     HAL['knob.2.value'] = maxvel_to_seg(s.max_velocity)
 
     prev_motion_cmd = 0
     try:
         while True:
             if poll_status():
-                obuf = struct.pack('<BBBBBBBBBBBBBB',
+                pos = tuple(s.position[:3])  # always fresh — s.poll() called inside poll_status()
+                obuf = struct.pack('<BBBBBBBBBBBBBBBBiii',
                                   0xaa,
                                   status['heartbeat'] & 0xff,
                                   status['estop'],
                                   status['enabled'],
                                   status['mode'],
                                   map_interp_state(status['interp_state']),
-                                  int(round(status['feedrate'] * 14.0 / configured_max_feed_override)),
-                                  int(round(status['rapidrate'] * 14.0 / configured_max_rapid_override)),
+                                  feed_override_to_seg(status['feedrate']),
+                                  rapid_override_to_seg(status['rapidrate']),
                                   maxvel_to_seg(status['maxvel']),
                                   int(in_step_mode()),
                                   int(bool(status['inpos'])),
                                   int(bool(status['optional_stop'])),
                                   int(bool(status['coolant'])),
-                                  int(bool(status['homed']))
+                                  int(bool(status['homed'])),
+                                  0, 0,  # _pad[2] — aligns pos fields to offset 16
+                                  int(round(pos[0] * 10000)),
+                                  int(round(pos[1] * 10000)),
+                                  int(round(pos[2] * 10000))
                                   )
                 obuf = pad_bytes(obuf, 64)
                 dev.write(obuf)  # raises on disconnect — caught below
@@ -425,10 +506,10 @@ while True:
                 pkt = struct.unpack('<BBBBIiiB', buf[0:17])
                 if pkt[0] != HAL['knob.0.value']:
                     HAL['knob.0.value'] = pkt[0]
-                    c.feedrate( float(pkt[0]) * configured_max_feed_override / 14.0)
+                    c.feedrate(feed_seg_to_override(pkt[0]))
                 if pkt[1] != HAL['knob.1.value']:
                     HAL['knob.1.value'] = pkt[1]
-                    c.rapidrate( float(pkt[1]) * configured_max_rapid_override / 14.0)
+                    c.rapidrate(rapid_seg_to_override(pkt[1]))
                 if pkt[2] != HAL['knob.2.value']:
                     HAL['knob.2.value'] = pkt[2]
                     new_maxvel = seg_to_maxvel(pkt[2])

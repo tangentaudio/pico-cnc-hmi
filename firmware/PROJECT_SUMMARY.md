@@ -340,8 +340,20 @@ Two HID interfaces are exposed:
 Observed outbound-to-host fields (input report):
 - knob1/2/3, axis, step, jog, shuttle, motion_cmd.
 
-Observed host-to-device fields (output report):
+Observed host-to-device fields (output report, header 0xAA):
 - heartbeat, estop, enabled, mode, interp_state, feedrate_override, rapidrate_override, maxvel_override.
+- feedrate_override and rapidrate_override are segment indices 0–14 encoding the override fraction relative to the configured max.
+- maxvel_override is a segment index 0–14 encoding actual velocity via the configured power-law curve.
+
+One-time configuration packet (header 0xAB, sent once on connect):
+- max_feed_pct: max feed override ceiling as integer percent (e.g. 150 for 150%)
+- max_rapid_pct: max rapid override ceiling as integer percent
+- max_vel_x10: configured_maxvel × 10 in LinuxCNC velocity units (e.g. 600 for 60.0 IPM)
+- min_vel_x10: configured_maxvel_min × 10
+- curve_x100: maxvel power-law exponent × 100 (e.g. 200 for 2.0)
+- Purpose: lets the HMI display real units (e.g. "73%" feed, "42.3 IPM") and compute the exact 100%-reset target segment for each knob.
+- HMI helper functions: hmi_feed_pct(seg), hmi_rapid_pct(seg), hmi_maxvel_x10(seg), hmi_feed_reset_seg(), hmi_rapid_reset_seg() — all in usb.h.
+- Defaults are safe non-zero values so display code works even before config is received.
 
 Behavioral notes:
 - Firmware gates many actions on machine alive + not estop + enabled + mode.

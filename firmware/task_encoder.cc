@@ -18,7 +18,7 @@ void TaskEncoder::init()
 {
   m_encoders.init();
 
-  m_encoders.set_limits(0, 0, 0, 1);
+  m_encoders.set_limits(0, 0, 0, 4);  // jog wheel: div=4 so 1 physical click = 1 count
   m_encoders.set_limits(1, 0, 14, 4);
   m_encoders.set_limits(2, 0, 14, 4);
   m_encoders.set_limits(3, 0, 14, 4);

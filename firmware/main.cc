@@ -97,9 +97,7 @@ int main(void)
   BaseType_t encoder_task_status = xTaskCreate(task_encoder->task, "ENCODER_TASK", 256, (void *)task_encoder, 4, nullptr);
   BaseType_t led_task_status = xTaskCreate(task_led->task, "LED_TASK", 256, (void *)task_led, 2, nullptr);
 #ifdef ENABLE_DISPLAY
-  BaseType_t display_task1_status = xTaskCreate(task_display->timer_task, "DISPLAY_TASK_TIMER", 1024, (void *)task_display, 3, nullptr);
-  BaseType_t display_task2_status = xTaskCreate(task_display->task_handler_task, "DISPLAY_TASK_HANDLER", 1024, (void *)task_display, 3, nullptr);
-  BaseType_t display_gui_status = xTaskCreate(task_display->gui_task, "DISPLAY_GUI_TASK", 2048, (void *)task_display, 2, nullptr);
+  BaseType_t display_gui_status = xTaskCreate(task_display->gui_task, "DISPLAY_GUI_TASK", 2048, (void *)task_display, 3, nullptr);
 #endif
 #ifdef ENABLE_USB
   BaseType_t usb_task_status = xTaskCreate(usb_task, "USB_TASK", 2048, nullptr, 1, nullptr);
@@ -111,7 +109,7 @@ int main(void)
          && usb_task_status
 #endif
 #ifdef ENABLE_DISPLAY
-         && display_task1_status == pdPASS && display_task2_status == pdPASS && display_gui_status == pdPASS
+         && display_gui_status == pdPASS
 #endif
   );
 
@@ -307,6 +305,31 @@ void set_encoder_value(uint8_t encoder, int8_t value, bool smart = false)
 volatile bool g_machine_alive = false;
   
 
+#ifdef ENABLE_DISPLAY
+// Pack current machine state into a display command and enqueue it.
+static inline void display_send_machine_state(
+    bool estop, bool enabled, bool homed, bool coolant,
+    mode_t mode, interp_t interp, bool task_paused, bool inpos,
+    uint8_t feed_seg, uint8_t rapid_seg, uint8_t maxvel_seg)
+{
+  TaskDisplay::cmd_t dcmd;
+  dcmd.cmd                  = estop ? TaskDisplay::DISPLAY_CMD_ESTOP
+                                    : TaskDisplay::DISPLAY_CMD_MACHINE_STATE;
+  dcmd.state.estop          = estop;
+  dcmd.state.enabled        = enabled;
+  dcmd.state.homed          = homed;
+  dcmd.state.coolant        = coolant;
+  dcmd.state.mode           = mode;
+  dcmd.state.interp_state   = interp;
+  dcmd.state.task_paused    = task_paused;
+  dcmd.state.inpos          = inpos;
+  dcmd.state.feed_seg       = feed_seg;
+  dcmd.state.rapid_seg      = rapid_seg;
+  dcmd.state.maxvel_seg     = maxvel_seg;
+  xQueueSend(task_display->cmd_queue, &dcmd, 0);
+}
+#endif
+
 void main_task(void *unused)
 {
   bool usb_in_pending = false;
@@ -331,6 +354,9 @@ void main_task(void *unused)
   bool machine_coolant = false;
   bool machine_optional_stop = false;
   bool machine_homed = false;
+  float g_machine_pos[3] = {0.0f, 0.0f, 0.0f};
+  bool  last_jog_continuous = false;  // set by most recent enc 0/4 event
+  bool  shuttle_active      = false;  // true while shuttle is held at non-zero position
 
   TickType_t slow_blink_last = 0;
   bool slow_blink_on = false;
@@ -436,6 +462,36 @@ void main_task(void *unused)
           machine_state_changed = true;
         }
 
+        // Update cached axis positions for jog overlay display.
+        bool pos_changed = (out_pkt.s.pos_x != last_out_pkt.s.pos_x ||
+                            out_pkt.s.pos_y != last_out_pkt.s.pos_y ||
+                            out_pkt.s.pos_z != last_out_pkt.s.pos_z);
+        g_machine_pos[0] = out_pkt.s.pos_x * (1.0f / 10000.0f);
+        g_machine_pos[1] = out_pkt.s.pos_y * (1.0f / 10000.0f);
+        g_machine_pos[2] = out_pkt.s.pos_z * (1.0f / 10000.0f);
+#ifdef ENABLE_DISPLAY
+        // Only push position feedback while the shuttle is actively at a non-zero
+        // position. This ensures the overlay timer is driven by physical user input
+        // (encoder events), not by position feedback that may trickle in after the
+        // shuttle returns to neutral due to simulator settling or following-error noise.
+        if (pos_changed && shuttle_active &&
+            !machine_estop && machine_enabled && machine_mode == MODE_MANUAL) {
+          printf("[main] pos-feedback JOG: shuttle_active=%d pos=%.4f,%.4f,%.4f\n",
+              (int)shuttle_active, (double)g_machine_pos[0], (double)g_machine_pos[1], (double)g_machine_pos[2]);
+          // DISPLAY_CMD_JOG disabled
+          if (false) {
+          TaskDisplay::cmd_t dcmd;
+          dcmd.cmd            = TaskDisplay::DISPLAY_CMD_JOG;
+          dcmd.jog_pos[0]     = g_machine_pos[0];
+          dcmd.jog_pos[1]     = g_machine_pos[1];
+          dcmd.jog_pos[2]     = g_machine_pos[2];
+          dcmd.jog_axis       = selected_axis;
+          dcmd.jog_continuous = true;
+          xQueueSend(task_display->cmd_queue, &dcmd, 0);
+          } // DISPLAY_CMD_JOG disabled
+        }
+#endif
+
         // Keep override encoders synchronized to host state even when disabled/estop,
         // so startup defaults are reflected on the panel immediately.
         bool feedrate_changed = (out_pkt.s.feedrate_override != last_out_pkt.s.feedrate_override);
@@ -511,6 +567,17 @@ void main_task(void *unused)
           set_simple_led(7, machine_optional_stop ? 64 : 0, TaskLED::NORMAL, true);
         }
 
+        // Send updated machine state to display whenever anything changed,
+        // including override value changes (which are not part of machine_state_changed).
+        if (machine_state_changed || feedrate_changed || rapidrate_changed || maxvel_changed) {
+#ifdef ENABLE_DISPLAY
+          display_send_machine_state(
+              machine_estop, machine_enabled, machine_homed, machine_coolant,
+              machine_mode, machine_interp_state, machine_task_paused, machine_inpos,
+              out_pkt.s.feedrate_override, out_pkt.s.rapidrate_override, out_pkt.s.maxvel_override);
+#endif
+        }
+
         memcpy(&last_out_pkt, &out_pkt, sizeof(out_pkt));
       }
 
@@ -543,15 +610,37 @@ void main_task(void *unused)
         // only come from OUT packets (host feedback).
 
   #ifdef ENABLE_DISPLAY
-        TaskDisplay::cmd_t cmd;
-        cmd.cmd = TaskDisplay::DISPLAY_CMD_UPDATE_ENCODER;
-        cmd.encoder = enc_evt.encoder;
-        cmd.value = enc_evt.value;
-        xQueueSend(task_display->cmd_queue, &cmd, 0);
+        {
+          TaskDisplay::cmd_t dcmd;
+          // Encoders 1-3 are the override knobs; encoder 0 is jog.
+          if (enc_evt.encoder >= 1 && enc_evt.encoder <= 3) {
+            dcmd.cmd        = TaskDisplay::DISPLAY_CMD_KNOB;
+            dcmd.knob_index = enc_evt.encoder - 1;  // 0=feed,1=rapid,2=maxvel
+            // Read the current segment value directly from the encoder task.
+            dcmd.knob_seg   = (uint8_t)task_encoder->get_value(enc_evt.encoder);
+          } else {
+            bool continuous = (enc_evt.encoder == 4); // enc 0 = incremental, enc 4 = shuttle
+            if (continuous) {
+              shuttle_active = (enc_evt.value != 0); // enc_evt.value is raw -7..+7, 0 = neutral
+              printf("[main] shuttle enc value=%d shuttle_active=%d\n", enc_evt.value, (int)shuttle_active);
+            }
+            last_jog_continuous = continuous;
+            // DISPLAY_CMD_JOG disabled
+            dcmd.cmd            = TaskDisplay::DISPLAY_CMD_JOG;
+            dcmd.jog_pos[0]     = g_machine_pos[0];
+            dcmd.jog_pos[1]     = g_machine_pos[1];
+            dcmd.jog_pos[2]     = g_machine_pos[2];
+            dcmd.jog_axis       = selected_axis;
+            dcmd.jog_continuous = continuous;
+          }
+          if (false && xQueueSend(task_display->cmd_queue, &dcmd, 0) != pdTRUE) {
+            printf("[main] display queue full, cmd dropped (cmd=%d)\n", (int)dcmd.cmd);
+          }
+        }
   #endif
 
         usb_in_pending = true;
-      }
+      }  // if (xQueueReceive(task_encoder...))
 
       TaskMatrix::event_t mtx_evt;
       if (xQueueReceive(task_matrix->event_queue, &mtx_evt, 1) == pdTRUE)
@@ -560,11 +649,13 @@ void main_task(void *unused)
         printf("evt=%02x %s %s\n", mtx_evt.code, mtx_evt.press ? "press" : "release", mtx_evt.gpio ? "gpio" : "key");
 
   #ifdef ENABLE_DISPLAY
-        TaskDisplay::cmd_t cmd;
-        cmd.cmd = TaskDisplay::DISPLAY_CMD_UPDATE_KEY;
-        cmd.code = mtx_evt.code;
-        cmd.press = mtx_evt.press;
-        xQueueSend(task_display->cmd_queue, &cmd, 0);
+        {
+          TaskDisplay::cmd_t dcmd;
+          dcmd.cmd       = TaskDisplay::DISPLAY_CMD_KEY;
+          dcmd.key_code  = mtx_evt.code;
+          dcmd.key_press = mtx_evt.press;
+          xQueueSend(task_display->cmd_queue, &dcmd, 0);
+        }
   #endif
 
         if (mtx_evt.gpio && mtx_evt.press)
@@ -572,7 +663,15 @@ void main_task(void *unused)
           uint8_t enc;
           if (TaskMatrix::led_encoder_map(mtx_evt.code, enc))
           {
-            set_encoder_value(enc + 1, 0, true);
+            // Toggle between 0 and the configured 100% segment.
+            // 100% segment is derived from hmi_config (same source as hmi.py).
+            uint8_t cur = (uint8_t)task_encoder->get_value(enc + 1);
+            uint8_t reset_seg;
+            if      (enc == 0) reset_seg = hmi_config.valid ? hmi_feed_reset_seg()  : 14;
+            else if (enc == 1) reset_seg = hmi_config.valid ? hmi_rapid_reset_seg() : 14;
+            else               reset_seg = 14;
+            set_encoder_value(enc + 1, cur == 0 ? reset_seg : 0, false);
+            usb_in_pending = true;
           }
         }
         else if (!mtx_evt.gpio)
@@ -664,6 +763,20 @@ void main_task(void *unused)
               selected_axis = 3;
               usb_in_pending = true;
             }
+
+#ifdef ENABLE_DISPLAY
+            // Send transient overlay for increment/axis selection changes.
+            bool is_inc  = (mtx_evt.code == 0x2f || mtx_evt.code == 0x30 || mtx_evt.code == 0x37);
+            bool is_axis = (mtx_evt.code == 0x38 || mtx_evt.code == 0x39 || mtx_evt.code == 0x3a);
+            if (is_inc || is_axis) {
+              TaskDisplay::cmd_t dcmd;
+              dcmd.cmd = TaskDisplay::DISPLAY_CMD_JOG_SELECT;
+              dcmd.jog_select_is_axis = is_axis;
+              dcmd.jog_axis      = selected_axis;
+              dcmd.jog_increment = selected_increment;
+              xQueueSend(task_display->cmd_queue, &dcmd, 0);
+            }
+#endif
           }
 
           uint8_t hid_keycode = 0;
@@ -753,7 +866,7 @@ void main_task(void *unused)
 #ifdef ENABLE_DISPLAY
         {
           TaskDisplay::cmd_t dcmd;
-          dcmd.cmd = TaskDisplay::DISPLAY_CMD_RESET;
+          dcmd.cmd = TaskDisplay::DISPLAY_CMD_DISCONNECTED;
           xQueueSend(task_display->cmd_queue, &dcmd, 0);
         }
 #endif
@@ -785,6 +898,9 @@ void main_task(void *unused)
         machine_interp_state = (interp_t)out_pkt.s.interp_state;
         machine_task_paused = out_pkt.s.task_paused;
         machine_inpos       = out_pkt.s.inpos;
+        g_machine_pos[0]    = out_pkt.s.pos_x * (1.0f / 10000.0f);
+        g_machine_pos[1]    = out_pkt.s.pos_y * (1.0f / 10000.0f);
+        g_machine_pos[2]    = out_pkt.s.pos_z * (1.0f / 10000.0f);
         set_encoder_value(1, out_pkt.s.feedrate_override, false);
         set_encoder_value(2, out_pkt.s.rapidrate_override, false);
         set_encoder_value(3, out_pkt.s.maxvel_override, false);
@@ -817,6 +933,14 @@ void main_task(void *unused)
         initial_rapidrate = true;
         initial_maxvel = true;
         memcpy(&last_out_pkt, &out_pkt, sizeof(out_pkt));
+
+        // Immediately reflect state on display at connect time.
+#ifdef ENABLE_DISPLAY
+        display_send_machine_state(
+            machine_estop, machine_enabled, machine_homed, machine_coolant,
+            machine_mode, machine_interp_state, machine_task_paused, machine_inpos,
+            out_pkt.s.feedrate_override, out_pkt.s.rapidrate_override, out_pkt.s.maxvel_override);
+#endif
       }
 
     }

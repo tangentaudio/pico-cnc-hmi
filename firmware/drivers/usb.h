@@ -49,6 +49,10 @@ typedef union out_pkt_u
     uint8_t coolant;
     uint8_t optional_stop;
     uint8_t homed;
+    uint8_t _pad[2];      // pad to 4-byte-align the pos fields (offset 16)
+    int32_t pos_x;        // X axis position × 10000 (e.g. 12345 = 1.2345")
+    int32_t pos_y;        // Y axis position × 10000
+    int32_t pos_z;        // Z axis position × 10000
   } s;
   unsigned char buf[64];
 }  __attribute__ ((packed)) usb_out_pkt;
@@ -68,6 +72,68 @@ typedef enum {
   MODE_MDI,
   MODE_TELEOP
 } mode_t;
+
+// Packet header bytes
+#define USB_PKT_HEADER_RUNTIME  0xAA
+#define USB_PKT_HEADER_CONFIG   0xAB
+
+// One-time configuration packet sent by the host once on connect.
+// The HMI caches this so the display task can show real units/percentages
+// and so the knob-reset-to-100% logic knows the right target segment.
+//
+// All fields use fixed-point integer encoding to avoid floating point on the wire:
+//   max_feed_pct, max_rapid_pct  — override ceiling as percent (e.g. 150 for 150%)
+//   max_vel_x10, min_vel_x10     — max/min velocity × 10 (e.g. 600 for 60.0 IPM)
+//   curve_x100                   — maxvel power-law exponent × 100 (e.g. 200 for 2.0)
+typedef union cfg_pkt_u
+{
+  struct __attribute__((packed)) cfg_pkt_s
+  {
+    uint8_t  header;          // USB_PKT_HEADER_CONFIG (0xAB)
+    uint16_t max_feed_pct;    // max feed override ceiling as percent (e.g. 150)
+    uint16_t max_rapid_pct;   // max rapid override ceiling as percent (e.g. 100)
+    uint16_t max_vel_x10;     // configured_maxvel * 10
+    uint16_t min_vel_x10;     // configured_maxvel_min * 10
+    uint16_t curve_x100;      // maxvel power-law curve exponent * 100
+  } s;
+  unsigned char buf[64];
+} __attribute__((packed)) usb_cfg_pkt;
+
+// Cached config values, updated when a config packet is received.
+// valid is set to true once the first config packet arrives.
+typedef struct {
+  bool     valid;
+  uint16_t max_feed_pct;
+  uint16_t max_rapid_pct;
+  uint16_t max_vel_x10;
+  uint16_t min_vel_x10;
+  uint16_t curve_x100;
+} hmi_config_t;
+
+extern hmi_config_t hmi_config;
+
+// Piecewise-linear override mapping: segments 0-7 span 0-100%, segments 7-14 span
+// 100%-max%.  Segment 7 is always the visual 100% anchor (top-centre ring LED).
+// Returns feed/rapid override as integer percent (e.g. 73 for 73%).
+static inline uint16_t hmi_feed_pct(uint8_t seg) {
+    if (seg <= 7) return (uint16_t)((uint32_t)seg * 100u / 7u);
+    uint16_t over = (hmi_config.max_feed_pct  > 100u) ? (hmi_config.max_feed_pct  - 100u) : 0u;
+    return (uint16_t)(100u + (uint32_t)(seg - 7u) * over / 7u);
+}
+static inline uint16_t hmi_rapid_pct(uint8_t seg) {
+    if (seg <= 7) return (uint16_t)((uint32_t)seg * 100u / 7u);
+    uint16_t over = (hmi_config.max_rapid_pct > 100u) ? (hmi_config.max_rapid_pct - 100u) : 0u;
+    return (uint16_t)(100u + (uint32_t)(seg - 7u) * over / 7u);
+}
+
+// Compute the display value for the maxvel knob from its segment (0-14).
+// Returns actual velocity × 10 (e.g. 423 for 42.3 IPM).
+// Uses the same power-law mapping as hmi.py seg_to_maxvel().
+uint16_t hmi_maxvel_x10(uint8_t seg);
+
+// Segment 7 is the hardcoded 100% anchor for both feed and rapid.
+static inline uint8_t hmi_feed_reset_seg(void)  { return 7; }
+static inline uint8_t hmi_rapid_reset_seg(void) { return 7; }
 
 // Interface index depends on the order in configuration descriptor
 enum {
