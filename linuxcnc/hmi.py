@@ -238,16 +238,17 @@ status = {
 last_poll_time = 0
 last_pos_update_time = 0.0
 
+# Track step mode explicitly.  The previous heuristic (inferring from
+# exec_state) was unreliable: AUTO_PAUSE produces exec_state=3
+# (EXEC_WAITING_FOR_MOTION), not 7 (EXEC_WAITING_FOR_MOTION_AND_IO)
+# as assumed, causing false step-mode detection after a normal pause.
+# Now we simply set/clear this flag based on our own command dispatch.
+# On HMI reconnect this resets to False, which is the safe default:
+# CYCLE START will resume continuously rather than single-step.
+hmi_step_mode = False
+
 def in_step_mode() -> bool:
-    # Derived purely from observable LinuxCNC state — works regardless of which
-    # interface initiated single-step.
-    # task_paused=1 appears in both step mode and normal AUTO_PAUSE.
-    # The discriminator is exec_state: normal AUTO_PAUSE uniquely shows
-    # EXEC_WAITING_FOR_MOTION_AND_IO (7); step mode shows EXEC_DONE (2) for
-    # non-motion steps or EXEC_WAITING_FOR_IO (5) after motion steps.
-    if not status['task_paused']:
-        return False
-    return status['exec_state'] != linuxcnc.EXEC_WAITING_FOR_MOTION_AND_IO
+    return hmi_step_mode
 
 def poll_status():
     global status, last_poll_time, last_pos_update_time
@@ -332,6 +333,12 @@ def poll_status():
             and (now_mono - last_pos_update_time) >= 0.03):  # max ~33 Hz
         status['position'] = new_pos
         last_pos_update_time = now_mono
+        updated = True
+
+    # Force OUT packet when step mode flag changes (it's our own state,
+    # not derived from LinuxCNC, so it won't trigger via stat.poll()).
+    if status.get('_prev_step_mode') != hmi_step_mode:
+        status['_prev_step_mode'] = hmi_step_mode
         updated = True
 
     return updated
@@ -423,11 +430,13 @@ def find_hid_device(vid=0xCAFE):
         if dev.get('usage_page', 0) == 0xFF00:
             return dev
     # Fallback: if usage_page metadata is unavailable (some hidapi builds omit
-    # it), prefer the entry with the largest max_input_report_size or just
-    # return the first entry with a warning.
+    # it), prefer interface_number 0 (Generic HID / INOUT) explicitly.
+    for dev in devlist:
+        if dev.get('interface_number', -1) == 0:
+            print("HMI: usage_page metadata unavailable, selected interface_number=0")
+            return dev
     if devlist:
-        print("HMI: WARNING — usage_page metadata unavailable, using devlist[0]; "
-              "if sync fails, check HID interface ordering")
+        print("HMI: WARNING — no usage_page or interface_number match, using devlist[0]")
         return devlist[0]
     return None
 
@@ -498,6 +507,8 @@ while True:
           f"maxvel={s.max_velocity:.3f}(seg={HAL['knob.2.value']})")
 
     prev_motion_cmd = 0
+    prev_jog_inner = 0
+    prev_jog_outer = 0
     try:
         while True:
             if poll_status():
@@ -514,8 +525,8 @@ while True:
                                   maxvel_to_seg(status['maxvel']),
                                   int(in_step_mode()),
                                   int(bool(status['inpos'])),
-                                  int(bool(status['optional_stop'])),
                                   int(bool(status['coolant'])),
+                                  int(bool(status['optional_stop'])),
                                   int(bool(status['homed'])),
                                   0, 0,  # _pad[2] — aligns pos fields to offset 16
                                   int(round(pos[0] * 10000)),
@@ -546,21 +557,57 @@ while True:
                     new_maxvel = seg_to_maxvel(pkt[2])
                     c.maxvel( new_maxvel )
 
+                # Detect jog activity: inner wheel delta or shuttle engagement.
+                jog_inner = pkt[5]
+                jog_outer = pkt[6]
+                jog_active = (jog_inner != prev_jog_inner) or (jog_outer != 0)
+
+                # Auto-switch to MANUAL on jog activity when safe.
+                # Only when interp is IDLE (no running program or MDI command)
+                # and not already in MANUAL mode.  This covers the common case
+                # of being stuck in MDI mode after Probe Basic MDI interaction.
+                jog_ok = (status['mode'] == linuxcnc.MODE_MANUAL)
+                if (jog_active
+                        and not jog_ok
+                        and status['interp_state'] == linuxcnc.INTERP_IDLE
+                        and status['enabled']
+                        and not status['estop']):
+                    print(f"cmd: auto-switch to MANUAL for jog "
+                          f"(was mode={status['mode']})")
+                    c.mode(linuxcnc.MODE_MANUAL)
+                    c.wait_complete()
+                    jog_ok = True   # just switched — allow this cycle's jog
+
+                # Always track the encoder position so no delta accumulates.
+                prev_jog_inner = jog_inner
+                prev_jog_outer = jog_outer
+
+                # Axis and step are configuration — always safe to update.
                 HAL['jog.axis'] = pkt[3]
                 HAL['jog.step'] = float(pkt[4]) / 10000.0
-                HAL['jog.inner.value'] = pkt[5]
-                HAL['jog.outer.value'] = float(pkt[6]) / 10.0
-                HAL['jog.is-shuttling'] = not (pkt[6] == 0)
+
+                # Motion-producing jog outputs: only update when in MANUAL.
+                # In AUTO/MDI with active interp, suppress to prevent
+                # "jogging not allowed" errors from LinuxCNC.
+                if jog_ok:
+                    HAL['jog.inner.value'] = jog_inner
+                    HAL['jog.outer.value'] = float(jog_outer) / 10.0
+                    HAL['jog.is-shuttling'] = not (jog_outer == 0)
+                else:
+                    # Ensure shuttle is off while not in MANUAL.
+                    if HAL['jog.is-shuttling']:
+                        HAL['jog.outer.value'] = 0.0
+                        HAL['jog.is-shuttling'] = False
 
                 # Auto-clear the home-all pulse from the previous cycle.
                 if HAL['home-all']:
                     HAL['home-all'] = False
 
                 motion_cmd = pkt[7]
-                cmd_step = motion_cmd & 0x08
-                cmd_pause = motion_cmd & 0x04
-                cmd_stop = motion_cmd & 0x02
-                cmd_start = motion_cmd & 0x01
+                cmd_step  = (motion_cmd & 0x08) and not (prev_motion_cmd & 0x08)
+                cmd_pause = (motion_cmd & 0x04) and not (prev_motion_cmd & 0x04)
+                cmd_stop  = motion_cmd & 0x02    # STOP stays level: held = continuous abort
+                cmd_start = (motion_cmd & 0x01) and not (prev_motion_cmd & 0x01)
                 cmd_coolant_edge     = (motion_cmd & 0x20) and not (prev_motion_cmd & 0x20)
                 cmd_optional_stop_edge = (motion_cmd & 0x10) and not (prev_motion_cmd & 0x10)
                 cmd_home_all_edge    = (motion_cmd & 0x40) and not (prev_motion_cmd & 0x40)
@@ -582,28 +629,41 @@ while True:
 
                 if cmd_stop:
                     print(f"cmd: STOP (interp={s.interp_state} step={in_step_mode()})")
+                    hmi_step_mode = False
                     c.abort()
                 elif not status['homed']:
                     if cmd_start or cmd_pause or cmd_step:
                         print(f"cmd: blocked — not homed")
                 elif cmd_start:
-                    print(f"cmd: CYCLE START (interp={s.interp_state} step={in_step_mode()} paused={s.paused})")
+                    print(f"cmd: CYCLE START (interp={s.interp_state} step={in_step_mode()} "
+                          f"paused={s.paused} exec={status['exec_state']} task_paused={status['task_paused']})")
                     if in_step_mode():
-                        # Single-step mode — advance from PAUSED or WAITING.
-                        if status['interp_state'] in (linuxcnc.INTERP_PAUSED, linuxcnc.INTERP_WAITING):
+                        # Single-step mode — advance one block.
+                        # LinuxCNC pauses between steps in various states:
+                        # PAUSED, WAITING, or READING (interpreter read next
+                        # block and is waiting for user to advance).
+                        if status['interp_state'] in (linuxcnc.INTERP_IDLE,
+                                                       linuxcnc.INTERP_READING,
+                                                       linuxcnc.INTERP_PAUSED,
+                                                       linuxcnc.INTERP_WAITING):
+                            if status['mode'] != linuxcnc.MODE_AUTO:
+                                c.mode(linuxcnc.MODE_AUTO)
+                                c.wait_complete()
                             c.auto(linuxcnc.AUTO_STEP)
                     elif status['interp_state'] == linuxcnc.INTERP_PAUSED:
                         # Paused mid-run (via AUTO_PAUSE) — resume continuous run.
                         c.auto(linuxcnc.AUTO_RESUME)
                     elif status['interp_state'] == linuxcnc.INTERP_IDLE:
                         # Idle → start program from line 0 (continuous run).
+                        hmi_step_mode = False
                         if status['mode'] != linuxcnc.MODE_AUTO:
                             c.mode(linuxcnc.MODE_AUTO)
                             c.wait_complete()
                         c.auto(linuxcnc.AUTO_RUN, 0)
                     # else: READING/WAITING in continuous run — ignore
                 elif cmd_pause:
-                    print(f"cmd: PAUSE (interp={s.interp_state} step={in_step_mode()} paused={s.paused})")
+                    print(f"cmd: PAUSE (interp={s.interp_state} step={in_step_mode()} "
+                          f"paused={s.paused} exec={status['exec_state']} task_paused={status['task_paused']})")
                     # Only pause during continuous run (not idle, not already paused, not step mode).
                     if (status['interp_state'] in (linuxcnc.INTERP_READING, linuxcnc.INTERP_WAITING)
                             and not status['paused']
@@ -611,13 +671,25 @@ while True:
                         c.auto(linuxcnc.AUTO_PAUSE)
                 elif cmd_step:
                     print(f"cmd: STEP (interp={s.interp_state} step={in_step_mode()} paused={s.paused})")
-                    # Step button: enter single-step mode from IDLE only.
-                    # Once in step mode, CYCLE START advances each step.
-                    if status['interp_state'] == linuxcnc.INTERP_IDLE:
+                    if in_step_mode():
+                        # Already in step mode — toggle off.  Program stays
+                        # paused; next CYCLE START will AUTO_RESUME continuously.
+                        hmi_step_mode = False
+                        print("cmd: exited step mode (paused, CYCLE START will resume)")
+                    elif status['interp_state'] == linuxcnc.INTERP_IDLE:
+                        # Start program in step mode from idle.
+                        hmi_step_mode = True
                         if status['mode'] != linuxcnc.MODE_AUTO:
                             c.mode(linuxcnc.MODE_AUTO)
                             c.wait_complete()
                         c.auto(linuxcnc.AUTO_STEP)
+                    elif status['interp_state'] in (linuxcnc.INTERP_PAUSED,
+                                                     linuxcnc.INTERP_WAITING,
+                                                     linuxcnc.INTERP_READING):
+                        # Transition from paused continuous run → step mode.
+                        # The next CYCLE START will issue AUTO_STEP instead of AUTO_RESUME.
+                        hmi_step_mode = True
+                        print("cmd: entered step mode from paused state")
 
                 if cmd_coolant_edge:
                     new_state = linuxcnc.FLOOD_ON if not status['coolant'] else linuxcnc.FLOOD_OFF

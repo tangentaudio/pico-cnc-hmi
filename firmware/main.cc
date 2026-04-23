@@ -168,7 +168,7 @@ void set_led_interp_state(interp_t state, bool task_paused = false, bool inpos =
   case INTERP_READING:
     if (task_paused)
     {
-      // Single-step: executing — solid if machine is moving, blink if inpos (non-motion step).
+      // Single-step: blink when waiting for input (inpos), solid when executing.
       TaskLED::modes m = inpos ? TaskLED::BLINK : TaskLED::NORMAL;
       set_simple_led(8, 64, m);
       set_simple_led(9, 0, TaskLED::NORMAL);
@@ -187,9 +187,7 @@ void set_led_interp_state(interp_t state, bool task_paused = false, bool inpos =
   case INTERP_PAUSED:
     if (task_paused)
     {
-      // Single-step: waiting=blink, executing non-motion step (inpos still True but
-      // PAUSED is transient here so blink is correct — we won't see READING for fast steps).
-      // Use inpos to differentiate: not-inpos means motion in progress → solid.
+      // Single-step: blink when waiting for input (inpos), solid when executing.
       TaskLED::modes m = inpos ? TaskLED::BLINK : TaskLED::NORMAL;
       set_simple_led(8, 64, m);
       set_simple_led(9, 0, TaskLED::NORMAL);
@@ -208,9 +206,7 @@ void set_led_interp_state(interp_t state, bool task_paused = false, bool inpos =
   case INTERP_WAITING:
     if (task_paused)
     {
-      // Single-step: WAITING+task_paused after a motion step.
-      // inpos=True → done, waiting for Cycle Start → blink.
-      // inpos=False → motion still settling → solid.
+      // Single-step: blink when waiting for input (inpos), solid when executing.
       TaskLED::modes m = inpos ? TaskLED::BLINK : TaskLED::NORMAL;
       set_simple_led(8, 64, m);
       set_simple_led(9, 0, TaskLED::NORMAL);
@@ -550,7 +546,12 @@ void main_task(void *unused)
           xQueueSend(task_led->cmd_queue, &fcmd, 0);
         }
 
-        if (!machine_estop && machine_enabled && machine_state_changed)
+        // Refresh interp LEDs on state changes, OR continuously in step mode.
+        // In step mode, fast PAUSED→READING→PAUSED transitions may be invisible
+        // at the host poll rate, so we re-apply on every packet to keep the
+        // blink/solid state (driven by inpos) responsive.
+        if (!machine_estop && machine_enabled
+            && (machine_state_changed || machine_task_paused))
         {
           if (!machine_homed)
           {
@@ -845,7 +846,16 @@ void main_task(void *unused)
             }
           }
 
-          if (!machine_estop && machine_enabled && machine_mode == MODE_MANUAL && mtx_evt.press)
+          // Jog controls (axis/increment buttons) are active in:
+          //   MANUAL — always
+          //   MDI    — always (commands are short, user may want to jog after)
+          //   AUTO   — only when interp is IDLE (program finished/stopped)
+          // During an active AUTO program the buttons stay disabled.
+          bool jog_controls_active = !machine_estop && machine_enabled
+              && (machine_mode == MODE_MANUAL
+                  || machine_mode == MODE_MDI
+                  || (machine_mode == MODE_AUTO && machine_interp_state == INTERP_IDLE));
+          if (jog_controls_active && mtx_evt.press)
           {
             if (mtx_evt.code == 0x2f)
             {
@@ -928,10 +938,15 @@ void main_task(void *unused)
   #ifdef ENABLE_USB
     if (machine_state_changed || usb_in_pending)
     {
-      if (!machine_estop && machine_enabled && machine_mode == MODE_MANUAL)
+      bool jog_leds_active = !machine_estop && machine_enabled
+          && (machine_mode == MODE_MANUAL
+              || machine_mode == MODE_MDI
+              || (machine_mode == MODE_AUTO && machine_interp_state == INTERP_IDLE));
+      if (jog_leds_active)
       {
-        // printf("enabled and in manual mode selected_increment=%d selected_axis=%d\n", selected_increment, selected_axis);
-        // show the selected increment and axis on the LEDs if enabled and in MODE_MANUAL
+        // Show the selected increment and axis LEDs when jog controls are
+        // active.  The user needs to see the current jog configuration
+        // before touching the jog wheel (which auto-switches to MANUAL).
         set_led_selected_increment(selected_increment);
         set_led_selected_axis(selected_axis);
       }

@@ -67,6 +67,35 @@ the last value shown.
 - `firmware/main.cc` — pos-feedback path (search `// DISPLAY_CMD_JOG disabled`)
 - `firmware/task_display.cc` — `DISPLAY_CMD_JOG` case in `gui_task` (intact, ~line 373)
 
+## USB BOOTSEL reboot command (low priority)
+Add a magic HID OUT packet command that calls `reset_usb_boot(0, 0)` to reboot
+the Pico into USB mass storage mode. Combined with a small helper script, this
+would allow remote firmware updates via `scp uf2 + python3 reboot_to_bootsel.py`
+without needing a debug probe connected. Low priority since firmware updates will
+become infrequent.
+
+## Step-mode LED blink: `inpos` stays 0 after mid-motion pause (low priority)
+
+**Symptom:** When entering single-step mode from a paused program (Pause → Step),
+the step/cycle-start LEDs stay solid instead of blinking between steps.  Stepping
+from idle works correctly.
+
+**Root cause:** LinuxCNC's `stat.inpos` reports whether axes are at their
+*commanded* position.  After `AUTO_PAUSE` interrupts a motion command, the machine
+decelerates and stops at an intermediate position — the original commanded endpoint
+is never reached.  `inpos` stays `0` permanently, even through subsequent
+`AUTO_STEP` calls.  The firmware LED logic uses `inpos` to choose BLINK (waiting
+for input) vs NORMAL (executing), so it shows solid forever.
+
+When stepping from idle, each step completes its full move and reaches the target,
+so `inpos` properly transitions 1→0→1.
+
+**Potential fix:** Replace the `inpos` signal with position-change detection in the
+firmware.  The firmware already receives axis positions in every OUT packet.  Track
+whether consecutive positions differ; if stable for 2-3 packets, the machine is at
+rest (blink).  If changing, the machine is moving (solid).  This would be reliable
+regardless of LinuxCNC's `inpos` behavior.
+
 ---
 
 ## COMPLETED
