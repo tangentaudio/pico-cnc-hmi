@@ -66,6 +66,9 @@ public:
 
         // Key pressed — transient overlay.
         DISPLAY_CMD_KEY,
+
+        // About to reboot into BOOTSEL — show message until MCU resets.
+        DISPLAY_CMD_BOOTSEL,
     } cmds;
 
     // Machine state snapshot packed into one command.
@@ -110,6 +113,9 @@ public:
         // DISPLAY_CMD_KEY: keycode and press/release
         uint8_t key_code;
         bool    key_press;
+
+        // DISPLAY_CMD_BOOTSEL: text to show before reboot
+        char bootsel_text[32];
     } cmd_t;
 
     QueueHandle_t cmd_queue;

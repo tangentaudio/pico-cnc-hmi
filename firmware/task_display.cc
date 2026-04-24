@@ -446,6 +446,24 @@ void TaskDisplay::gui_task(void *param)
           lv_obj_remove_flag(overlay, LV_OBJ_FLAG_HIDDEN);
           break;
         }
+
+        // ----------------------------------------------------------
+        case DISPLAY_CMD_BOOTSEL:
+        {
+          // Show message on OLED before MCU resets into BOOTSEL.
+          // Hide everything else and display the text permanently.
+          transient_until = 0;
+          lv_obj_add_flag(wait_panel,   LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(estop_panel,  LV_OBJ_FLAG_HIDDEN);
+          lv_obj_set_style_text_font(lbl_overlay_top, &lv_font_montserrat_18, LV_PART_MAIN);
+          lv_obj_set_style_text_font(lbl_overlay_bot, &lv_font_montserrat_18, LV_PART_MAIN);
+          lv_label_set_text(lbl_overlay_top, LV_SYMBOL_USB "  USB Boot");
+          lv_label_set_text(lbl_overlay_bot, cmd.bootsel_text);
+          lv_obj_remove_flag(overlay, LV_OBJ_FLAG_HIDDEN);
+          // Force immediate render so the OLED gets updated before reset.
+          lv_timer_handler();
+          break;
+        }
       }
     }
 

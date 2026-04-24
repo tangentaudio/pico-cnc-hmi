@@ -49,7 +49,8 @@ typedef union out_pkt_u
     uint8_t coolant;
     uint8_t optional_stop;
     uint8_t homed;
-    uint8_t _pad[2];      // pad to 4-byte-align the pos fields (offset 16)
+    uint8_t cmd;          // command byte: 0=none, 0xB0=reboot to BOOTSEL
+    uint8_t _pad;         // pad to 4-byte-align the pos fields (offset 16)
     int32_t pos_x;        // X axis position × 10000 (e.g. 12345 = 1.2345")
     int32_t pos_y;        // Y axis position × 10000
     int32_t pos_z;        // Z axis position × 10000

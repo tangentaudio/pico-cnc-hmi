@@ -538,7 +538,7 @@ while True:
                                   int(bool(status['coolant'])),
                                   int(bool(status['optional_stop'])),
                                   int(bool(status['homed'])),
-                                  0, 0,  # _pad[2] — aligns pos fields to offset 16
+                                  0, 0,  # cmd=0 (normal), _pad — offset 14-15
                                   int(round(pos[0] * 10000)),
                                   int(round(pos[1] * 10000)),
                                   int(round(pos[2] * 10000))

@@ -36,6 +36,7 @@
 #include <timers.h>
 #include <boards/pico.h>
 #include "pico/stdlib.h"
+#include "pico/bootrom.h"
 #include "drivers/i2c.hh"
 #include "task_encoder.hh"
 #include "task_matrix.hh"
@@ -403,6 +404,19 @@ void main_task(void *unused)
       {
         usb_dump_out_pkt(&out_pkt);
 
+        // Check for special commands before normal state processing.
+        if (out_pkt.s.cmd == 0xB0) {
+          printf("BOOTSEL reboot requested by host!\n");
+#ifdef ENABLE_DISPLAY
+          TaskDisplay::cmd_t dcmd;
+          dcmd.cmd = TaskDisplay::DISPLAY_CMD_BOOTSEL;
+          snprintf(dcmd.bootsel_text, sizeof(dcmd.bootsel_text), "Copy .uf2 to flash");
+          xQueueSend(task_display->cmd_queue, &dcmd, 0);
+          vTaskDelay(pdMS_TO_TICKS(200));  // let display task render + flush
+#endif
+          reset_usb_boot(0, 0);
+          // does not return
+        }
         if (out_pkt.s.heartbeat != last_out_pkt.s.heartbeat)
         {
           xTimerReset(hbeat_timer, 0);
@@ -1054,6 +1068,19 @@ void main_task(void *unused)
       if (xQueueReceive(usb_out_queue, &out_pkt, 500) == pdTRUE)
       {
         usb_dump_out_pkt(&out_pkt);
+
+        // BOOTSEL reboot: also check in the reconnect/waiting path.
+        if (out_pkt.s.cmd == 0xB0) {
+          printf("BOOTSEL reboot requested by host!\n");
+#ifdef ENABLE_DISPLAY
+          TaskDisplay::cmd_t dcmd;
+          dcmd.cmd = TaskDisplay::DISPLAY_CMD_BOOTSEL;
+          snprintf(dcmd.bootsel_text, sizeof(dcmd.bootsel_text), "Copy .uf2 to flash");
+          xQueueSend(task_display->cmd_queue, &dcmd, 0);
+          vTaskDelay(pdMS_TO_TICKS(200));
+#endif
+          reset_usb_boot(0, 0);
+        }
 
         g_machine_alive = true;
         leds_cleared = false;   // re-arm for next disconnect
