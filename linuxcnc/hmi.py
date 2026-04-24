@@ -489,6 +489,10 @@ while True:
     status['position'] = (0.0, 0.0, 0.0)
     last_poll_time = 0
 
+    # Reset step mode on reconnect — safe default: CYCLE START resumes
+    # continuously rather than single-stepping.  See program_control_spec.md §3.
+    hmi_step_mode = False
+
     # Wait briefly for LinuxCNC's override values to settle before seeding
     # the knob tracking.  During LinuxCNC startup the first poll() often returns
     # feedrate=0/rapidrate=0/maxvel=0 transiently before the real defaults are
@@ -523,8 +527,14 @@ while True:
                                   feed_override_to_seg(status['feedrate']),
                                   rapid_override_to_seg(status['rapidrate']),
                                   maxvel_to_seg(status['maxvel']),
-                                  int(in_step_mode()),
-                                  int(bool(status['inpos'])),
+                                  int(in_step_mode()),          # step_mode (byte 9)
+                                  # Byte 10: LED blink/solid signal for firmware.
+                                  # In step mode, s.paused stays True throughout
+                                  # and s.inpos stays False after mid-motion PAUSE;
+                                  # use current_vel instead: vel==0 means at rest
+                                  # (blink), vel>0 means executing (solid).
+                                  # Outside step mode, s.paused works correctly.
+                                  int(s.current_vel < 0.0001) if in_step_mode() else int(bool(status['paused'])),
                                   int(bool(status['coolant'])),
                                   int(bool(status['optional_stop'])),
                                   int(bool(status['homed'])),
@@ -627,69 +637,75 @@ while True:
                     else:
                         print("cmd: HOME ALL ignored — already homed")
 
+                # ── Program control: logical state dispatcher ──
+                # Compute logical state once per cycle from LinuxCNC state
+                # plus our hmi_step_mode flag.  See program_control_spec.md.
+                interp = status['interp_state']
+                if interp == linuxcnc.INTERP_IDLE:
+                    logical_state = 'IDLE'
+                elif hmi_step_mode:
+                    logical_state = 'STEPPING'
+                elif status['paused']:
+                    logical_state = 'PAUSED'
+                else:
+                    logical_state = 'RUNNING'
+
+                # STOP: level-based, always active (even before homed check)
                 if cmd_stop:
-                    print(f"cmd: STOP (interp={s.interp_state} step={in_step_mode()})")
+                    print(f"cmd: STOP (state={logical_state})")
                     hmi_step_mode = False
                     c.abort()
+                # All other program commands require homed
                 elif not status['homed']:
                     if cmd_start or cmd_pause or cmd_step:
-                        print(f"cmd: blocked — not homed")
+                        print("cmd: blocked — not homed")
+                # CYCLE START
                 elif cmd_start:
-                    print(f"cmd: CYCLE START (interp={s.interp_state} step={in_step_mode()} "
-                          f"paused={s.paused} exec={status['exec_state']} task_paused={status['task_paused']})")
-                    if in_step_mode():
-                        # Single-step mode — advance one block.
-                        # LinuxCNC pauses between steps in various states:
-                        # PAUSED, WAITING, or READING (interpreter read next
-                        # block and is waiting for user to advance).
-                        if status['interp_state'] in (linuxcnc.INTERP_IDLE,
-                                                       linuxcnc.INTERP_READING,
-                                                       linuxcnc.INTERP_PAUSED,
-                                                       linuxcnc.INTERP_WAITING):
-                            if status['mode'] != linuxcnc.MODE_AUTO:
-                                c.mode(linuxcnc.MODE_AUTO)
-                                c.wait_complete()
-                            c.auto(linuxcnc.AUTO_STEP)
-                    elif status['interp_state'] == linuxcnc.INTERP_PAUSED:
-                        # Paused mid-run (via AUTO_PAUSE) — resume continuous run.
-                        c.auto(linuxcnc.AUTO_RESUME)
-                    elif status['interp_state'] == linuxcnc.INTERP_IDLE:
-                        # Idle → start program from line 0 (continuous run).
-                        hmi_step_mode = False
+                    print(f"cmd: CYCLE START (state={logical_state} paused={status['paused']})")
+                    if logical_state == 'IDLE':
                         if status['mode'] != linuxcnc.MODE_AUTO:
                             c.mode(linuxcnc.MODE_AUTO)
                             c.wait_complete()
                         c.auto(linuxcnc.AUTO_RUN, 0)
-                    # else: READING/WAITING in continuous run — ignore
+                    elif logical_state == 'PAUSED':
+                        c.auto(linuxcnc.AUTO_RESUME)
+                    elif logical_state == 'STEPPING':
+                        if s.current_vel < 0.0001:  # step stacking guard: vel==0 means at rest
+                            if status['mode'] != linuxcnc.MODE_AUTO:
+                                c.mode(linuxcnc.MODE_AUTO)
+                                c.wait_complete()
+                            c.auto(linuxcnc.AUTO_STEP)
+                        else:
+                            print("cmd: CYCLE START ignored — step still executing (vel=%.4f)" % s.current_vel)
+                    # RUNNING: no effect
+                # PAUSE
                 elif cmd_pause:
-                    print(f"cmd: PAUSE (interp={s.interp_state} step={in_step_mode()} "
-                          f"paused={s.paused} exec={status['exec_state']} task_paused={status['task_paused']})")
-                    # Only pause during continuous run (not idle, not already paused, not step mode).
-                    if (status['interp_state'] in (linuxcnc.INTERP_READING, linuxcnc.INTERP_WAITING)
-                            and not status['paused']
-                            and not in_step_mode()):
+                    print(f"cmd: PAUSE (state={logical_state} paused={status['paused']})")
+                    if logical_state == 'RUNNING':
                         c.auto(linuxcnc.AUTO_PAUSE)
+                    elif logical_state == 'STEPPING':
+                        # s.paused stays True throughout AUTO_STEP execution,
+                        # so we can't gate on it.  AUTO_PAUSE is a safe no-op
+                        # when already paused.
+                        c.auto(linuxcnc.AUTO_PAUSE)
+                    # PAUSED/IDLE: no effect
+                # SINGLE STEP
                 elif cmd_step:
-                    print(f"cmd: STEP (interp={s.interp_state} step={in_step_mode()} paused={s.paused})")
-                    if in_step_mode():
-                        # Already in step mode — toggle off.  Program stays
-                        # paused; next CYCLE START will AUTO_RESUME continuously.
+                    print(f"cmd: STEP (state={logical_state} paused={status['paused']})")
+                    if logical_state == 'STEPPING':
+                        # Toggle off — program stays paused, CYCLE START resumes.
                         hmi_step_mode = False
                         print("cmd: exited step mode (paused, CYCLE START will resume)")
-                    elif status['interp_state'] == linuxcnc.INTERP_IDLE:
-                        # Start program in step mode from idle.
+                    elif logical_state == 'IDLE':
                         hmi_step_mode = True
                         if status['mode'] != linuxcnc.MODE_AUTO:
                             c.mode(linuxcnc.MODE_AUTO)
                             c.wait_complete()
                         c.auto(linuxcnc.AUTO_STEP)
-                    elif status['interp_state'] in (linuxcnc.INTERP_PAUSED,
-                                                     linuxcnc.INTERP_WAITING,
-                                                     linuxcnc.INTERP_READING):
-                        # Transition from paused continuous run → step mode.
-                        # The next CYCLE START will issue AUTO_STEP instead of AUTO_RESUME.
+                    elif logical_state == 'PAUSED':
                         hmi_step_mode = True
                         print("cmd: entered step mode from paused state")
+                    # RUNNING: no effect (must PAUSE first)
 
                 if cmd_coolant_edge:
                     new_state = linuxcnc.FLOOD_ON if not status['coolant'] else linuxcnc.FLOOD_OFF

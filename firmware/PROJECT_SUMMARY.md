@@ -137,7 +137,7 @@ Section C program-control LEDs (interp state presentation, 2026-04-20 milestone)
 - Interp state presentation (LEDs 8-11, gated on enabled and not estop):
 	- INTERP_IDLE: LED 10 (Stop) solid
 	- INTERP_READING, normal run: LED 11 (Cycle Start) solid
-	- INTERP_READING, step mode: LED 8 (Step) + LED 11 (Cycle Start) solid if inpos, blink if not
+	- INTERP_READING, step mode: LED 8 (Step) + LED 11 (Cycle Start) solid if !paused (executing), blink if paused (waiting)
 	- INTERP_PAUSED, normal run (AUTO_PAUSE): LED 9 (Pause) blink
 	- INTERP_PAUSED, step mode: LED 8 + LED 11 blink (waiting for Cycle Start) or solid (machine moving)
 	- INTERP_WAITING, normal run: LED 11 solid

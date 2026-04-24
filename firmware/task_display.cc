@@ -458,7 +458,7 @@ void TaskDisplay::gui_task(void *param)
         }
         switch (ms.interp_state) {
           case INTERP_IDLE:    interp_str = "IDLE";  break;
-          case INTERP_READING: interp_str = ms.task_paused ? "STEP" : "RUN"; break;
+          case INTERP_READING: interp_str = ms.step_mode ? "STEP" : "RUN"; break;
           case INTERP_PAUSED:  interp_str = "PAUSE"; break;
           case INTERP_WAITING: interp_str = "RUN";   break;
           default:             interp_str = "OFF";   break;

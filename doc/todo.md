@@ -124,7 +124,7 @@ Replaced async `ENCODER_CMD_SYNC_ALL` with synchronous `sync_all_immediate()` /
 `sync_value_immediate()` API on `TaskEncoder`. Extended mutex protection to shadow values.
 Added `enc_user_moved[]` flags: encoders re-sync to host on every override change until the
 user physically touches that knob. Added 150ms settle delay in `hmi.py` before seeding
-`HAL['knob.*']`. See `memories/knob_startup_bug.md` for full root-cause analysis.
+`HAL['knob.*']`. See `doc/knob_startup_bug.md` for full root-cause analysis.
 
 ### HID interface selection fix (2026-04-22)
 `hmi.py` `find_hid_device()` now filters by `interface_number==0` (Generic HID) then

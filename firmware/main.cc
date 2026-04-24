@@ -155,7 +155,7 @@ void set_simple_led(uint8_t led, uint8_t value, uint8_t mode = TaskLED::NORMAL, 
   xQueueSend(task_led->cmd_queue, &cmd, 0);
 }
 
-void set_led_interp_state(interp_t state, bool task_paused = false, bool inpos = true)
+void set_led_interp_state(interp_t state, bool step_mode = false, bool paused = false)
 {
   switch (state)
   {
@@ -166,10 +166,10 @@ void set_led_interp_state(interp_t state, bool task_paused = false, bool inpos =
     set_simple_led(11, 0, TaskLED::NORMAL, true);
     break;
   case INTERP_READING:
-    if (task_paused)
+    if (step_mode)
     {
-      // Single-step: blink when waiting for input (inpos), solid when executing.
-      TaskLED::modes m = inpos ? TaskLED::BLINK : TaskLED::NORMAL;
+      // Single-step: blink when waiting for input (paused), solid when executing.
+      TaskLED::modes m = paused ? TaskLED::BLINK : TaskLED::NORMAL;
       set_simple_led(8, 64, m);
       set_simple_led(9, 0, TaskLED::NORMAL);
       set_simple_led(10, 0, TaskLED::NORMAL);
@@ -185,10 +185,10 @@ void set_led_interp_state(interp_t state, bool task_paused = false, bool inpos =
     }
     break;
   case INTERP_PAUSED:
-    if (task_paused)
+    if (step_mode)
     {
-      // Single-step: blink when waiting for input (inpos), solid when executing.
-      TaskLED::modes m = inpos ? TaskLED::BLINK : TaskLED::NORMAL;
+      // Single-step: blink when waiting for input (paused), solid when executing.
+      TaskLED::modes m = paused ? TaskLED::BLINK : TaskLED::NORMAL;
       set_simple_led(8, 64, m);
       set_simple_led(9, 0, TaskLED::NORMAL);
       set_simple_led(10, 0, TaskLED::NORMAL);
@@ -204,10 +204,10 @@ void set_led_interp_state(interp_t state, bool task_paused = false, bool inpos =
     }
     break;
   case INTERP_WAITING:
-    if (task_paused)
+    if (step_mode)
     {
-      // Single-step: blink when waiting for input (inpos), solid when executing.
-      TaskLED::modes m = inpos ? TaskLED::BLINK : TaskLED::NORMAL;
+      // Single-step: blink when waiting for input (paused), solid when executing.
+      TaskLED::modes m = paused ? TaskLED::BLINK : TaskLED::NORMAL;
       set_simple_led(8, 64, m);
       set_simple_led(9, 0, TaskLED::NORMAL);
       set_simple_led(10, 0, TaskLED::NORMAL);
@@ -305,7 +305,7 @@ volatile bool g_machine_alive = false;
 // Pack current machine state into a display command and enqueue it.
 static inline void display_send_machine_state(
     bool estop, bool enabled, bool homed, bool coolant,
-    mode_t mode, interp_t interp, bool task_paused, bool inpos,
+    mode_t mode, interp_t interp, bool step_mode, bool paused,
     uint8_t feed_seg, uint8_t rapid_seg, uint8_t maxvel_seg)
 {
   TaskDisplay::cmd_t dcmd;
@@ -317,8 +317,8 @@ static inline void display_send_machine_state(
   dcmd.state.coolant        = coolant;
   dcmd.state.mode           = mode;
   dcmd.state.interp_state   = interp;
-  dcmd.state.task_paused    = task_paused;
-  dcmd.state.inpos          = inpos;
+  dcmd.state.step_mode      = step_mode;
+  dcmd.state.paused         = paused;
   dcmd.state.feed_seg       = feed_seg;
   dcmd.state.rapid_seg      = rapid_seg;
   dcmd.state.maxvel_seg     = maxvel_seg;
@@ -347,8 +347,8 @@ void main_task(void *unused)
   bool machine_estop = true;
   bool machine_enabled = false;
   interp_t machine_interp_state = INTERP_OFF;
-  bool machine_task_paused = false;
-  bool machine_inpos = true;
+  bool machine_step_mode = false;
+  bool machine_paused = false;
   bool machine_coolant = false;
   bool machine_optional_stop = false;
   bool machine_homed = false;
@@ -439,17 +439,17 @@ void main_task(void *unused)
           machine_state_changed = true;
         }
 
-        if (out_pkt.s.task_paused != machine_task_paused)
+        if (out_pkt.s.step_mode != machine_step_mode)
         {
-          printf("machine_task_paused %d -> %d\n", machine_task_paused, out_pkt.s.task_paused);
-          machine_task_paused = out_pkt.s.task_paused;
+          printf("machine_step_mode %d -> %d\n", machine_step_mode, out_pkt.s.step_mode);
+          machine_step_mode = out_pkt.s.step_mode;
           machine_state_changed = true;
         }
 
-        if (out_pkt.s.inpos != machine_inpos)
+        if (out_pkt.s.paused != machine_paused)
         {
-          printf("machine_inpos %d -> %d\n", machine_inpos, out_pkt.s.inpos);
-          machine_inpos = out_pkt.s.inpos;
+          printf("machine_paused %d -> %d\n", machine_paused, out_pkt.s.paused);
+          machine_paused = out_pkt.s.paused;
           machine_state_changed = true;
         }
 
@@ -549,9 +549,9 @@ void main_task(void *unused)
         // Refresh interp LEDs on state changes, OR continuously in step mode.
         // In step mode, fast PAUSED→READING→PAUSED transitions may be invisible
         // at the host poll rate, so we re-apply on every packet to keep the
-        // blink/solid state (driven by inpos) responsive.
+        // blink/solid state (driven by paused) responsive.
         if (!machine_estop && machine_enabled
-            && (machine_state_changed || machine_task_paused))
+            && (machine_state_changed || machine_step_mode))
         {
           if (!machine_homed)
           {
@@ -567,7 +567,7 @@ void main_task(void *unused)
           else
           {
             // Homed: normal interp state presentation.
-            set_led_interp_state(machine_interp_state, machine_task_paused, machine_inpos);
+            set_led_interp_state(machine_interp_state, machine_step_mode, machine_paused);
           }
         }
         else if (machine_state_changed)
@@ -589,7 +589,7 @@ void main_task(void *unused)
 #ifdef ENABLE_DISPLAY
           display_send_machine_state(
               machine_estop, machine_enabled, machine_homed, machine_coolant,
-              machine_mode, machine_interp_state, machine_task_paused, machine_inpos,
+              machine_mode, machine_interp_state, machine_step_mode, machine_paused,
               out_pkt.s.feedrate_override, out_pkt.s.rapidrate_override, out_pkt.s.maxvel_override);
 #endif
         }
@@ -1045,8 +1045,8 @@ void main_task(void *unused)
         machine_enabled     = out_pkt.s.enabled;
         machine_mode        = (mode_t)out_pkt.s.mode;
         machine_interp_state = (interp_t)out_pkt.s.interp_state;
-        machine_task_paused = out_pkt.s.task_paused;
-        machine_inpos       = out_pkt.s.inpos;
+        machine_step_mode   = out_pkt.s.step_mode;
+        machine_paused      = out_pkt.s.paused;
         g_machine_pos[0]    = out_pkt.s.pos_x * (1.0f / 10000.0f);
         g_machine_pos[1]    = out_pkt.s.pos_y * (1.0f / 10000.0f);
         g_machine_pos[2]    = out_pkt.s.pos_z * (1.0f / 10000.0f);
@@ -1071,7 +1071,7 @@ void main_task(void *unused)
         // without waiting for a state-change transition.
         if (!machine_estop && machine_enabled)
         {
-          set_led_interp_state(machine_interp_state, machine_task_paused, machine_inpos);
+          set_led_interp_state(machine_interp_state, machine_step_mode, machine_paused);
           if (machine_mode == MODE_MANUAL)
           {
             set_led_selected_increment(selected_increment);
@@ -1093,7 +1093,7 @@ void main_task(void *unused)
 #ifdef ENABLE_DISPLAY
         display_send_machine_state(
             machine_estop, machine_enabled, machine_homed, machine_coolant,
-            machine_mode, machine_interp_state, machine_task_paused, machine_inpos,
+            machine_mode, machine_interp_state, machine_step_mode, machine_paused,
             out_pkt.s.feedrate_override, out_pkt.s.rapidrate_override, out_pkt.s.maxvel_override);
 #endif
       }

@@ -44,8 +44,8 @@ typedef union out_pkt_u
     uint8_t feedrate_override;
     uint8_t rapidrate_override;
     uint8_t maxvel_override;
-    uint8_t task_paused;
-    uint8_t inpos;
+    uint8_t step_mode;            // hmi_step_mode from hmi.py (was task_paused)
+    uint8_t paused;           // s.paused from LinuxCNC (was inpos)
     uint8_t coolant;
     uint8_t optional_stop;
     uint8_t homed;

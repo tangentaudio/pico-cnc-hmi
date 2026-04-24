@@ -76,8 +76,8 @@ public:
         bool     coolant;
         mode_t   mode;
         interp_t interp_state;
-        bool     task_paused;
-        bool     inpos;
+        bool     step_mode;           // hmi_step_mode from host (was task_paused)
+        bool     paused;          // s.paused from LinuxCNC (was inpos)
         // Override segment values (0-14) as last seen from OUT packet.
         uint8_t  feed_seg;
         uint8_t  rapid_seg;

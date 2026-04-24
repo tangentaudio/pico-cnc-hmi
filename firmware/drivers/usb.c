@@ -165,8 +165,8 @@ void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t rep
 
 void usb_dump_out_pkt(usb_out_pkt* pkt)
 {
-  printf("usb_out_pkt: heartbeat=%d estop=%d enabled=%d mode=%d interp_state=%d feedrate_override=%d rapidrate_override=%d maxvel_override=%d task_paused=%d inpos=%d coolant=%d optional_stop=%d homed=%d\n",
-    pkt->s.heartbeat, pkt->s.estop, pkt->s.enabled, pkt->s.mode, pkt->s.interp_state, pkt->s.feedrate_override, pkt->s.rapidrate_override, pkt->s.maxvel_override, pkt->s.task_paused, pkt->s.inpos, pkt->s.coolant, pkt->s.optional_stop, pkt->s.homed);
+  printf("usb_out_pkt: heartbeat=%d estop=%d enabled=%d mode=%d interp_state=%d feedrate_override=%d rapidrate_override=%d maxvel_override=%d step_mode=%d paused=%d coolant=%d optional_stop=%d homed=%d\n",
+    pkt->s.heartbeat, pkt->s.estop, pkt->s.enabled, pkt->s.mode, pkt->s.interp_state, pkt->s.feedrate_override, pkt->s.rapidrate_override, pkt->s.maxvel_override, pkt->s.step_mode, pkt->s.paused, pkt->s.coolant, pkt->s.optional_stop, pkt->s.homed);
 }
 
 void usb_dump_in_pkt(usb_in_pkt* pkt)
