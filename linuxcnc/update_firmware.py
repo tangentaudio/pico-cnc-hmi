@@ -18,8 +18,10 @@ relative to this script's directory.
 import argparse
 import glob
 import os
+import signal
 import shutil
 import struct
+import subprocess
 import sys
 import time
 
@@ -47,6 +49,34 @@ MOUNT_GLOBS = [
 TIMEOUT_MOUNT = 15
 TIMEOUT_FLASH = 30
 TIMEOUT_HID   = 15
+
+
+def signal_hmi_bootsel():
+    """Find a running hmi.py process and send it SIGUSR2 to request
+    a BOOTSEL reboot. Returns True if signal was sent."""
+    try:
+        result = subprocess.run(
+            ['pgrep', '-f', 'python3.*hmi\.py'],
+            capture_output=True, text=True)
+        pids = result.stdout.strip().split()
+        pids = [int(p) for p in pids if p]
+    except Exception:
+        pids = []
+
+    if not pids:
+        print("  No running hmi.py process found.")
+        return False
+
+    for pid in pids:
+        try:
+            os.kill(pid, signal.SIGUSR2)
+            print(f"  Sent SIGUSR2 to hmi.py (PID {pid})")
+            return True
+        except ProcessLookupError:
+            continue
+        except PermissionError:
+            print(f"  Permission denied signalling PID {pid}")
+    return False
 
 
 # ── Version extraction ────────────────────────────────────────────
@@ -210,13 +240,24 @@ def main():
 
     # Step 1: Reboot to BOOTSEL
     print(f"\n[1/4] Sending BOOTSEL reboot command...")
-    dev = hid.device()
-    dev.open_path(info['path'])
-    pkt = bytearray(64)
-    pkt[0] = 0xAA
-    pkt[14] = CMD_BOOTSEL
-    dev.write(bytes(pkt))
-    dev.close()
+    bootsel_sent = False
+    try:
+        dev = hid.device()
+        dev.open_path(info['path'])
+        pkt = bytearray(64)
+        pkt[0] = 0xAA
+        pkt[14] = CMD_BOOTSEL
+        dev.write(bytes(pkt))
+        dev.close()
+        bootsel_sent = True
+    except OSError:
+        # Device locked by hmi.py — try signalling it via SIGUSR2.
+        bootsel_sent = signal_hmi_bootsel()
+
+    if not bootsel_sent:
+        print("Error: could not send BOOTSEL command.", file=sys.stderr)
+        print("  Stop hmi.py or ensure the device is accessible.", file=sys.stderr)
+        sys.exit(1)
     print("  Device is rebooting...")
 
     # Step 2: Wait for mass storage

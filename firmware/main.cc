@@ -157,79 +157,81 @@ void set_simple_led(uint8_t led, uint8_t value, uint8_t mode = TaskLED::NORMAL, 
   xQueueSend(task_led->cmd_queue, &cmd, 0);
 }
 
+// Program control LED indices (TLC59116 outputs, Section C)
+#define LED_SINGLE_STEP   8
+#define LED_PAUSE         9
+#define LED_STOP         10
+#define LED_CYCLE_START  11
+
 void set_led_interp_state(interp_t state, bool step_mode = false, bool paused = false)
 {
   switch (state)
   {
   case INTERP_IDLE:
-    set_simple_led(8, 0, TaskLED::NORMAL);
-    set_simple_led(9, 0, TaskLED::NORMAL);
-    set_simple_led(10, 64, TaskLED::NORMAL);
-    set_simple_led(11, 0, TaskLED::NORMAL, true);
+    set_simple_led(LED_SINGLE_STEP, 0, TaskLED::NORMAL);
+    set_simple_led(LED_PAUSE, 0, TaskLED::NORMAL);
+    set_simple_led(LED_STOP, 64, TaskLED::NORMAL);
+    set_simple_led(LED_CYCLE_START, 0, TaskLED::NORMAL, true);
     break;
   case INTERP_READING:
     if (step_mode)
     {
-      // Single-step: blink when waiting for input (paused), solid when executing.
       TaskLED::modes m = paused ? TaskLED::BLINK : TaskLED::NORMAL;
-      set_simple_led(8, 64, m);
-      set_simple_led(9, 0, TaskLED::NORMAL);
-      set_simple_led(10, 0, TaskLED::NORMAL);
-      set_simple_led(11, 64, m, true);
+      set_simple_led(LED_SINGLE_STEP, 64, m);
+      set_simple_led(LED_PAUSE, 0, TaskLED::NORMAL);
+      set_simple_led(LED_STOP, 0, TaskLED::NORMAL);
+      set_simple_led(LED_CYCLE_START, 64, m, true);
     }
     else
     {
-      // Normal run: program executing — run LED solid.
-      set_simple_led(8, 0, TaskLED::NORMAL);
-      set_simple_led(9, 0, TaskLED::NORMAL);
-      set_simple_led(10, 0, TaskLED::NORMAL);
-      set_simple_led(11, 64, TaskLED::NORMAL, true);
+      // Normal run: Cycle Start LED solid.
+      set_simple_led(LED_SINGLE_STEP, 0, TaskLED::NORMAL);
+      set_simple_led(LED_PAUSE, 0, TaskLED::NORMAL);
+      set_simple_led(LED_STOP, 0, TaskLED::NORMAL);
+      set_simple_led(LED_CYCLE_START, 64, TaskLED::NORMAL, true);
     }
     break;
   case INTERP_PAUSED:
     if (step_mode)
     {
-      // Single-step: blink when waiting for input (paused), solid when executing.
       TaskLED::modes m = paused ? TaskLED::BLINK : TaskLED::NORMAL;
-      set_simple_led(8, 64, m);
-      set_simple_led(9, 0, TaskLED::NORMAL);
-      set_simple_led(10, 0, TaskLED::NORMAL);
-      set_simple_led(11, 64, m, true);
+      set_simple_led(LED_SINGLE_STEP, 64, m);
+      set_simple_led(LED_PAUSE, 0, TaskLED::NORMAL);
+      set_simple_led(LED_STOP, 0, TaskLED::NORMAL);
+      set_simple_led(LED_CYCLE_START, 64, m, true);
     }
     else
     {
-      // Mid-run pause (AUTO_PAUSE) — pause LED blink.
-      set_simple_led(8, 0, TaskLED::NORMAL);
-      set_simple_led(9, 64, TaskLED::BLINK);
-      set_simple_led(10, 0, TaskLED::NORMAL);
-      set_simple_led(11, 0, TaskLED::NORMAL, true);
+      // Mid-run pause — blink Pause + Cycle Start LEDs.
+      set_simple_led(LED_SINGLE_STEP, 0, TaskLED::NORMAL);
+      set_simple_led(LED_PAUSE, 64, TaskLED::BLINK);
+      set_simple_led(LED_STOP, 0, TaskLED::NORMAL);
+      set_simple_led(LED_CYCLE_START, 64, TaskLED::BLINK, true);
     }
     break;
   case INTERP_WAITING:
     if (step_mode)
     {
-      // Single-step: blink when waiting for input (paused), solid when executing.
       TaskLED::modes m = paused ? TaskLED::BLINK : TaskLED::NORMAL;
-      set_simple_led(8, 64, m);
-      set_simple_led(9, 0, TaskLED::NORMAL);
-      set_simple_led(10, 0, TaskLED::NORMAL);
-      set_simple_led(11, 64, m, true);
+      set_simple_led(LED_SINGLE_STEP, 64, m);
+      set_simple_led(LED_PAUSE, 0, TaskLED::NORMAL);
+      set_simple_led(LED_STOP, 0, TaskLED::NORMAL);
+      set_simple_led(LED_CYCLE_START, 64, m, true);
     }
     else
     {
-      // Normal run: briefly waiting for motion queue to drain — run LED stays solid.
-      set_simple_led(8, 0, TaskLED::NORMAL);
-      set_simple_led(9, 0, TaskLED::NORMAL);
-      set_simple_led(10, 0, TaskLED::NORMAL);
-      set_simple_led(11, 64, TaskLED::NORMAL, true);
+      // Normal run: waiting for motion queue — Cycle Start stays solid.
+      set_simple_led(LED_SINGLE_STEP, 0, TaskLED::NORMAL);
+      set_simple_led(LED_PAUSE, 0, TaskLED::NORMAL);
+      set_simple_led(LED_STOP, 0, TaskLED::NORMAL);
+      set_simple_led(LED_CYCLE_START, 64, TaskLED::NORMAL, true);
     }
     break;
   default:
-    // off
-    set_simple_led(8, 0, TaskLED::NORMAL);
-    set_simple_led(9, 0, TaskLED::NORMAL);
-    set_simple_led(10, 0, TaskLED::NORMAL);
-    set_simple_led(11, 0, TaskLED::NORMAL, true);
+    set_simple_led(LED_SINGLE_STEP, 0, TaskLED::NORMAL);
+    set_simple_led(LED_PAUSE, 0, TaskLED::NORMAL);
+    set_simple_led(LED_STOP, 0, TaskLED::NORMAL);
+    set_simple_led(LED_CYCLE_START, 0, TaskLED::NORMAL, true);
   }
 }
 
@@ -600,13 +602,13 @@ void main_task(void *unused)
           if (!machine_homed)
           {
             // Not homed: clear program LEDs; STOP LED slow-blinks via tick loop below.
-            set_simple_led(8, 0, TaskLED::NORMAL);
-            set_simple_led(9, 0, TaskLED::NORMAL);
-            set_simple_led(11, 0, TaskLED::NORMAL, true);
+            set_simple_led(LED_SINGLE_STEP, 0, TaskLED::NORMAL);
+            set_simple_led(LED_PAUSE, 0, TaskLED::NORMAL);
+            set_simple_led(LED_CYCLE_START, 0, TaskLED::NORMAL, true);
             // Start blink phase lit so feedback is immediate.
             slow_blink_last = xTaskGetTickCount();
             slow_blink_on = true;
-            set_simple_led(10, 32, TaskLED::NORMAL, true);
+            set_simple_led(LED_STOP, 32, TaskLED::NORMAL, true);
           }
           else
           {
@@ -660,8 +662,8 @@ void main_task(void *unused)
             usb_in_pending  = true;
             chord_fired = true;
             // Brief full-brightness flash on both STOP and RUN LEDs as confirmation.
-            set_simple_led(10, 64, TaskLED::NORMAL);
-            set_simple_led(11, 64, TaskLED::NORMAL, true);
+            set_simple_led(LED_STOP, 64, TaskLED::NORMAL);
+            set_simple_led(LED_CYCLE_START, 64, TaskLED::NORMAL, true);
           }
           else
           {
@@ -670,7 +672,7 @@ void main_task(void *unused)
             {
               slow_blink_last = now_ticks;
               slow_blink_on = !slow_blink_on;
-              set_simple_led(10, slow_blink_on ? 32 : 0, TaskLED::NORMAL, true);
+              set_simple_led(LED_STOP, slow_blink_on ? 32 : 0, TaskLED::NORMAL, true);
             }
           }
         }
@@ -681,7 +683,7 @@ void main_task(void *unused)
           {
             slow_blink_last = now_ticks;
             slow_blink_on = !slow_blink_on;
-            set_simple_led(10, slow_blink_on ? 32 : 0, TaskLED::NORMAL, true);
+            set_simple_led(LED_STOP, slow_blink_on ? 32 : 0, TaskLED::NORMAL, true);
           }
         }
       }
@@ -835,7 +837,7 @@ void main_task(void *unused)
                   chord_stop_held  = false;
                   chord_start_held = false;
                   chord_fired      = false;
-                  set_simple_led(11, 0, TaskLED::NORMAL, true);
+                  set_simple_led(LED_CYCLE_START, 0, TaskLED::NORMAL, true);
                   // Reset blink timer so slow-blink resumes cleanly.
                   slow_blink_last = xTaskGetTickCount() - pdMS_TO_TICKS(1000);
                 }
@@ -860,14 +862,14 @@ void main_task(void *unused)
                   chord_start_held = true;
                   chord_start_time = xTaskGetTickCount();
                   // Dim RUN LED to signal chord countdown has begun.
-                  set_simple_led(11, 16, TaskLED::NORMAL, true);
+                  set_simple_led(LED_CYCLE_START, 16, TaskLED::NORMAL, true);
                   printf("chord: STOP+START held, counting...\n");
                 }
                 else if (!mtx_evt.press)
                 {
                   chord_start_held = false;
                   if (!chord_fired)
-                    set_simple_led(11, 0, TaskLED::NORMAL, true);  // cancelled
+                    set_simple_led(LED_CYCLE_START, 0, TaskLED::NORMAL, true);  // cancelled
                   chord_fired = false;
                 }
               }

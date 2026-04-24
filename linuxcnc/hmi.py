@@ -5,6 +5,7 @@ import hal
 import linuxcnc
 import struct
 import time
+import signal
 import sys
 from pprint import pprint
 
@@ -440,6 +441,17 @@ def find_hid_device(vid=0xCAFE):
         return devlist[0]
     return None
 
+# SIGUSR2 handler: the firmware update script sends this to ask us to
+# kick the HMI into BOOTSEL mode on its behalf (since we hold the HID lock).
+_bootsel_requested = False
+
+def _handle_bootsel_signal(signum, frame):
+    global _bootsel_requested
+    _bootsel_requested = True
+    print("HMI: SIGUSR2 received — BOOTSEL reboot requested")
+
+signal.signal(signal.SIGUSR2, _handle_bootsel_signal)
+
 
 # Outer reconnect loop — tolerates the HMI going away and coming back.
 # LinuxCNC is never disturbed: HAL pins hold their last value while disconnected,
@@ -566,6 +578,17 @@ while True:
                 dev.write(obuf)  # raises on disconnect — caught below
 
             buf = dev.read(64, 1)  # 1ms timeout; raises on disconnect
+
+            # Check if the firmware updater has requested a BOOTSEL reboot.
+            if _bootsel_requested:
+                _bootsel_requested = False
+                print("HMI: sending BOOTSEL reboot command...")
+                bootsel_pkt = bytearray(64)
+                bootsel_pkt[0] = 0xAA
+                bootsel_pkt[14] = 0xB0  # CMD_BOOTSEL
+                dev.write(bytes(bootsel_pkt))
+                time.sleep(0.1)
+                break  # device will reset — fall through to reconnect loop
 
             # hid bindings vary: read() can return bytes/bytearray or list[int].
             if isinstance(buf, list):
