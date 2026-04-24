@@ -68,6 +68,7 @@ if(ENABLE_DISPLAY)
         ${CMAKE_CURRENT_LIST_DIR}/drivers/oled_sh1122.cc
         ${CMAKE_CURRENT_LIST_DIR}/fonts/roboto_64.c
         ${CMAKE_CURRENT_LIST_DIR}/fonts/jetbrainsmono_24.c
+        ${CMAKE_CURRENT_LIST_DIR}/fonts/jetbrainsmono_20.c
         ${CMAKE_CURRENT_LIST_DIR}/fonts/jetbrainsmono_48.c
         ${CMAKE_CURRENT_LIST_DIR}/task_display.cc
         )

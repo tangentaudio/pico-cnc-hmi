@@ -27,49 +27,26 @@ This works but holds preemption disabled for ~1.35ms (45 pixels × 30µs at 800k
   same as current `next_update_at` logic
 - No critical section needed; fully preemption-safe
 
-## Jog overlay (transient display) — DISABLED, TODO revisit
-
-**What it does:** When a jog encoder event fires, show a transient overlay on the OLED
-displaying "Jog Continuous X +0.3316" (or Incremental) for 2000ms, then revert to the
-status screen.
-
-**Current state:** `DISPLAY_CMD_JOG` send is disabled in `main.cc` (both the encoder-event
-path and the pos-feedback path are wrapped in `if (false)`). The display task `gui_task`
-still has the JOG case handler intact.
-
-**Root cause of failure (best understanding):**
-The display queue (depth 10) fills up faster than `gui_task` can drain it. This happens
-because `gui_task` calls `lv_timer_handler_run_in_period(5)` on every loop iteration, which
-triggers LVGL rendering → calls `lv_sh1122_flush_cb()` → calls `spi_write_blocking()` for a
-full 256×64 frame at 24MHz SPI. The frame flush takes ~7ms (256×64÷2 bytes ÷ 24Mbit/s ≈
-341µs minimum, but with SPI overhead and OLED addressing commands closer to 5-10ms). During
-this time `gui_task` cannot service the queue. Meanwhile the encoder ISR + `main_task` keep
-filling it at rates up to ~50 events/sec (shuttle + pos-feedback JOGs). Once full, every
-subsequent JOG cmd is dropped, `transient_until` stops advancing, and the display freezes on
-the last value shown.
-
-**Approaches to try when revisiting:**
-- **Option A: Dirty-flag coalescing** — instead of queuing every JOG event, `main_task`
-  writes to a shared `volatile` struct (axis, pos, continuous flag) and sets a dirty flag.
-  `gui_task` reads the latest value on each loop iteration — no queue needed, always shows
-  the most recent position, cannot overflow.
-- **Option B: Separate overlay task** — dedicated task with its own timer, only wakes on
-  semaphore signal from encoder event; handles the overlay without touching the main
-  status-rendering path.
-- **Option C: Reduce LVGL render frequency** — only call `lv_timer_handler_run_in_period`
-  every N iterations, or gate it to only run when LVGL has pending dirty regions.
-- **Option D: Partial display updates** — configure LVGL for partial-region rendering so
-  only the overlay region is flushed when the overlay changes, not the full 256×64 frame.
-  The SH1122 supports column/row addressing so this is hardware-feasible.
-
-**Files involved:**
-- `firmware/main.cc` — encoder event handler (search `// DISPLAY_CMD_JOG disabled`)
-- `firmware/main.cc` — pos-feedback path (search `// DISPLAY_CMD_JOG disabled`)
-- `firmware/task_display.cc` — `DISPLAY_CMD_JOG` case in `gui_task` (intact, ~line 373)
-
----
-
 ## COMPLETED
+
+### Display overlay system refactor + LVGL deadlock fix (2026-04-24)
+Replaced single shared overlay panel with four dedicated panels (jog, knob, select,
+bootsel), each with pre-configured fonts and layout. Jog overlay uses dirty-flag
+coalescing (Option A from the original plan below) — `publish_jog_overlay()` writes to a
+shared struct; `gui_task` polls it with 50ms render throttling. Knob overlay change-gates
+`transient_until` so encoder settling can't keep the overlay stuck.
+
+**Typography:** JetBrains Mono SemiBold 48px (4bpp) for overlay letter+value, 20px (4bpp)
+for status row overrides. Dim gray (0x60) axis/mode identifier, bright white value.
+
+**Root cause of persistent gui_task freeze:** LVGL 9's `LV_USE_OS = LV_OS_FREERTOS` created
+an internal draw thread with its own stack and mutexes. Under heavy event pressure
+(simultaneous jog + knob encoder input), the draw thread deadlocked — gui_task blocked
+forever waiting for render completion. No LVGL assertion fired because the hang was in a
+FreeRTOS semaphore wait, not an LVGL code path. Fix: `LV_USE_OS = LV_OS_NONE` — all LVGL
+calls are single-threaded (gui_task only), so the internal threading was unnecessary.
+
+Also updated `LV_ASSERT_HANDLER` to print file:line before halting (was silent `while(1)`).
 
 ### USB BOOTSEL reboot + firmware updater (2026-04-24)
 Magic command byte `cmd=0xB0` in OUT packet offset 14 triggers `reset_usb_boot(0, 0)`.

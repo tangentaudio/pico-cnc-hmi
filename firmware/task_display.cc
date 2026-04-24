@@ -163,18 +163,19 @@ void TaskDisplay::gui_task(void *param)
   // ---------------------------------------------------------------
   // Row 2 labels  (y=32..63)
   // ---------------------------------------------------------------
+  extern const lv_font_t jetbrainsmono_20_4bpp;
   lv_obj_t *lbl_feed = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_feed, &lv_font_montserrat_16, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_feed, &jetbrainsmono_20_4bpp, LV_PART_MAIN);
   lv_obj_set_pos(lbl_feed, 2, MID + 6);
   lv_label_set_text(lbl_feed, "");
 
   lv_obj_t *lbl_rapid = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_rapid, &lv_font_montserrat_16, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_rapid, &jetbrainsmono_20_4bpp, LV_PART_MAIN);
   lv_obj_set_pos(lbl_rapid, 84, MID + 6);
   lv_label_set_text(lbl_rapid, "");
 
   lv_obj_t *lbl_vel = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_vel, &lv_font_montserrat_16, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_vel, &jetbrainsmono_20_4bpp, LV_PART_MAIN);
   lv_obj_set_pos(lbl_vel, 162, MID + 6);
   lv_label_set_text(lbl_vel, "");
 
@@ -632,9 +633,9 @@ void TaskDisplay::gui_task(void *param)
       }
       // Status row needs F:/R:/V: prefixes (overlay shows them as big letters).
       char feed_disp[28], rapid_disp[28], vel_disp[28];
-      snprintf(feed_disp,  sizeof(feed_disp),  "F: %s", feed_buf);
-      snprintf(rapid_disp, sizeof(rapid_disp), "R: %s", rapid_buf);
-      snprintf(vel_disp,   sizeof(vel_disp),   "V: %s", vel_buf);
+      snprintf(feed_disp,  sizeof(feed_disp),  "F:%s", feed_buf);
+      snprintf(rapid_disp, sizeof(rapid_disp), "R:%s", rapid_buf);
+      snprintf(vel_disp,   sizeof(vel_disp),   "V:%s", vel_buf);
       lv_label_set_text(lbl_feed,  feed_disp);
       lv_label_set_text(lbl_rapid, rapid_disp);
       lv_label_set_text(lbl_vel,   vel_disp);
