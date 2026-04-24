@@ -461,6 +461,24 @@ while True:
     print(f"  manufacturer: {hid_str(dev, 'manufacturer', 'get_manufacturer_string')}")
     print(f"  product:      {hid_str(dev, 'product', 'get_product_string')}")
 
+    # Query firmware version via HID feature report (independent of control protocol).
+    try:
+        vbuf = dev.get_feature_report(0, 64)
+        if vbuf and len(vbuf) >= 14:
+            # hidapi prepends report ID byte; version data starts at index 1
+            off = 1
+            v_major = vbuf[off]
+            v_minor = vbuf[off + 1]
+            v_build = struct.unpack('<H', bytes(vbuf[off+2:off+4]))[0]
+            v_hash = bytes(vbuf[off+4:off+12]).split(b'\x00')[0].decode('ascii', errors='replace')
+            v_dirty = vbuf[off + 12]
+            v_str = "v%d.%d.%d+%s" % (v_major, v_minor, v_build, v_hash)
+            if v_dirty:
+                v_str += "+dirty"
+            print(f"  firmware:     {v_str}")
+    except Exception as e:
+        print(f"  firmware:     unknown ({e})")
+
     # Send one-time configuration packet (header 0xAB) so the HMI firmware can
     # display real units and compute the 100%-reset segment for each knob.
     # Fields use fixed-point encoding; see usb.h usb_cfg_pkt for full description.
@@ -511,6 +529,7 @@ while True:
           f"maxvel={s.max_velocity:.3f}(seg={HAL['knob.2.value']})")
 
     prev_motion_cmd = 0
+
     prev_jog_inner = 0
     prev_jog_outer = 0
     try:

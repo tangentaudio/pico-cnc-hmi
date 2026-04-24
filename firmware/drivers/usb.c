@@ -113,14 +113,21 @@ void tud_resume_cb(void)
 // Invoked when received GET_REPORT control request
 // Application must fill buffer report's content and return its length.
 // Return zero will cause the stack to STALL request
+// Firmware version — populated by main_task at startup.
+usb_version_report_t usb_version_report;
+
 uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen)
 {
-  // TODO not Implemented
   (void)itf;
   (void)report_id;
-  (void)report_type;
-  (void)buffer;
-  (void)reqlen;
+
+  if (report_type == HID_REPORT_TYPE_FEATURE) {
+    // Return firmware version info.
+    uint16_t len = sizeof(usb_version_report);
+    if (len > reqlen) len = reqlen;
+    memcpy(buffer, &usb_version_report, len);
+    return len;
+  }
 
   return 0;
 }

@@ -11,6 +11,10 @@ option(ENABLE_DISPLAY "Enable SPI OLED display support" ON)
 # allow USB to be enabled/disabled
 option(ENABLE_USB "Enable USB" ON)
 
+# Firmware version (major.minor are manual; build number comes from git)
+set(FW_VERSION_MAJOR 1)
+set(FW_VERSION_MINOR 0)
+
 # Initialise pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
 # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
@@ -46,6 +50,16 @@ include(FreeRTOS_Kernel_import.cmake)
 
 # Add executable. Default name is the project name, version 0.1
 add_executable(pico_cnc_hmi)
+
+# Generate version header from git state at every build
+add_custom_target(version_header ALL
+    COMMAND ${CMAKE_CURRENT_LIST_DIR}/gen_version.sh
+            ${FW_VERSION_MAJOR} ${FW_VERSION_MINOR}
+            ${CMAKE_CURRENT_BINARY_DIR}/version_gen.h
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/..
+    COMMENT "Generating firmware version header"
+)
+add_dependencies(pico_cnc_hmi version_header)
 
 # define sources and libs for display/LVGL support
 if(ENABLE_DISPLAY)
@@ -97,6 +111,7 @@ target_sources(pico_cnc_hmi PUBLIC
         )
 
 target_include_directories(pico_cnc_hmi PUBLIC
+        ${CMAKE_CURRENT_BINARY_DIR}   # version_gen.h
 if(ENABLE_USB)
         ${CMAKE_CURRENT_LIST_DIR}/port/tinyusb
 endif()

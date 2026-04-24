@@ -154,6 +154,17 @@ extern QueueHandle_t usb_out_queue;
 void usb_dump_out_pkt(usb_out_pkt* pkt);
 void usb_dump_in_pkt(usb_in_pkt* pkt);
 
+// Feature report: firmware version (GET_REPORT type=FEATURE, report_id=0)
+typedef struct __attribute__((packed)) {
+    uint8_t  major;
+    uint8_t  minor;
+    uint16_t build;
+    char     hash[8];
+    uint8_t  dirty;
+} usb_version_report_t;
+
+extern usb_version_report_t usb_version_report;
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

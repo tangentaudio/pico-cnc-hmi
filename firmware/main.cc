@@ -37,6 +37,7 @@
 #include <boards/pico.h>
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
+#include "version_gen.h"
 #include "drivers/i2c.hh"
 #include "task_encoder.hh"
 #include "task_matrix.hh"
@@ -327,8 +328,35 @@ static inline void display_send_machine_state(
 }
 #endif
 
+// Firmware version struct with magic marker for .uf2 scanning.
+// extern "C" + named section prevents C++ inlining/stripping.
+extern "C" const volatile struct __attribute__((packed)) {
+    uint32_t magic;     // 0x56455221 = "VER!"
+    uint8_t  major;
+    uint8_t  minor;
+    uint16_t build;
+    char     hash[8];
+    uint8_t  dirty;
+} fw_version __attribute__((used, section(".rodata.fw_version"))) = {
+    0x56455221,
+    FW_VERSION_MAJOR, FW_VERSION_MINOR, FW_VERSION_BUILD,
+    FW_VERSION_HASH, FW_VERSION_DIRTY
+};
+
 void main_task(void *unused)
 {
+  printf("Pico CNC HMI v%s (build %d)\n", FW_VERSION_STRING, fw_version.build);
+
+#ifdef ENABLE_USB
+  // Populate the USB feature report so the host can query the version
+  // without requiring the full control protocol (heartbeat etc.).
+  usb_version_report.major = FW_VERSION_MAJOR;
+  usb_version_report.minor = FW_VERSION_MINOR;
+  usb_version_report.build = FW_VERSION_BUILD;
+  strncpy(usb_version_report.hash, FW_VERSION_HASH, sizeof(usb_version_report.hash));
+  usb_version_report.dirty = FW_VERSION_DIRTY;
+#endif
+
   bool usb_in_pending = false;
   bool key_updated = false;
   uint8_t selected_axis = 1;
