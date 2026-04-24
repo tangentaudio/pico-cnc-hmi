@@ -100,7 +100,7 @@ int main(void)
   BaseType_t encoder_task_status = xTaskCreate(task_encoder->task, "ENCODER_TASK", 256, (void *)task_encoder, 4, nullptr);
   BaseType_t led_task_status = xTaskCreate(task_led->task, "LED_TASK", 256, (void *)task_led, 2, nullptr);
 #ifdef ENABLE_DISPLAY
-  BaseType_t display_gui_status = xTaskCreate(task_display->gui_task, "DISPLAY_GUI_TASK", 2048, (void *)task_display, 3, nullptr);
+  BaseType_t display_gui_status = xTaskCreate(task_display->gui_task, "DISPLAY_GUI_TASK", 4096, (void *)task_display, 3, nullptr);
 #endif
 #ifdef ENABLE_USB
   BaseType_t usb_task_status = xTaskCreate(usb_task, "USB_TASK", 2048, nullptr, 1, nullptr);
@@ -158,6 +158,24 @@ void set_simple_led(uint8_t led, uint8_t value, uint8_t mode = TaskLED::NORMAL, 
   xQueueSend(task_led->cmd_queue, &cmd, 0);
 }
 
+// Pre-format and publish jog overlay data for the display task.
+// All float formatting happens here on the main_task stack (large),
+// never on the gui_task stack (limited).
+static void publish_jog_overlay(uint8_t axis, bool continuous, const float pos[3])
+{
+  static const char *const axis_names[3] = { "X", "Y", "Z" };
+  int sel = (axis >= 1 && axis <= 3) ? axis - 1 : 0;
+  // top_text is just the axis letter (rendered in big font by gui_task).
+  snprintf(task_display->jog_overlay.top_text,
+           sizeof(task_display->jog_overlay.top_text),
+           "%s", axis_names[sel]);
+  snprintf(task_display->jog_overlay.pos_text,
+           sizeof(task_display->jog_overlay.pos_text),
+           "%+.4f", (double)pos[sel]);
+  task_display->jog_overlay.axis       = axis;
+  task_display->jog_overlay.continuous  = continuous;
+  task_display->jog_overlay.dirty       = true;   // must be last
+}
 
 void set_led_interp_state(interp_t state, bool step_mode = false, bool paused = false)
 {
@@ -532,17 +550,8 @@ void main_task(void *unused)
             !machine_estop && machine_enabled && machine_mode == MODE_MANUAL) {
           // printf("[main] pos-feedback JOG: shuttle_active=%d pos=%.4f,%.4f,%.4f\n",
           //     (int)shuttle_active, (double)g_machine_pos[0], (double)g_machine_pos[1], (double)g_machine_pos[2]);
-          // DISPLAY_CMD_JOG disabled
-          if (false) {
-          TaskDisplay::cmd_t dcmd;
-          dcmd.cmd            = TaskDisplay::DISPLAY_CMD_JOG;
-          dcmd.jog_pos[0]     = g_machine_pos[0];
-          dcmd.jog_pos[1]     = g_machine_pos[1];
-          dcmd.jog_pos[2]     = g_machine_pos[2];
-          dcmd.jog_axis       = selected_axis;
-          dcmd.jog_continuous = true;
-          xQueueSend(task_display->cmd_queue, &dcmd, 0);
-          } // DISPLAY_CMD_JOG disabled
+          // Update jog overlay via shared dirty-flag (no queue, no overflow).
+          publish_jog_overlay(selected_axis, true, g_machine_pos);
         }
 #endif
 
@@ -707,23 +716,15 @@ void main_task(void *unused)
             dcmd.knob_index = enc_evt.encoder - 1;  // 0=feed,1=rapid,2=maxvel
             // Read the current segment value directly from the encoder task.
             dcmd.knob_seg   = (uint8_t)task_encoder->get_value(enc_evt.encoder);
+            xQueueSend(task_display->cmd_queue, &dcmd, 0);
           } else {
             bool continuous = (enc_evt.encoder == 4); // enc 0 = incremental, enc 4 = shuttle
             if (continuous) {
               shuttle_active = (enc_evt.value != 0); // enc_evt.value is raw -7..+7, 0 = neutral
-              // printf("[main] shuttle enc value=%d shuttle_active=%d\n", enc_evt.value, (int)shuttle_active);
             }
             last_jog_continuous = continuous;
-            // DISPLAY_CMD_JOG disabled
-            dcmd.cmd            = TaskDisplay::DISPLAY_CMD_JOG;
-            dcmd.jog_pos[0]     = g_machine_pos[0];
-            dcmd.jog_pos[1]     = g_machine_pos[1];
-            dcmd.jog_pos[2]     = g_machine_pos[2];
-            dcmd.jog_axis       = selected_axis;
-            dcmd.jog_continuous = continuous;
-          }
-          if (false && xQueueSend(task_display->cmd_queue, &dcmd, 0) != pdTRUE) {
-            printf("[main] display queue full, cmd dropped (cmd=%d)\n", (int)dcmd.cmd);
+            // Update jog overlay via shared dirty-flag (no queue, no overflow).
+            publish_jog_overlay(selected_axis, continuous, g_machine_pos);
           }
         }
   #endif

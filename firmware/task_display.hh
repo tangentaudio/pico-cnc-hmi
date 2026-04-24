@@ -22,7 +22,7 @@
 #define LVGL_UNLOCK(x) xSemaphoreGive(x)
 
 // How long a transient overlay stays on screen before returning to status (ms).
-#define DISPLAY_TRANSIENT_MS 2000
+#define DISPLAY_TRANSIENT_MS 1000
 
 // Uncomment to show a transient overlay with the raw keycode on every key press.
 // Useful during bringup; leave disabled for normal use.
@@ -119,6 +119,20 @@ public:
     } cmd_t;
 
     QueueHandle_t cmd_queue;
+
+    // ---------------------------------------------------------------
+    // Jog overlay — shared dirty-flag struct (no queue, no overflow).
+    // main_task writes directly; gui_task polls each loop iteration.
+    // ---------------------------------------------------------------
+    struct jog_overlay_t {
+        volatile bool dirty;        // set by main_task, cleared by gui_task
+        uint8_t axis;               // selected axis 1=X 2=Y 3=Z
+        bool    continuous;         // true = shuttle, false = mpg wheel
+        // Pre-formatted by main_task to avoid float snprintf on gui_task stack.
+        char    top_text[32];       // e.g. "Jog Continuous X"
+        char    pos_text[24];       // e.g. "+1.2345"
+    };
+    jog_overlay_t jog_overlay;
 
 protected:
     static void align_area(lv_event_t *e);

@@ -179,28 +179,90 @@ void TaskDisplay::gui_task(void *param)
   lv_label_set_text(lbl_vel, "");
 
   // ---------------------------------------------------------------
-  // Transient overlay panel (full screen, hidden by default)
+  // Overlay panels — one per overlay type, each with fixed layout.
+  // A helper lambda creates the common full-screen black backdrop.
   // ---------------------------------------------------------------
-  lv_obj_t *overlay = lv_obj_create(scr);
-  lv_obj_set_size(overlay, W, H);
-  lv_obj_set_pos(overlay, 0, 0);
-  lv_obj_set_style_bg_color(overlay, lv_color_black(), LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(overlay, LV_OPA_COVER, LV_PART_MAIN);
-  lv_obj_set_style_border_width(overlay, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(overlay, 0, LV_PART_MAIN);
-  lv_obj_add_flag(overlay, LV_OBJ_FLAG_HIDDEN);
+  extern const lv_font_t roboto_64;
+  extern const lv_font_t jetbrainsmono_48;
 
-  lv_obj_t *lbl_overlay_top = lv_label_create(overlay);
-  lv_obj_set_style_text_font(lbl_overlay_top, &lv_font_montserrat_28, LV_PART_MAIN);
-  lv_obj_set_style_text_color(lbl_overlay_top, lv_color_white(), LV_PART_MAIN);
-  lv_obj_align(lbl_overlay_top, LV_ALIGN_TOP_MID, 0, 2);
-  lv_label_set_text(lbl_overlay_top, "");
+  auto make_overlay_panel = [&]() -> lv_obj_t* {
+    lv_obj_t *p = lv_obj_create(scr);
+    lv_obj_set_size(p, W, H);
+    lv_obj_set_pos(p, 0, 0);
+    lv_obj_set_style_bg_color(p, lv_color_black(), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(p, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_width(p, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(p, 0, LV_PART_MAIN);
+    lv_obj_add_flag(p, LV_OBJ_FLAG_HIDDEN);
+    return p;
+  };
 
-  lv_obj_t *lbl_overlay_bot = lv_label_create(overlay);
-  lv_obj_set_style_text_font(lbl_overlay_bot, &lv_font_montserrat_22, LV_PART_MAIN);
-  lv_obj_set_style_text_color(lbl_overlay_bot, lv_color_white(), LV_PART_MAIN);
-  lv_obj_align(lbl_overlay_bot, LV_ALIGN_BOTTOM_MID, 0, -2);
-  lv_label_set_text(lbl_overlay_bot, "");
+  // --- Jog overlay: dim axis letter (left) + position (right) ---
+  lv_obj_t *ov_jog = make_overlay_panel();
+  lv_obj_t *lbl_jog_axis = lv_label_create(ov_jog);
+  lv_obj_set_style_text_font(lbl_jog_axis, &jetbrainsmono_48, LV_PART_MAIN);
+  lv_obj_set_style_text_color(lbl_jog_axis, lv_color_make(0x60, 0x60, 0x60), LV_PART_MAIN);
+  lv_obj_align(lbl_jog_axis, LV_ALIGN_LEFT_MID, 4, 0);
+  lv_label_set_text(lbl_jog_axis, "");
+
+  lv_obj_t *lbl_jog_pos = lv_label_create(ov_jog);
+  lv_obj_set_style_text_font(lbl_jog_pos, &jetbrainsmono_48, LV_PART_MAIN);
+  lv_obj_set_style_text_color(lbl_jog_pos, lv_color_white(), LV_PART_MAIN);
+  lv_obj_align(lbl_jog_pos, LV_ALIGN_LEFT_MID, 40, 0);
+  lv_label_set_text(lbl_jog_pos, "");
+
+  // --- Knob overlay: dim F/R/V letter (left) + value (right) ---
+  lv_obj_t *ov_knob = make_overlay_panel();
+  lv_obj_t *lbl_knob_letter = lv_label_create(ov_knob);
+  lv_obj_set_style_text_font(lbl_knob_letter, &jetbrainsmono_48, LV_PART_MAIN);
+  lv_obj_set_style_text_color(lbl_knob_letter, lv_color_make(0x60, 0x60, 0x60), LV_PART_MAIN);
+  lv_obj_align(lbl_knob_letter, LV_ALIGN_LEFT_MID, 4, 0);
+  lv_label_set_text(lbl_knob_letter, "");
+
+  lv_obj_t *lbl_knob_val = lv_label_create(ov_knob);
+  lv_obj_set_style_text_font(lbl_knob_val, &jetbrainsmono_48, LV_PART_MAIN);
+  lv_obj_set_style_text_color(lbl_knob_val, lv_color_white(), LV_PART_MAIN);
+  lv_obj_align(lbl_knob_val, LV_ALIGN_LEFT_MID, 40, 0);
+  lv_label_set_text(lbl_knob_val, "");
+
+  // --- Jog-select overlay: title (top) + value (bottom, centered) ---
+  lv_obj_t *ov_select = make_overlay_panel();
+  lv_obj_t *lbl_select_title = lv_label_create(ov_select);
+  lv_obj_set_style_text_font(lbl_select_title, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_color(lbl_select_title, lv_color_white(), LV_PART_MAIN);
+  lv_obj_align(lbl_select_title, LV_ALIGN_TOP_MID, 0, 2);
+  lv_label_set_text(lbl_select_title, "");
+
+  lv_obj_t *lbl_select_val = lv_label_create(ov_select);
+  lv_obj_set_style_text_font(lbl_select_val, &lv_font_montserrat_28, LV_PART_MAIN);
+  lv_obj_set_style_text_color(lbl_select_val, lv_color_white(), LV_PART_MAIN);
+  lv_obj_align(lbl_select_val, LV_ALIGN_BOTTOM_MID, 0, -2);
+  lv_label_set_text(lbl_select_val, "");
+
+  // --- Bootsel overlay: USB boot message (centered) ---
+  lv_obj_t *ov_bootsel = make_overlay_panel();
+  lv_obj_t *lbl_boot_title = lv_label_create(ov_bootsel);
+  lv_obj_set_style_text_font(lbl_boot_title, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_color(lbl_boot_title, lv_color_white(), LV_PART_MAIN);
+  lv_obj_align(lbl_boot_title, LV_ALIGN_TOP_MID, 0, 2);
+  lv_label_set_text(lbl_boot_title, "");
+
+  lv_obj_t *lbl_boot_text = lv_label_create(ov_bootsel);
+  lv_obj_set_style_text_font(lbl_boot_text, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_color(lbl_boot_text, lv_color_white(), LV_PART_MAIN);
+  lv_obj_align(lbl_boot_text, LV_ALIGN_BOTTOM_MID, 0, -2);
+  lv_label_set_text(lbl_boot_text, "");
+
+  // Helper: hide all overlay panels.
+  auto hide_all_overlays = [&]() {
+    lv_obj_add_flag(ov_jog,     LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ov_knob,    LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ov_select,  LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(ov_bootsel, LV_OBJ_FLAG_HIDDEN);
+  };
+
+  // Which overlay is currently active (for transient expiry).
+  lv_obj_t *active_overlay = nullptr;
 
   // ---------------------------------------------------------------
   // E-stop full-screen panel (on top of everything, hidden initially)
@@ -263,24 +325,24 @@ void TaskDisplay::gui_task(void *param)
   // ---------------------------------------------------------------
   auto fmt_feed  = [](char *buf, size_t n, uint8_t seg) {
     if (!hmi_config.valid || hmi_config.max_feed_pct == 0) {
-      snprintf(buf, n, "F: -%%");
+      snprintf(buf, n, "-%%");
     } else {
-      snprintf(buf, n, "F: %u%%", hmi_feed_pct(seg));
+      snprintf(buf, n, "%u%%", hmi_feed_pct(seg));
     }
   };
   auto fmt_rapid = [](char *buf, size_t n, uint8_t seg) {
     if (!hmi_config.valid || hmi_config.max_rapid_pct == 0) {
-      snprintf(buf, n, "R: -%%");
+      snprintf(buf, n, "-%%");
     } else {
-      snprintf(buf, n, "R: %u%%", hmi_rapid_pct(seg));
+      snprintf(buf, n, "%u%%", hmi_rapid_pct(seg));
     }
   };
   auto fmt_vel   = [](char *buf, size_t n, uint8_t seg) {
     if (!hmi_config.valid || hmi_config.max_vel_x10 == 0) {
-      snprintf(buf, n, "V: - IPM");
+      snprintf(buf, n, "-");
     } else {
       uint16_t v = hmi_maxvel_x10(seg);
-      snprintf(buf, n, "V: %u.%u IPM", v / 10, v % 10);
+      snprintf(buf, n, "%u.%u", v / 10, v % 10);
     }
   };
 
@@ -305,13 +367,41 @@ void TaskDisplay::gui_task(void *param)
     // ----------------------------------------------------------
     if (transient_until != 0 && xTaskGetTickCount() >= transient_until)
     {
-      printf("[disp] overlay expired at tick %lu\n", (unsigned long)xTaskGetTickCount());
+      printf("[disp] overlay EXPIRED at tick %lu\n", (unsigned long)xTaskGetTickCount());
       transient_until = 0;
-      lv_obj_add_flag(overlay, LV_OBJ_FLAG_HIDDEN);
+      hide_all_overlays();
+      active_overlay = nullptr;
     }
-    else if (transient_until != 0)
+
+    // ----------------------------------------------------------
+    // Jog overlay — polled from shared dirty-flag struct.
+    // Text is pre-formatted by main_task; gui_task just renders it.
+    // Throttled to max 20Hz to limit LVGL relayout pressure.
+    // The transient expiry timer is only extended when we actually
+    // render, so stale/redundant dirty flags won't keep the overlay
+    // visible forever.
+    // ----------------------------------------------------------
+    if (connected && inst->jog_overlay.dirty)
     {
-      printf("[disp] waiting: now=%lu until=%lu\n", (unsigned long)xTaskGetTickCount(), (unsigned long)transient_until);
+      inst->jog_overlay.dirty = false;
+      TickType_t now = xTaskGetTickCount();
+
+      // Throttle the actual LVGL text updates to max every 50ms.
+      static TickType_t last_jog_render = 0;
+      if (now - last_jog_render >= pdMS_TO_TICKS(50) ||
+          lv_obj_has_flag(ov_jog, LV_OBJ_FLAG_HIDDEN))
+      {
+        last_jog_render = now;
+        // Only extend the expiry when we actually render.
+        transient_until = now + pdMS_TO_TICKS(DISPLAY_TRANSIENT_MS);
+        printf("[disp] JOG render: axis=%d pos=%s\n",
+            inst->jog_overlay.axis, inst->jog_overlay.pos_text);
+        lv_label_set_text_static(lbl_jog_axis, inst->jog_overlay.top_text);
+        lv_label_set_text_static(lbl_jog_pos,  inst->jog_overlay.pos_text);
+        hide_all_overlays();
+        lv_obj_remove_flag(ov_jog, LV_OBJ_FLAG_HIDDEN);
+        active_overlay = ov_jog;
+      }
     }
 
     if (got_cmd)
@@ -326,7 +416,8 @@ void TaskDisplay::gui_task(void *param)
           transient_until = 0;
           lv_obj_remove_flag(wait_panel,  LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(estop_panel,    LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(overlay,        LV_OBJ_FLAG_HIDDEN);
+          hide_all_overlays();
+          active_overlay = nullptr;
           lv_obj_set_style_line_opa(divider, LV_OPA_TRANSP, LV_PART_MAIN);
           lv_label_set_text(lbl_power,  "");
           lv_label_set_text(lbl_mode,   "");
@@ -345,7 +436,8 @@ void TaskDisplay::gui_task(void *param)
           in_estop = cmd.state.estop;
           transient_until = 0;
           lv_obj_add_flag(wait_panel, LV_OBJ_FLAG_HIDDEN);
-          lv_obj_add_flag(overlay,    LV_OBJ_FLAG_HIDDEN);
+          hide_all_overlays();
+          active_overlay = nullptr;
           if (in_estop) {
             lv_obj_remove_flag(estop_panel, LV_OBJ_FLAG_HIDDEN);
             lv_anim_start(&estop_anim);
@@ -375,45 +467,32 @@ void TaskDisplay::gui_task(void *param)
         case DISPLAY_CMD_KNOB:
         {
           if (!connected) break;
-          char top[32], bot[32];
-          static const char *knob_names[] = { "Feed", "Rapid", "Max Velocity" };
-          const char *name = (cmd.knob_index < 3) ? knob_names[cmd.knob_index] : "?";
-          snprintf(top, sizeof(top), "%s", name);
-          if      (cmd.knob_index == 0) fmt_feed (bot, sizeof(bot), cmd.knob_seg);
-          else if (cmd.knob_index == 1) fmt_rapid(bot, sizeof(bot), cmd.knob_seg);
-          else                          fmt_vel  (bot, sizeof(bot), cmd.knob_seg);
-          transient_until = xTaskGetTickCount() + pdMS_TO_TICKS(DISPLAY_TRANSIENT_MS);
-          lv_obj_set_style_text_font(lbl_overlay_top, &lv_font_montserrat_28, LV_PART_MAIN);
-          lv_obj_set_style_text_font(lbl_overlay_bot, &lv_font_montserrat_22, LV_PART_MAIN);
-          lv_label_set_text(lbl_overlay_top, top);
-          lv_label_set_text(lbl_overlay_bot, bot);
-          lv_obj_remove_flag(overlay, LV_OBJ_FLAG_HIDDEN);
+          static const char *knob_letters[] = { "F", "R", "V" };
+          const char *letter = (cmd.knob_index < 3) ? knob_letters[cmd.knob_index] : "?";
+          char val[32];
+          if      (cmd.knob_index == 0) fmt_feed (val, sizeof(val), cmd.knob_seg);
+          else if (cmd.knob_index == 1) fmt_rapid(val, sizeof(val), cmd.knob_seg);
+          else                          fmt_vel  (val, sizeof(val), cmd.knob_seg);
+          // Only extend the expiry when the displayed value changes,
+          // so encoder settling noise can't keep the overlay stuck.
+          static uint8_t last_knob_index = 0xFF;
+          static uint8_t last_knob_seg   = 0xFF;
+          bool changed = (cmd.knob_index != last_knob_index ||
+                          cmd.knob_seg   != last_knob_seg);
+          if (changed) {
+            last_knob_index = cmd.knob_index;
+            last_knob_seg   = cmd.knob_seg;
+            transient_until = xTaskGetTickCount() + pdMS_TO_TICKS(DISPLAY_TRANSIENT_MS);
+          }
+          lv_label_set_text(lbl_knob_letter, letter);
+          lv_label_set_text(lbl_knob_val, val);
+          hide_all_overlays();
+          lv_obj_remove_flag(ov_knob, LV_OBJ_FLAG_HIDDEN);
+          active_overlay = ov_knob;
           break;
         }
 
-        // ----------------------------------------------------------
-        case DISPLAY_CMD_JOG:
-        {
-          if (!connected) break;
-          TickType_t now = xTaskGetTickCount();
-          printf("[disp] JOG cmd: axis=%d cont=%d pos=%.4f  now=%lu until=%lu\n",
-              cmd.jog_axis, (int)cmd.jog_continuous, (double)cmd.jog_pos[(cmd.jog_axis>=1&&cmd.jog_axis<=3)?cmd.jog_axis-1:0],
-              (unsigned long)now, (unsigned long)transient_until);
-          transient_until = now + pdMS_TO_TICKS(DISPLAY_TRANSIENT_MS);
-          static const char *const axis_names[3] = { "X", "Y", "Z" };
-          int sel = (cmd.jog_axis >= 1 && cmd.jog_axis <= 3) ? cmd.jog_axis - 1 : 0;
-          char top_buf[32], bot_buf[24];
-          snprintf(top_buf, sizeof(top_buf), "Jog %s %s",
-              cmd.jog_continuous ? "Continuous" : "Incremental",
-              axis_names[sel]);
-          snprintf(bot_buf, sizeof(bot_buf), "%+.4f", (double)cmd.jog_pos[sel]);
-          lv_obj_set_style_text_font(lbl_overlay_top, &lv_font_montserrat_18, LV_PART_MAIN);
-          lv_obj_set_style_text_font(lbl_overlay_bot, &lv_font_unscii_16, LV_PART_MAIN);
-          lv_label_set_text(lbl_overlay_top, top_buf);
-          lv_label_set_text(lbl_overlay_bot, bot_buf);
-          lv_obj_remove_flag(overlay, LV_OBJ_FLAG_HIDDEN);
-          break;
-        }
+        // DISPLAY_CMD_JOG: handled via jog_overlay dirty-flag polling (above).
 
         // ----------------------------------------------------------
         case DISPLAY_CMD_KEY:
@@ -422,9 +501,12 @@ void TaskDisplay::gui_task(void *param)
           if (!connected) break;
           if (!cmd.key_press) break;  // only show on press, not release
           transient_until = xTaskGetTickCount() + pdMS_TO_TICKS(DISPLAY_TRANSIENT_MS);
-          lv_label_set_text_fmt(lbl_overlay_top, LV_SYMBOL_KEYBOARD " KEY");
-          lv_label_set_text_fmt(lbl_overlay_bot, "0x%02X", cmd.key_code);
-          lv_obj_remove_flag(overlay, LV_OBJ_FLAG_HIDDEN);
+          // Reuse select overlay for debug key display.
+          lv_label_set_text_fmt(lbl_select_title, LV_SYMBOL_KEYBOARD " KEY");
+          lv_label_set_text_fmt(lbl_select_val, "0x%02X", cmd.key_code);
+          hide_all_overlays();
+          lv_obj_remove_flag(ov_select, LV_OBJ_FLAG_HIDDEN);
+          active_overlay = ov_select;
 #endif
           break;
         }
@@ -446,11 +528,11 @@ void TaskDisplay::gui_task(void *param)
             snprintf(bot_buf, sizeof(bot_buf), "%s", inc_names[sel]);
           }
           transient_until = xTaskGetTickCount() + pdMS_TO_TICKS(DISPLAY_TRANSIENT_MS);
-          lv_obj_set_style_text_font(lbl_overlay_top, &lv_font_montserrat_18, LV_PART_MAIN);
-          lv_obj_set_style_text_font(lbl_overlay_bot, &lv_font_montserrat_28, LV_PART_MAIN);
-          lv_label_set_text(lbl_overlay_top, top_buf);
-          lv_label_set_text(lbl_overlay_bot, bot_buf);
-          lv_obj_remove_flag(overlay, LV_OBJ_FLAG_HIDDEN);
+          lv_label_set_text(lbl_select_title, top_buf);
+          lv_label_set_text(lbl_select_val, bot_buf);
+          hide_all_overlays();
+          lv_obj_remove_flag(ov_select, LV_OBJ_FLAG_HIDDEN);
+          active_overlay = ov_select;
           break;
         }
 
@@ -462,15 +544,31 @@ void TaskDisplay::gui_task(void *param)
           transient_until = 0;
           lv_obj_add_flag(wait_panel,   LV_OBJ_FLAG_HIDDEN);
           lv_obj_add_flag(estop_panel,  LV_OBJ_FLAG_HIDDEN);
-          lv_obj_set_style_text_font(lbl_overlay_top, &lv_font_montserrat_18, LV_PART_MAIN);
-          lv_obj_set_style_text_font(lbl_overlay_bot, &lv_font_montserrat_18, LV_PART_MAIN);
-          lv_label_set_text(lbl_overlay_top, LV_SYMBOL_USB "  USB Boot");
-          lv_label_set_text(lbl_overlay_bot, cmd.bootsel_text);
-          lv_obj_remove_flag(overlay, LV_OBJ_FLAG_HIDDEN);
+          lv_label_set_text(lbl_boot_title, LV_SYMBOL_USB "  USB Boot");
+          lv_label_set_text(lbl_boot_text, cmd.bootsel_text);
+          hide_all_overlays();
+          lv_obj_remove_flag(ov_bootsel, LV_OBJ_FLAG_HIDDEN);
+          active_overlay = ov_bootsel;
           // Force immediate render so the OLED gets updated before reset.
           lv_timer_handler();
           break;
         }
+      }
+    }
+    // Debug heartbeat — once per second, verify gui_task is alive.
+    {
+      static TickType_t last_hb = 0;
+      TickType_t now_hb = xTaskGetTickCount();
+      if (now_hb - last_hb >= pdMS_TO_TICKS(1000)) {
+        last_hb = now_hb;
+        UBaseType_t hwm = uxTaskGetStackHighWaterMark(NULL);
+        printf("[disp] heartbeat tick=%lu until=%lu stk=%lu jog=%d knob=%d sel=%d boot=%d\n",
+            (unsigned long)now_hb, (unsigned long)transient_until,
+            (unsigned long)hwm,
+            !lv_obj_has_flag(ov_jog, LV_OBJ_FLAG_HIDDEN),
+            !lv_obj_has_flag(ov_knob, LV_OBJ_FLAG_HIDDEN),
+            !lv_obj_has_flag(ov_select, LV_OBJ_FLAG_HIDDEN),
+            !lv_obj_has_flag(ov_bootsel, LV_OBJ_FLAG_HIDDEN));
       }
     }
 
@@ -532,10 +630,16 @@ void TaskDisplay::gui_task(void *param)
         lv_obj_set_style_text_color(lbl_homed, lv_color_make(0x30, 0x30, 0x30), LV_PART_MAIN);
         lv_obj_remove_flag(slash_homed, LV_OBJ_FLAG_HIDDEN);
       }
-      lv_label_set_text(lbl_feed,  feed_buf);
-      lv_label_set_text(lbl_rapid, rapid_buf);
-      lv_label_set_text(lbl_vel,   vel_buf);
+      // Status row needs F:/R:/V: prefixes (overlay shows them as big letters).
+      char feed_disp[28], rapid_disp[28], vel_disp[28];
+      snprintf(feed_disp,  sizeof(feed_disp),  "F: %s", feed_buf);
+      snprintf(rapid_disp, sizeof(rapid_disp), "R: %s", rapid_buf);
+      snprintf(vel_disp,   sizeof(vel_disp),   "V: %s", vel_buf);
+      lv_label_set_text(lbl_feed,  feed_disp);
+      lv_label_set_text(lbl_rapid, rapid_disp);
+      lv_label_set_text(lbl_vel,   vel_disp);
     }
+
     lv_timer_handler_run_in_period(5);
   }
 }
