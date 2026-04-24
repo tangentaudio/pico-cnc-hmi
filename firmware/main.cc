@@ -38,6 +38,7 @@
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
 #include "version_gen.h"
+#include "hmi_keymap.h"
 #include "drivers/i2c.hh"
 #include "task_encoder.hh"
 #include "task_matrix.hh"
@@ -157,11 +158,6 @@ void set_simple_led(uint8_t led, uint8_t value, uint8_t mode = TaskLED::NORMAL, 
   xQueueSend(task_led->cmd_queue, &cmd, 0);
 }
 
-// Program control LED indices (TLC59116 outputs, Section C)
-#define LED_SINGLE_STEP   8
-#define LED_PAUSE         9
-#define LED_STOP         10
-#define LED_CYCLE_START  11
 
 void set_led_interp_state(interp_t state, bool step_mode = false, bool paused = false)
 {
@@ -240,24 +236,24 @@ void set_led_selected_increment(uint8_t increment)
   switch (increment)
   {
   case 1:
-    set_simple_led(0, 32);
-    set_simple_led(1, 0);
-    set_simple_led(2, 0, TaskLED::NORMAL, true);
+    set_simple_led(LED_INCR_LG, 32);
+    set_simple_led(LED_INCR_MD, 0);
+    set_simple_led(LED_INCR_SM, 0, TaskLED::NORMAL, true);
     break;
   case 2:
-    set_simple_led(0, 0, TaskLED::NORMAL);
-    set_simple_led(1, 32, TaskLED::NORMAL);
-    set_simple_led(2, 0, TaskLED::NORMAL, true);
+    set_simple_led(LED_INCR_LG, 0, TaskLED::NORMAL);
+    set_simple_led(LED_INCR_MD, 32, TaskLED::NORMAL);
+    set_simple_led(LED_INCR_SM, 0, TaskLED::NORMAL, true);
     break;
   case 3:
-    set_simple_led(0, 0, TaskLED::NORMAL);
-    set_simple_led(1, 0, TaskLED::NORMAL);
-    set_simple_led(2, 32, TaskLED::NORMAL, true);
+    set_simple_led(LED_INCR_LG, 0, TaskLED::NORMAL);
+    set_simple_led(LED_INCR_MD, 0, TaskLED::NORMAL);
+    set_simple_led(LED_INCR_SM, 32, TaskLED::NORMAL, true);
     break;
   default:
-    set_simple_led(0, 0, TaskLED::NORMAL);
-    set_simple_led(1, 0, TaskLED::NORMAL);
-    set_simple_led(2, 0, TaskLED::NORMAL, true);
+    set_simple_led(LED_INCR_LG, 0, TaskLED::NORMAL);
+    set_simple_led(LED_INCR_MD, 0, TaskLED::NORMAL);
+    set_simple_led(LED_INCR_SM, 0, TaskLED::NORMAL, true);
     break;
   }
 }
@@ -267,24 +263,24 @@ void set_led_selected_axis(uint8_t axis)
   switch (axis)
   {
   case 1:
-    set_simple_led(3, 32, TaskLED::NORMAL);
-    set_simple_led(4, 0, TaskLED::NORMAL);
-    set_simple_led(5, 0, TaskLED::NORMAL, true);
+    set_simple_led(LED_AXIS_X, 32, TaskLED::NORMAL);
+    set_simple_led(LED_AXIS_Y, 0, TaskLED::NORMAL);
+    set_simple_led(LED_AXIS_Z, 0, TaskLED::NORMAL, true);
     break;
   case 2:
-    set_simple_led(3, 0, TaskLED::NORMAL);
-    set_simple_led(4, 32, TaskLED::NORMAL);
-    set_simple_led(5, 0, TaskLED::NORMAL, true);
+    set_simple_led(LED_AXIS_X, 0, TaskLED::NORMAL);
+    set_simple_led(LED_AXIS_Y, 32, TaskLED::NORMAL);
+    set_simple_led(LED_AXIS_Z, 0, TaskLED::NORMAL, true);
     break;
   case 3:
-    set_simple_led(3, 0, TaskLED::NORMAL);
-    set_simple_led(4, 0, TaskLED::NORMAL);
-    set_simple_led(5, 32, TaskLED::NORMAL, true);
+    set_simple_led(LED_AXIS_X, 0, TaskLED::NORMAL);
+    set_simple_led(LED_AXIS_Y, 0, TaskLED::NORMAL);
+    set_simple_led(LED_AXIS_Z, 32, TaskLED::NORMAL, true);
     break;
   default:
-    set_simple_led(3, 0, TaskLED::NORMAL);
-    set_simple_led(4, 0, TaskLED::NORMAL);
-    set_simple_led(5, 0, TaskLED::NORMAL, true);
+    set_simple_led(LED_AXIS_X, 0, TaskLED::NORMAL);
+    set_simple_led(LED_AXIS_Y, 0, TaskLED::NORMAL);
+    set_simple_led(LED_AXIS_Z, 0, TaskLED::NORMAL, true);
     break;
   }
 }
@@ -625,9 +621,8 @@ void main_task(void *unused)
         if (machine_state_changed)
         {
           // M1 and Coolant LEDs always reflect host state.
-          // LED 6 = M1 Optional Stop (key 0x3d), LED 7 = Coolant (key 0x3e).
-          set_simple_led(6, machine_optional_stop ? 64 : 0, TaskLED::NORMAL);
-          set_simple_led(7, machine_coolant ? 64 : 0, TaskLED::NORMAL, true);
+          set_simple_led(LED_OPT_STOP, machine_optional_stop ? 64 : 0, TaskLED::NORMAL);
+          set_simple_led(LED_COOLANT, machine_coolant ? 64 : 0, TaskLED::NORMAL, true);
         }
 
         // Send updated machine state to display whenever anything changed,
@@ -804,7 +799,7 @@ void main_task(void *unused)
             // Cycle commands: gate only on estop/enabled.
             // LinuxCNC rejects c.auto() calls when not in AUTO/TELEOP mode,
             // so let hmi.py pass the command through and let LinuxCNC handle it.
-            if (mtx_evt.code == 0x33)
+            if (mtx_evt.code == KEY_SINGLE_STEP)
             {
               if (mtx_evt.press)
                 motion_command |= 0x08;
@@ -812,7 +807,7 @@ void main_task(void *unused)
                 motion_command &= ~0x08;
               usb_in_pending = true;
             }
-            else if (mtx_evt.code == 0x34)
+            else if (mtx_evt.code == KEY_PAUSE)
             {
               if (mtx_evt.press)
                 motion_command |= 0x04;
@@ -820,7 +815,7 @@ void main_task(void *unused)
                 motion_command &= ~0x04;
               usb_in_pending = true;
             }
-            else if (mtx_evt.code == 0x35)  // STOP
+            else if (mtx_evt.code == KEY_STOP)
             {
               if (!machine_homed)
               {
@@ -852,7 +847,7 @@ void main_task(void *unused)
                 usb_in_pending = true;
               }
             }
-            else if (mtx_evt.code == 0x36)  // CYCLE START
+            else if (mtx_evt.code == KEY_CYCLE_START)
             {
               if (!machine_homed && chord_stop_held)
               {
@@ -883,7 +878,7 @@ void main_task(void *unused)
                 usb_in_pending = true;
               }
             }
-            else if (mtx_evt.code == 0x3d)
+            else if (mtx_evt.code == KEY_OPT_STOP)
             {
               if (mtx_evt.press)
                 motion_command |= 0x10;
@@ -891,7 +886,7 @@ void main_task(void *unused)
                 motion_command &= ~0x10;
               usb_in_pending = true;
             }
-            else if (mtx_evt.code == 0x3e)
+            else if (mtx_evt.code == KEY_COOLANT)
             {
               if (mtx_evt.press)
                 motion_command |= 0x20;
@@ -912,32 +907,32 @@ void main_task(void *unused)
                   || (machine_mode == MODE_AUTO && machine_interp_state == INTERP_IDLE));
           if (jog_controls_active && mtx_evt.press)
           {
-            if (mtx_evt.code == 0x2f)
+            if (mtx_evt.code == KEY_INCR_LG)
             {
               selected_increment = 1;
               usb_in_pending = true;
             }
-            else if (mtx_evt.code == 0x30)
+            else if (mtx_evt.code == KEY_INCR_MD)
             {
               selected_increment = 2;
               usb_in_pending = true;
             }
-            else if (mtx_evt.code == 0x37)
+            else if (mtx_evt.code == KEY_INCR_SM)
             {
               selected_increment = 3;
               usb_in_pending = true;
             }
-            else if (mtx_evt.code == 0x38)
+            else if (mtx_evt.code == KEY_AXIS_X)
             {
               selected_axis = 1;
               usb_in_pending = true;
             }
-            else if (mtx_evt.code == 0x39)
+            else if (mtx_evt.code == KEY_AXIS_Y)
             {
               selected_axis = 2;
               usb_in_pending = true;
             }
-            else if (mtx_evt.code == 0x3a)
+            else if (mtx_evt.code == KEY_AXIS_Z)
             {
               selected_axis = 3;
               usb_in_pending = true;
@@ -945,8 +940,8 @@ void main_task(void *unused)
 
 #ifdef ENABLE_DISPLAY
             // Send transient overlay for increment/axis selection changes.
-            bool is_inc  = (mtx_evt.code == 0x2f || mtx_evt.code == 0x30 || mtx_evt.code == 0x37);
-            bool is_axis = (mtx_evt.code == 0x38 || mtx_evt.code == 0x39 || mtx_evt.code == 0x3a);
+            bool is_inc  = (mtx_evt.code == KEY_INCR_LG || mtx_evt.code == KEY_INCR_MD || mtx_evt.code == KEY_INCR_SM);
+            bool is_axis = (mtx_evt.code == KEY_AXIS_X  || mtx_evt.code == KEY_AXIS_Y  || mtx_evt.code == KEY_AXIS_Z);
             if (is_inc || is_axis) {
               TaskDisplay::cmd_t dcmd;
               dcmd.cmd = TaskDisplay::DISPLAY_CMD_JOG_SELECT;
@@ -1077,8 +1072,8 @@ void main_task(void *unused)
         set_led_selected_axis(0);
         set_led_selected_increment(0);
         set_led_interp_state(INTERP_OFF);
-        set_simple_led(6, 0, TaskLED::NORMAL);
-        set_simple_led(7, 0, TaskLED::NORMAL, true);
+        set_simple_led(LED_OPT_STOP, 0, TaskLED::NORMAL);
+        set_simple_led(LED_COOLANT, 0, TaskLED::NORMAL, true);
         set_ring_led(0, 0, 0);
         set_ring_led(1, 0, 0);
         set_ring_led(2, 0, 0, true);

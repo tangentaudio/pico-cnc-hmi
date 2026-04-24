@@ -56,7 +56,7 @@ def signal_hmi_bootsel():
     a BOOTSEL reboot. Returns True if signal was sent."""
     try:
         result = subprocess.run(
-            ['pgrep', '-f', 'python3.*hmi\.py'],
+            ['pgrep', '-f', r'python3.*hmi\.py'],
             capture_output=True, text=True)
         pids = result.stdout.strip().split()
         pids = [int(p) for p in pids if p]
@@ -233,45 +233,54 @@ def main():
             print("Firmware is up to date. Use --force to flash anyway.")
             return
 
-    if info is None:
-        print("Error: HMI device not found. Cannot send BOOTSEL command.",
-              file=sys.stderr)
-        sys.exit(1)
+    # Check if device is already in BOOTSEL mode (mass storage mounted).
+    mount = find_bootsel_mount()
+    if mount:
+        print(f"\n→ Device already in BOOTSEL mode ({mount})")
+    else:
+        if info is None:
+            print("Error: HMI device not found and not in BOOTSEL mode.",
+                  file=sys.stderr)
+            sys.exit(1)
 
-    # Step 1: Reboot to BOOTSEL
-    print(f"\n[1/4] Sending BOOTSEL reboot command...")
-    bootsel_sent = False
-    try:
-        dev = hid.device()
-        dev.open_path(info['path'])
-        pkt = bytearray(64)
-        pkt[0] = 0xAA
-        pkt[14] = CMD_BOOTSEL
-        dev.write(bytes(pkt))
-        dev.close()
-        bootsel_sent = True
-    except OSError:
-        # Device locked by hmi.py — try signalling it via SIGUSR2.
-        bootsel_sent = signal_hmi_bootsel()
+        # Step 1: Reboot to BOOTSEL
+        print(f"\n[1/4] Sending BOOTSEL reboot command...")
+        bootsel_sent = False
+        try:
+            dev = hid.device()
+            dev.open_path(info['path'])
+            pkt = bytearray(64)
+            pkt[0] = 0xAA
+            pkt[14] = CMD_BOOTSEL
+            dev.write(bytes(pkt))
+            dev.close()
+            bootsel_sent = True
+        except OSError:
+            # Device locked by hmi.py — try signalling it via SIGUSR2.
+            bootsel_sent = signal_hmi_bootsel()
 
-    if not bootsel_sent:
-        print("Error: could not send BOOTSEL command.", file=sys.stderr)
-        print("  Stop hmi.py or ensure the device is accessible.", file=sys.stderr)
-        sys.exit(1)
-    print("  Device is rebooting...")
+        if not bootsel_sent:
+            print("Error: could not send BOOTSEL command.", file=sys.stderr)
+            print("  Stop hmi.py or ensure the device is accessible.", file=sys.stderr)
+            sys.exit(1)
+        print("  Device is rebooting...")
 
-    # Step 2: Wait for mass storage
-    print(f"\n[2/4] Waiting for USB mass storage...")
-    mount = wait_for("RPI-RP2/RP2350 mount", find_bootsel_mount, TIMEOUT_MOUNT)
-    if mount is None:
-        print("Error: mass storage did not appear.", file=sys.stderr)
-        sys.exit(1)
+        # Step 2: Wait for mass storage
+        print(f"\n[2/4] Waiting for USB mass storage...")
+        mount = wait_for("RPI-RP2/RP2350 mount", find_bootsel_mount, TIMEOUT_MOUNT)
+        if mount is None:
+            print("Error: mass storage did not appear.", file=sys.stderr)
+            sys.exit(1)
 
     # Step 3: Copy firmware
     print(f"\n[3/4] Copying firmware...")
     dest = os.path.join(mount, os.path.basename(uf2_path))
     print(f"  {uf2_path} → {dest}")
-    shutil.copy2(uf2_path, dest)
+    try:
+        shutil.copy2(uf2_path, dest)
+    except PermissionError:
+        print("  Permission denied — retrying with sudo...")
+        subprocess.run(['sudo', 'cp', uf2_path, dest], check=True)
     os.sync()
     print("  Copy complete. Pico is flashing...")
 
