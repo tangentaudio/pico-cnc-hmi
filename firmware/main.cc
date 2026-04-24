@@ -339,6 +339,8 @@ void main_task(void *unused)
   uint8_t keybuf[6] = {0, 0, 0, 0, 0, 0};
   uint8_t modifiers = 0;
   bool sec_a_shift = false;          // true while Section A wide modifier key is held
+  bool sec_a_shift_used = false;     // true if another key was pressed while shift held (tap-vs-hold)
+  bool pending_space_release = false;  // auto-release Space on next iteration after tap
   uint8_t pressed_hid[0x60] = {};   // maps matrix code -> HID keycode sent on press (for correct release)
 
   usb_out_pkt last_out_pkt;
@@ -695,6 +697,14 @@ void main_task(void *unused)
         usb_in_pending = true;
       }  // if (xQueueReceive(task_encoder...))
 
+      // Auto-release Space after a shift-tap.  The press report was sent on
+      // the previous iteration; now remove it and send the release report.
+      if (pending_space_release) {
+        TaskMatrix::hid_n_key_buf_remove(keybuf, 0x2C);
+        key_updated = true;
+        pending_space_release = false;
+      }
+
       TaskMatrix::event_t mtx_evt;
       if (xQueueReceive(task_matrix->event_queue, &mtx_evt, 1) == pdTRUE)
       {
@@ -905,9 +915,25 @@ void main_task(void *unused)
           }
 
           if (TaskMatrix::is_section_a_shift(mtx_evt.code)) {
-            // Wide modifier key: track state only, send nothing to host.
-            sec_a_shift = mtx_evt.press;
+            // Wide modifier key: tap sends Space, hold acts as shift.
+            if (mtx_evt.press) {
+              sec_a_shift = true;
+              sec_a_shift_used = false;
+            } else {
+              sec_a_shift = false;
+              if (!sec_a_shift_used) {
+                // Tap: shift was released without being used as a modifier.
+                // Emit a Space keystroke (HID 0x2C).
+                TaskMatrix::hid_n_key_buf_add(keybuf, 0x2C);
+                key_updated = true;
+                pending_space_release = true;  // auto-release next iteration
+              }
+            }
           } else {
+            // If shift is held and another key is pressed, mark shift as used.
+            if (sec_a_shift && mtx_evt.press)
+              sec_a_shift_used = true;
+
             uint8_t key_hid = 0;
             bool found = false;
             if (sec_a_shift)
