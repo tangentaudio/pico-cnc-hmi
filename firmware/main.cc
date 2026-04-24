@@ -578,9 +578,10 @@ void main_task(void *unused)
 
         if (machine_state_changed)
         {
-          // Coolant and optional-stop LEDs always reflect host state.
-          set_simple_led(6, machine_coolant ? 64 : 0, TaskLED::NORMAL);
-          set_simple_led(7, machine_optional_stop ? 64 : 0, TaskLED::NORMAL, true);
+          // M1 and Coolant LEDs always reflect host state.
+          // LED 6 = M1 Optional Stop (key 0x3d), LED 7 = Coolant (key 0x3e).
+          set_simple_led(6, machine_optional_stop ? 64 : 0, TaskLED::NORMAL);
+          set_simple_led(7, machine_coolant ? 64 : 0, TaskLED::NORMAL, true);
         }
 
         // Send updated machine state to display whenever anything changed,
