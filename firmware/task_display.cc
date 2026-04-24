@@ -207,7 +207,7 @@ void TaskDisplay::gui_task(void *param)
   lv_obj_t *estop_panel = lv_obj_create(scr);
   lv_obj_set_size(estop_panel, W, H);
   lv_obj_set_pos(estop_panel, 0, 0);
-  lv_obj_set_style_bg_color(estop_panel, lv_color_white(), LV_PART_MAIN);
+  lv_obj_set_style_bg_color(estop_panel, lv_color_black(), LV_PART_MAIN);
   lv_obj_set_style_bg_opa(estop_panel, LV_OPA_COVER, LV_PART_MAIN);
   lv_obj_set_style_border_width(estop_panel, 0, LV_PART_MAIN);
   lv_obj_set_style_pad_all(estop_panel, 0, LV_PART_MAIN);
@@ -215,9 +215,22 @@ void TaskDisplay::gui_task(void *param)
 
   lv_obj_t *lbl_estop = lv_label_create(estop_panel);
   lv_obj_set_style_text_font(lbl_estop, &lv_font_montserrat_28, LV_PART_MAIN);
-  lv_obj_set_style_text_color(lbl_estop, lv_color_black(), LV_PART_MAIN);
+  lv_obj_set_style_text_color(lbl_estop, lv_color_white(), LV_PART_MAIN);
   lv_obj_align(lbl_estop, LV_ALIGN_CENTER, 0, 0);
   lv_label_set_text(lbl_estop, LV_SYMBOL_WARNING "  E-STOP  " LV_SYMBOL_WARNING);
+
+  // E-stop blink animation helper: cycles text opacity.
+  auto estop_anim_cb = [](void *obj, int32_t v) {
+    lv_obj_set_style_text_opa((lv_obj_t *)obj, (lv_opa_t)v, LV_PART_MAIN);
+  };
+  lv_anim_t estop_anim;
+  lv_anim_init(&estop_anim);
+  lv_anim_set_var(&estop_anim, lbl_estop);
+  lv_anim_set_exec_cb(&estop_anim, estop_anim_cb);
+  lv_anim_set_values(&estop_anim, LV_OPA_COVER, LV_OPA_20);
+  lv_anim_set_duration(&estop_anim, 400);
+  lv_anim_set_playback_duration(&estop_anim, 400);
+  lv_anim_set_repeat_count(&estop_anim, LV_ANIM_REPEAT_INFINITE);
 
   // ---------------------------------------------------------------
   // Waiting-for-connection screen (visible until first machine state)
@@ -328,7 +341,10 @@ void TaskDisplay::gui_task(void *param)
           lv_obj_add_flag(overlay,    LV_OBJ_FLAG_HIDDEN);
           if (in_estop) {
             lv_obj_remove_flag(estop_panel, LV_OBJ_FLAG_HIDDEN);
+            lv_anim_start(&estop_anim);
           } else {
+            lv_anim_delete(lbl_estop, estop_anim_cb);
+            lv_obj_set_style_text_opa(lbl_estop, LV_OPA_COVER, LV_PART_MAIN);
             lv_obj_add_flag(estop_panel, LV_OBJ_FLAG_HIDDEN);
           }
           if (!in_estop) goto update_status_row;
