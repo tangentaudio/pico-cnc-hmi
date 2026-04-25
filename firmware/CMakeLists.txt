@@ -63,13 +63,13 @@ add_dependencies(pico_cnc_hmi version_header)
 
 # define sources and libs for display/LVGL support
 if(ENABLE_DISPLAY)
+    # Generate LVGL font .c files from TTF sources at build time
+    include(fonts/generate_fonts.cmake)
+
     set(display_sources 
         ${CMAKE_CURRENT_LIST_DIR}/drivers/spi.cc
         ${CMAKE_CURRENT_LIST_DIR}/drivers/oled_sh1122.cc
-        ${CMAKE_CURRENT_LIST_DIR}/fonts/roboto_64.c
-        ${CMAKE_CURRENT_LIST_DIR}/fonts/jetbrainsmono_24.c
-        ${CMAKE_CURRENT_LIST_DIR}/fonts/jetbrainsmono_20.c
-        ${CMAKE_CURRENT_LIST_DIR}/fonts/jetbrainsmono_48.c
+        ${GENERATED_FONT_SOURCES}
         ${CMAKE_CURRENT_LIST_DIR}/task_display.cc
         )
 

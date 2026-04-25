@@ -125,21 +125,28 @@ void TaskDisplay::gui_task(void *param)
   // ---------------------------------------------------------------
   // Row 1 labels  (y=0..31)
   // ---------------------------------------------------------------
+  // Extern declarations for generated fonts
+  // Fallback from Roboto → FontAwesome is baked into the generated .c files at build time.
+  extern const lv_font_t roboto_14;
+  extern const lv_font_t roboto_18;
+  extern const lv_font_t roboto_20;
+  extern const lv_font_t roboto_28;
+
   // Power / machine-enabled indicator (left)
   lv_obj_t *lbl_power = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_power, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_power, &roboto_18, LV_PART_MAIN);
   lv_obj_set_pos(lbl_power, 2, 5);
   lv_label_set_text(lbl_power, "");
 
   // Mode (MAN / AUTO / MDI)
   lv_obj_t *lbl_mode = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_mode, &lv_font_montserrat_14, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_mode, &roboto_14, LV_PART_MAIN);
   lv_obj_align(lbl_mode, LV_ALIGN_TOP_LEFT, 3, 8);
   lv_label_set_text(lbl_mode, "");
 
   // Interp state (IDLE / RUN / PAUSE / STEP) — fixed-width centred in row 1
   lv_obj_t *lbl_interp = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_interp, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_interp, &roboto_18, LV_PART_MAIN);
   lv_obj_set_style_text_align(lbl_interp, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
   lv_obj_set_width(lbl_interp, 90);
   lv_obj_align(lbl_interp, LV_ALIGN_TOP_MID, 0, 5);
@@ -147,7 +154,7 @@ void TaskDisplay::gui_task(void *param)
 
   // Homed indicator — LV_SYMBOL_HOME icon, right side of row 1
   lv_obj_t *lbl_homed = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_homed, &lv_font_montserrat_20, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_homed, &roboto_20, LV_PART_MAIN);
   lv_obj_align(lbl_homed, LV_ALIGN_TOP_RIGHT, -3, 5);
   lv_label_set_text(lbl_homed, "");
 
@@ -183,7 +190,6 @@ void TaskDisplay::gui_task(void *param)
   // Overlay panels — one per overlay type, each with fixed layout.
   // A helper lambda creates the common full-screen black backdrop.
   // ---------------------------------------------------------------
-  extern const lv_font_t roboto_64;
   extern const lv_font_t jetbrainsmono_48;
 
   auto make_overlay_panel = [&]() -> lv_obj_t* {
@@ -229,13 +235,13 @@ void TaskDisplay::gui_task(void *param)
   // --- Jog-select overlay: title (top) + value (bottom, centered) ---
   lv_obj_t *ov_select = make_overlay_panel();
   lv_obj_t *lbl_select_title = lv_label_create(ov_select);
-  lv_obj_set_style_text_font(lbl_select_title, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_select_title, &roboto_18, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_select_title, lv_color_white(), LV_PART_MAIN);
   lv_obj_align(lbl_select_title, LV_ALIGN_TOP_MID, 0, 2);
   lv_label_set_text(lbl_select_title, "");
 
   lv_obj_t *lbl_select_val = lv_label_create(ov_select);
-  lv_obj_set_style_text_font(lbl_select_val, &lv_font_montserrat_28, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_select_val, &roboto_28, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_select_val, lv_color_white(), LV_PART_MAIN);
   lv_obj_align(lbl_select_val, LV_ALIGN_BOTTOM_MID, 0, -2);
   lv_label_set_text(lbl_select_val, "");
@@ -243,13 +249,13 @@ void TaskDisplay::gui_task(void *param)
   // --- Bootsel overlay: USB boot message (centered) ---
   lv_obj_t *ov_bootsel = make_overlay_panel();
   lv_obj_t *lbl_boot_title = lv_label_create(ov_bootsel);
-  lv_obj_set_style_text_font(lbl_boot_title, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_boot_title, &roboto_18, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_boot_title, lv_color_white(), LV_PART_MAIN);
   lv_obj_align(lbl_boot_title, LV_ALIGN_TOP_MID, 0, 2);
   lv_label_set_text(lbl_boot_title, "");
 
   lv_obj_t *lbl_boot_text = lv_label_create(ov_bootsel);
-  lv_obj_set_style_text_font(lbl_boot_text, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_boot_text, &roboto_18, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_boot_text, lv_color_white(), LV_PART_MAIN);
   lv_obj_align(lbl_boot_text, LV_ALIGN_BOTTOM_MID, 0, -2);
   lv_label_set_text(lbl_boot_text, "");
@@ -278,7 +284,7 @@ void TaskDisplay::gui_task(void *param)
   lv_obj_add_flag(estop_panel, LV_OBJ_FLAG_HIDDEN);
 
   lv_obj_t *lbl_estop = lv_label_create(estop_panel);
-  lv_obj_set_style_text_font(lbl_estop, &lv_font_montserrat_28, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_estop, &roboto_28, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_estop, lv_color_white(), LV_PART_MAIN);
   lv_obj_align(lbl_estop, LV_ALIGN_CENTER, 0, 0);
   lv_label_set_text(lbl_estop, LV_SYMBOL_WARNING "  E-STOP  " LV_SYMBOL_WARNING);
@@ -308,13 +314,13 @@ void TaskDisplay::gui_task(void *param)
   lv_obj_set_style_pad_all(wait_panel, 0, LV_PART_MAIN);
 
   lv_obj_t *lbl_wait = lv_label_create(wait_panel);
-  lv_obj_set_style_text_font(lbl_wait, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_wait, &roboto_18, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_wait, lv_color_white(), LV_PART_MAIN);
   lv_obj_align(lbl_wait, LV_ALIGN_CENTER, 0, -8);
   lv_label_set_text(lbl_wait, LV_SYMBOL_USB "  Waiting for connection...");
 
   lv_obj_t *lbl_version = lv_label_create(wait_panel);
-  lv_obj_set_style_text_font(lbl_version, &lv_font_montserrat_14, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_version, &roboto_14, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_version, lv_color_make(0x80, 0x80, 0x80), LV_PART_MAIN);
   lv_obj_align(lbl_version, LV_ALIGN_BOTTOM_MID, 0, -4);
   lv_label_set_text(lbl_version, "v" FW_VERSION_STRING);
