@@ -14,7 +14,7 @@ OUTPUT="${3:?}"
 # Git info (run from repo root via WORKING_DIRECTORY in CMake)
 BUILD=$(git rev-list --count HEAD 2>/dev/null || echo 0)
 HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-if git diff --quiet HEAD 2>/dev/null; then
+if git diff --quiet --ignore-submodules HEAD -- firmware/; then
     DIRTY=0
     DIRTY_SUFFIX=""
 else
