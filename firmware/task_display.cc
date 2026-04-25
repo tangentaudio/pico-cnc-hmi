@@ -357,15 +357,15 @@ void TaskDisplay::gui_task(void *param)
   lv_obj_set_style_pad_all(wait_panel, 0, LV_PART_MAIN);
 
   lv_obj_t *lbl_wait = lv_label_create(wait_panel);
-  lv_obj_set_style_text_font(lbl_wait, &roboto_18, LV_PART_MAIN);
+  lv_obj_set_style_text_font(lbl_wait, &roboto_20, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_wait, lv_color_white(), LV_PART_MAIN);
-  lv_obj_align(lbl_wait, LV_ALIGN_CENTER, 0, -8);
-  lv_label_set_text(lbl_wait, LV_SYMBOL_USB "  Waiting for connection...");
+  lv_obj_align(lbl_wait, LV_ALIGN_CENTER, 0, -10);
+  lv_label_set_text(lbl_wait, "Pico CNC HMI");
 
   lv_obj_t *lbl_version = lv_label_create(wait_panel);
   lv_obj_set_style_text_font(lbl_version, &roboto_14, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_version, lv_color_make(0x80, 0x80, 0x80), LV_PART_MAIN);
-  lv_obj_align(lbl_version, LV_ALIGN_BOTTOM_MID, 0, -4);
+  lv_obj_align(lbl_version, LV_ALIGN_CENTER, 0, 10);
   lv_label_set_text(lbl_version, "v" FW_VERSION_STRING);
 
   LVGL_UNLOCK(inst->mutex);
