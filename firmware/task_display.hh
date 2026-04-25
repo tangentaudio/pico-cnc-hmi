@@ -128,6 +128,7 @@ public:
         volatile bool dirty;        // set by main_task, cleared by gui_task
         uint8_t axis;               // selected axis 1=X 2=Y 3=Z
         bool    continuous;         // true = shuttle, false = mpg wheel
+        int8_t  speed_level;        // shuttle speed: -7..+7 (0 = neutral, sign = direction)
         // Pre-formatted by main_task to avoid float snprintf on gui_task stack.
         char    top_text[32];       // e.g. "Jog Continuous X"
         char    pos_text[24];       // e.g. "+1.2345"

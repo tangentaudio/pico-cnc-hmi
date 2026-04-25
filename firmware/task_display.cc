@@ -204,19 +204,62 @@ void TaskDisplay::gui_task(void *param)
     return p;
   };
 
-  // --- Jog overlay: dim axis letter (left) + position (right) ---
+  // --- Jog overlay: dim axis letter (left) + position (right) + speed bar (bottom) ---
   lv_obj_t *ov_jog = make_overlay_panel();
   lv_obj_t *lbl_jog_axis = lv_label_create(ov_jog);
   lv_obj_set_style_text_font(lbl_jog_axis, &jetbrainsmono_48, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_jog_axis, lv_color_make(0x60, 0x60, 0x60), LV_PART_MAIN);
-  lv_obj_align(lbl_jog_axis, LV_ALIGN_LEFT_MID, 4, 0);
+  lv_obj_align(lbl_jog_axis, LV_ALIGN_LEFT_MID, 4, -5);
   lv_label_set_text(lbl_jog_axis, "");
 
   lv_obj_t *lbl_jog_pos = lv_label_create(ov_jog);
   lv_obj_set_style_text_font(lbl_jog_pos, &jetbrainsmono_48, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_jog_pos, lv_color_white(), LV_PART_MAIN);
-  lv_obj_align(lbl_jog_pos, LV_ALIGN_LEFT_MID, 40, 0);
+  lv_obj_align(lbl_jog_pos, LV_ALIGN_LEFT_MID, 40, -5);
   lv_label_set_text(lbl_jog_pos, "");
+
+  // Segmented speed bar: 7 segments left (reverse) + 7 right (forward).
+  // Each segment is a small filled rectangle at the bottom of the overlay.
+  // Brightness ramps from dim (level 1) to bright (level 7).
+  static constexpr int SEG_COUNT = 7;         // segments per direction
+  static constexpr int SEG_W     = 14;        // segment width in pixels
+  static constexpr int SEG_H     = 5;         // segment height in pixels
+  static constexpr int SEG_GAP   = 2;         // gap between segments
+  static constexpr int SEG_Y     = H - SEG_H - 2;  // y position (2px bottom margin)
+  static constexpr int CENTER_GAP = 6;        // gap between left and right groups
+  // center of display
+  static constexpr int CX = W / 2;
+
+  lv_obj_t *jog_seg_left[SEG_COUNT];   // left/reverse segments (index 0 = innermost)
+  lv_obj_t *jog_seg_right[SEG_COUNT];  // right/forward segments (index 0 = innermost)
+
+  for (int i = 0; i < SEG_COUNT; i++) {
+    // Right segments: start from center going right
+    int rx = CX + CENTER_GAP / 2 + i * (SEG_W + SEG_GAP);
+    jog_seg_right[i] = lv_obj_create(ov_jog);
+    lv_obj_set_size(jog_seg_right[i], SEG_W, SEG_H);
+    lv_obj_set_pos(jog_seg_right[i], rx, SEG_Y);
+    lv_obj_set_style_bg_opa(jog_seg_right[i], LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(jog_seg_right[i], lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_border_width(jog_seg_right[i], 0, LV_PART_MAIN);
+    lv_obj_set_style_radius(jog_seg_right[i], 1, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(jog_seg_right[i], 0, LV_PART_MAIN);
+    lv_obj_remove_flag(jog_seg_right[i], LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(jog_seg_right[i], LV_OBJ_FLAG_HIDDEN);
+
+    // Left segments: start from center going left
+    int lx = CX - CENTER_GAP / 2 - (i + 1) * SEG_W - i * SEG_GAP;
+    jog_seg_left[i] = lv_obj_create(ov_jog);
+    lv_obj_set_size(jog_seg_left[i], SEG_W, SEG_H);
+    lv_obj_set_pos(jog_seg_left[i], lx, SEG_Y);
+    lv_obj_set_style_bg_opa(jog_seg_left[i], LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(jog_seg_left[i], lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_border_width(jog_seg_left[i], 0, LV_PART_MAIN);
+    lv_obj_set_style_radius(jog_seg_left[i], 1, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(jog_seg_left[i], 0, LV_PART_MAIN);
+    lv_obj_remove_flag(jog_seg_left[i], LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(jog_seg_left[i], LV_OBJ_FLAG_HIDDEN);
+  }
 
   // --- Knob overlay: dim F/R/V letter (left) + value (right) ---
   lv_obj_t *ov_knob = make_overlay_panel();
@@ -401,10 +444,33 @@ void TaskDisplay::gui_task(void *param)
         last_jog_render = now;
         // Only extend the expiry when we actually render.
         transient_until = now + pdMS_TO_TICKS(DISPLAY_TRANSIENT_MS);
-        printf("[disp] JOG render: axis=%d pos=%s\n",
-            inst->jog_overlay.axis, inst->jog_overlay.pos_text);
+        printf("[disp] JOG render: axis=%d pos=%s spd=%d\n",
+            inst->jog_overlay.axis, inst->jog_overlay.pos_text,
+            inst->jog_overlay.speed_level);
         lv_label_set_text_static(lbl_jog_axis, inst->jog_overlay.top_text);
         lv_label_set_text_static(lbl_jog_pos,  inst->jog_overlay.pos_text);
+
+        // Update speed bar segments.
+        // Brightness ramp: level 1 = 0x30 (dim), level 7 = 0xFF (bright).
+        int8_t spd = inst->jog_overlay.speed_level;
+        int mag = (spd < 0) ? -spd : spd;
+        for (int i = 0; i < SEG_COUNT; i++) {
+          if (spd > 0 && i < mag) {
+            uint8_t brt = 0x30 + (i * (0xFF - 0x30)) / (SEG_COUNT - 1);
+            lv_obj_set_style_bg_color(jog_seg_right[i], lv_color_make(brt, brt, brt), LV_PART_MAIN);
+            lv_obj_remove_flag(jog_seg_right[i], LV_OBJ_FLAG_HIDDEN);
+          } else {
+            lv_obj_add_flag(jog_seg_right[i], LV_OBJ_FLAG_HIDDEN);
+          }
+          if (spd < 0 && i < mag) {
+            uint8_t brt = 0x30 + (i * (0xFF - 0x30)) / (SEG_COUNT - 1);
+            lv_obj_set_style_bg_color(jog_seg_left[i], lv_color_make(brt, brt, brt), LV_PART_MAIN);
+            lv_obj_remove_flag(jog_seg_left[i], LV_OBJ_FLAG_HIDDEN);
+          } else {
+            lv_obj_add_flag(jog_seg_left[i], LV_OBJ_FLAG_HIDDEN);
+          }
+        }
+
         hide_all_overlays();
         lv_obj_remove_flag(ov_jog, LV_OBJ_FLAG_HIDDEN);
         active_overlay = ov_jog;

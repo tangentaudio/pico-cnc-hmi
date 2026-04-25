@@ -161,7 +161,7 @@ void set_simple_led(uint8_t led, uint8_t value, uint8_t mode = TaskLED::NORMAL, 
 // Pre-format and publish jog overlay data for the display task.
 // All float formatting happens here on the main_task stack (large),
 // never on the gui_task stack (limited).
-static void publish_jog_overlay(uint8_t axis, bool continuous, const float pos[3])
+static void publish_jog_overlay(uint8_t axis, bool continuous, const float pos[3], int8_t speed_level = 0)
 {
   static const char *const axis_names[3] = { "X", "Y", "Z" };
   int sel = (axis >= 1 && axis <= 3) ? axis - 1 : 0;
@@ -172,9 +172,10 @@ static void publish_jog_overlay(uint8_t axis, bool continuous, const float pos[3
   snprintf(task_display->jog_overlay.pos_text,
            sizeof(task_display->jog_overlay.pos_text),
            "%+.4f", (double)pos[sel]);
-  task_display->jog_overlay.axis       = axis;
-  task_display->jog_overlay.continuous  = continuous;
-  task_display->jog_overlay.dirty       = true;   // must be last
+  task_display->jog_overlay.axis        = axis;
+  task_display->jog_overlay.continuous   = continuous;
+  task_display->jog_overlay.speed_level  = speed_level;
+  task_display->jog_overlay.dirty        = true;   // must be last
 }
 
 void set_led_interp_state(interp_t state, bool step_mode = false, bool paused = false)
@@ -402,6 +403,7 @@ void main_task(void *unused)
   float g_machine_pos[3] = {0.0f, 0.0f, 0.0f};
   bool  last_jog_continuous = false;  // set by most recent enc 0/4 event
   bool  shuttle_active      = false;  // true while shuttle is held at non-zero position
+  int8_t shuttle_speed_level = 0;     // raw shuttle position -7..+7, for display speed bar
 
   TickType_t slow_blink_last = 0;
   bool slow_blink_on = false;
@@ -551,7 +553,7 @@ void main_task(void *unused)
           // printf("[main] pos-feedback JOG: shuttle_active=%d pos=%.4f,%.4f,%.4f\n",
           //     (int)shuttle_active, (double)g_machine_pos[0], (double)g_machine_pos[1], (double)g_machine_pos[2]);
           // Update jog overlay via shared dirty-flag (no queue, no overflow).
-          publish_jog_overlay(selected_axis, true, g_machine_pos);
+          publish_jog_overlay(selected_axis, true, g_machine_pos, shuttle_speed_level);
         }
 #endif
 
@@ -721,10 +723,12 @@ void main_task(void *unused)
             bool continuous = (enc_evt.encoder == 4); // enc 0 = incremental, enc 4 = shuttle
             if (continuous) {
               shuttle_active = (enc_evt.value != 0); // enc_evt.value is raw -7..+7, 0 = neutral
+              shuttle_speed_level = (int8_t)enc_evt.value;
             }
             last_jog_continuous = continuous;
             // Update jog overlay via shared dirty-flag (no queue, no overflow).
-            publish_jog_overlay(selected_axis, continuous, g_machine_pos);
+            publish_jog_overlay(selected_axis, continuous, g_machine_pos,
+                                continuous ? shuttle_speed_level : (int8_t)0);
           }
         }
   #endif
