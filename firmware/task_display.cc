@@ -396,7 +396,6 @@ void TaskDisplay::gui_task(void *param)
     }
   };
 
-  // ---------------------------------------------------------------
   // State tracking
   // ---------------------------------------------------------------
   bool connected   = false;
@@ -404,6 +403,14 @@ void TaskDisplay::gui_task(void *param)
   TickType_t transient_until = 0;   // non-zero = overlay visible until this tick
 
   machine_state_t ms = {};
+
+  // Incremental jog flash animation state.
+  // When the MPG wheel clicks, all 7 segments flash briefly in the jog
+  // direction — giving crisp visual feedback for each click.
+  bool       jog_anim_active = false;
+  int8_t     jog_anim_dir    = 0;       // +1 or -1
+  TickType_t jog_anim_start  = 0;
+  static constexpr int JOG_FLASH_MS = 100;  // how long the flash stays on
 
   while (true)
   {
@@ -421,6 +428,7 @@ void TaskDisplay::gui_task(void *param)
       transient_until = 0;
       hide_all_overlays();
       active_overlay = nullptr;
+      jog_anim_active = false;  // kill any running animation
     }
 
     // ----------------------------------------------------------
@@ -444,36 +452,77 @@ void TaskDisplay::gui_task(void *param)
         last_jog_render = now;
         // Only extend the expiry when we actually render.
         transient_until = now + pdMS_TO_TICKS(DISPLAY_TRANSIENT_MS);
-        printf("[disp] JOG render: axis=%d pos=%s spd=%d\n",
+        printf("[disp] JOG render: axis=%d pos=%s spd=%d cont=%d\n",
             inst->jog_overlay.axis, inst->jog_overlay.pos_text,
-            inst->jog_overlay.speed_level);
+            inst->jog_overlay.speed_level, inst->jog_overlay.continuous);
         lv_label_set_text_static(lbl_jog_axis, inst->jog_overlay.top_text);
         lv_label_set_text_static(lbl_jog_pos,  inst->jog_overlay.pos_text);
 
-        // Update speed bar segments.
-        // Brightness ramp: level 1 = 0x30 (dim), level 7 = 0xFF (bright).
         int8_t spd = inst->jog_overlay.speed_level;
-        int mag = (spd < 0) ? -spd : spd;
-        for (int i = 0; i < SEG_COUNT; i++) {
-          if (spd > 0 && i < mag) {
-            uint8_t brt = 0x30 + (i * (0xFF - 0x30)) / (SEG_COUNT - 1);
-            lv_obj_set_style_bg_color(jog_seg_right[i], lv_color_make(brt, brt, brt), LV_PART_MAIN);
-            lv_obj_remove_flag(jog_seg_right[i], LV_OBJ_FLAG_HIDDEN);
-          } else {
-            lv_obj_add_flag(jog_seg_right[i], LV_OBJ_FLAG_HIDDEN);
+
+        if (inst->jog_overlay.continuous) {
+          // Continuous/shuttle: static bar display.
+          jog_anim_active = false;
+          int mag = (spd < 0) ? -spd : spd;
+          for (int i = 0; i < SEG_COUNT; i++) {
+            if (spd > 0 && i < mag) {
+              uint8_t brt = 0x30 + (i * (0xFF - 0x30)) / (SEG_COUNT - 1);
+              lv_obj_set_style_bg_color(jog_seg_right[i], lv_color_make(brt, brt, brt), LV_PART_MAIN);
+              lv_obj_remove_flag(jog_seg_right[i], LV_OBJ_FLAG_HIDDEN);
+            } else {
+              lv_obj_add_flag(jog_seg_right[i], LV_OBJ_FLAG_HIDDEN);
+            }
+            if (spd < 0 && i < mag) {
+              uint8_t brt = 0x30 + (i * (0xFF - 0x30)) / (SEG_COUNT - 1);
+              lv_obj_set_style_bg_color(jog_seg_left[i], lv_color_make(brt, brt, brt), LV_PART_MAIN);
+              lv_obj_remove_flag(jog_seg_left[i], LV_OBJ_FLAG_HIDDEN);
+            } else {
+              lv_obj_add_flag(jog_seg_left[i], LV_OBJ_FLAG_HIDDEN);
+            }
           }
-          if (spd < 0 && i < mag) {
+        } else if (spd != 0) {
+          // Incremental jog: flash all 7 segments in the click direction.
+          jog_anim_active = true;
+          jog_anim_dir    = spd;  // +1 or -1
+          jog_anim_start  = now;
+          // Light up all segments in the direction instantly.
+          lv_obj_t **segs     = (spd > 0) ? jog_seg_right : jog_seg_left;
+          lv_obj_t **off_segs = (spd > 0) ? jog_seg_left  : jog_seg_right;
+          for (int i = 0; i < SEG_COUNT; i++) {
             uint8_t brt = 0x30 + (i * (0xFF - 0x30)) / (SEG_COUNT - 1);
-            lv_obj_set_style_bg_color(jog_seg_left[i], lv_color_make(brt, brt, brt), LV_PART_MAIN);
-            lv_obj_remove_flag(jog_seg_left[i], LV_OBJ_FLAG_HIDDEN);
-          } else {
-            lv_obj_add_flag(jog_seg_left[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_style_bg_color(segs[i], lv_color_make(brt, brt, brt), LV_PART_MAIN);
+            lv_obj_remove_flag(segs[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(off_segs[i], LV_OBJ_FLAG_HIDDEN);
+          }
+        } else {
+          // Incremental jog with no direction (shouldn't happen, but clear bar).
+          jog_anim_active = false;
+          for (int i = 0; i < SEG_COUNT; i++) {
+            lv_obj_add_flag(jog_seg_left[i],  LV_OBJ_FLAG_HIDDEN);
+            lv_obj_add_flag(jog_seg_right[i], LV_OBJ_FLAG_HIDDEN);
           }
         }
 
         hide_all_overlays();
         lv_obj_remove_flag(ov_jog, LV_OBJ_FLAG_HIDDEN);
         active_overlay = ov_jog;
+      }
+    }
+
+    // ----------------------------------------------------------
+    // Incremental jog flash tick.
+    // All 7 segments flash on instantly, then snap off after JOG_FLASH_MS.
+    // ----------------------------------------------------------
+    if (jog_anim_active && !lv_obj_has_flag(ov_jog, LV_OBJ_FLAG_HIDDEN))
+    {
+      TickType_t elapsed = xTaskGetTickCount() - jog_anim_start;
+      if (elapsed >= pdMS_TO_TICKS(JOG_FLASH_MS)) {
+        // Flash expired — hide all segments.
+        jog_anim_active = false;
+        for (int i = 0; i < SEG_COUNT; i++) {
+          lv_obj_add_flag(jog_seg_left[i],  LV_OBJ_FLAG_HIDDEN);
+          lv_obj_add_flag(jog_seg_right[i], LV_OBJ_FLAG_HIDDEN);
+        }
       }
     }
 

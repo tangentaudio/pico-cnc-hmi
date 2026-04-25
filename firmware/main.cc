@@ -726,9 +726,19 @@ void main_task(void *unused)
               shuttle_speed_level = (int8_t)enc_evt.value;
             }
             last_jog_continuous = continuous;
+
+            // For incremental jog, compute direction from encoder delta.
+            int8_t inc_dir = 0;
+            if (!continuous) {
+              static int last_jog_enc_value = 0;
+              int delta = enc_evt.value - last_jog_enc_value;
+              last_jog_enc_value = enc_evt.value;
+              inc_dir = (delta > 0) ? 1 : (delta < 0) ? -1 : 0;
+            }
+
             // Update jog overlay via shared dirty-flag (no queue, no overflow).
             publish_jog_overlay(selected_axis, continuous, g_machine_pos,
-                                continuous ? shuttle_speed_level : (int8_t)0);
+                                continuous ? shuttle_speed_level : inc_dir);
           }
         }
   #endif
