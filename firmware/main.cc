@@ -1047,7 +1047,7 @@ void main_task(void *unused)
         pkt.s.knob3 = task_encoder->get_value(3);
         pkt.s.axis = selected_axis;
         pkt.s.step = jog_increments[selected_increment];
-        pkt.s.shuttle = task_encoder->get_value(4, false);
+        pkt.s.shuttle = task_encoder->get_value(4, true);  // raw -7..+7, speed lookup in hmi.py
         pkt.s.jog = task_encoder->get_value(0);
         pkt.s.motion_cmd = motion_command;
 

@@ -33,18 +33,6 @@ int TaskEncoder::get_value(uint8_t encoder, bool raw)
   int value = m_encoders.value(encoder);
   xSemaphoreGive(m_mutex);
 
-  if (raw)
-    return value;
-
-   if (encoder == 4) {
-    // shuttle
-    uint8_t shidx = abs(value);
-    bool pos = value >= 0;
-    const int lookup[8] = {0, 5, 10, 20, 50, 100, 250, 600};
-
-    return (pos ? lookup[shidx] : -lookup[shidx]);
-   }
-
   return value;
 }
 

@@ -63,6 +63,7 @@ configured_max_rapid_override = 1.0
 #   set HMI_MAXVEL_MIN = 1.0
 # Configure via [DISPLAY] HMI_MAXVEL_MIN in the INI file.
 configured_maxvel_curve = 2.0
+shuttle_speeds_from_ini = None
 if not ini_filename:
     print("warning: unable to determine LinuxCNC INI file path, using defaults")
 else:
@@ -79,6 +80,7 @@ else:
         configured_maxvel_curve = float(maxvel_curve_from_ini) if maxvel_curve_from_ini else 2.0
         maxvel_min_from_ini = inifile.find("DISPLAY", "HMI_MAXVEL_MIN")
         configured_maxvel_min = float(maxvel_min_from_ini) if maxvel_min_from_ini else 0.0
+        shuttle_speeds_from_ini = inifile.find("DISPLAY", "HMI_SHUTTLE_SPEEDS")
         print(f"  MAX_LINEAR_VELOCITY={configured_maxvel}")
         print(f"  MAX_FEED_OVERRIDE={configured_max_feed_override}")
         print(f"  MAX_RAPID_OVERRIDE={configured_max_rapid_override}")
@@ -86,6 +88,24 @@ else:
         print(f"  HMI_MAXVEL_MIN={configured_maxvel_min}")
     except linuxcnc.error:
         print("warning: inifile.open() failed, using defaults")
+
+# Shuttle speed table: maps raw shuttle positions 0-7 to jog speeds in IPM.
+# Index 0 = neutral (no motion).  Indices 1-7 = shuttle positions 1-7.
+# halui.axis.jog-speed takes units/min (IPM for inch machines).
+# Configure via [DISPLAY] HMI_SHUTTLE_SPEEDS in INI (7 comma-separated values in IPM).
+# Machine MAX_LINEAR_VELOCITY clamps the upper values automatically.
+configured_shuttle_speeds = [0.0, 0.5, 1, 2, 5, 10, 25, 60]
+try:
+    if shuttle_speeds_from_ini:
+        ipm = [float(x.strip()) for x in shuttle_speeds_from_ini.split(',')]
+        if len(ipm) == 7:
+            configured_shuttle_speeds = [0.0] + ipm
+            print(f"  HMI_SHUTTLE_SPEEDS={ipm} IPM")
+        else:
+            print(f"  HMI_SHUTTLE_SPEEDS: expected 7 values, got {len(ipm)}, using defaults")
+except Exception:
+    pass
+print(f"  shuttle speeds: {configured_shuttle_speeds[1:]} IPM")
 
 
 def maxvel_to_seg(velocity: float) -> int:
@@ -643,7 +663,11 @@ while True:
                 # "jogging not allowed" errors from LinuxCNC.
                 if jog_ok:
                     HAL['jog.inner.value'] = jog_inner
-                    HAL['jog.outer.value'] = float(jog_outer) / 10.0
+                    # Apply configurable shuttle speed lookup.
+                    # Firmware sends raw -7..+7; we map abs to speed table.
+                    shuttle_abs = min(abs(jog_outer), 7)
+                    shuttle_sign = 1 if jog_outer >= 0 else -1
+                    HAL['jog.outer.value'] = shuttle_sign * configured_shuttle_speeds[shuttle_abs]
                     HAL['jog.is-shuttling'] = not (jog_outer == 0)
                 else:
                     # Ensure shuttle is off while not in MANUAL.
